@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # Backend API
+  worksla-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: worksla-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+    volumes:
+      - ./backend:/app
+    networks:
+      - worksla-network
+    extra_hosts:
+      - "hosp.wu.ac.th:202.28.71.226"
+    labels:
+      - "worksla=1"
+      - "worksla.service=backend"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend
+  worksla-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: worksla-frontend
+    restart: unless-stopped
+    networks:
+      - worksla-network
+    labels:
+      - "worksla=1"
+      - "worksla.service=frontend"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/worksla/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # Reverse Proxy (Nginx with SSL)
+  worksla-nginx:
+    build:
+      context: ./reverse-proxy
+      dockerfile: Dockerfile
+    container_name: worksla-nginx
+    restart: unless-stopped
+    ports:
+      - "3346:443"
+    volumes:
+      - nginx-certs:/etc/nginx/certs
+    networks:
+      - worksla-network
+    labels:
+      - "worksla=1"
+      - "worksla.service=nginx"
+    depends_on:
+      - worksla-backend
+      - worksla-frontend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "https://localhost:443/health", "--no-check-certificate"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # Optional: Redis for caching
+  # worksla-redis:
+  #   image: redis:7-alpine
+  #   container_name: worksla-redis
+  #   restart: unless-stopped
+  #   networks:
+  #     - worksla-network
+  #   labels:
+  #     - "worksla=1"
+  #     - "worksla.service=redis"
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 30s
+  #     timeout: 3s
+  #     retries: 3
+
+  # Optional: Celery Worker
+  # worksla-celery:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: worksla-celery
+  #   restart: unless-stopped
+  #   env_file:
+  #     - .env
+  #   command: celery -A app.jobs.celery_app worker --loglevel=info
+  #   networks:
+  #     - worksla-network
+  #   labels:
+  #     - "worksla=1"
+  #     - "worksla.service=celery"
+  #   depends_on:
+  #     - worksla-redis
+  #     - worksla-backend
+
+  # Optional: Celery Beat
+  # worksla-celery-beat:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: worksla-celery-beat
+  #   restart: unless-stopped
+  #   env_file:
+  #     - .env
+  #   command: celery -A app.jobs.celery_app beat --loglevel=info
+  #   networks:
+  #     - worksla-network
+  #   labels:
+  #     - "worksla=1"
+  #     - "worksla.service=celery-beat"
+  #   depends_on:
+  #     - worksla-redis
+  #     - worksla-backend
+
+networks:
+  worksla-network:
+    name: worksla-network
+    driver: bridge
+
+volumes:
+  nginx-certs:
+    name: worksla-nginx-certs

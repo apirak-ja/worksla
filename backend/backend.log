@@ -1,0 +1,14 @@
+INFO:     Started server process [168943]
+INFO:     Waiting for application startup.
+2025-10-12 16:11:38,082 - app.main - INFO - Starting Open Project SLA Reporting System v1.0.0
+2025-10-12 16:11:38,082 - app.main - INFO - Environment: development
+2025-10-12 16:11:38,083 - app.main - INFO - Database: 10.251.150.222:5210/worksla
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:57942 - "GET /worksla/api/openapi.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54122 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53682 - "GET /worksla/api/openapi.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:39704 - "GET /worksla/api/openapi.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34662 - "GET /worksla/api/admin/assignees HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34664 - "GET /api/admin/assignees HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:34674 - "GET /worksla/api/openapi.json HTTP/1.1" 404 Not Found
