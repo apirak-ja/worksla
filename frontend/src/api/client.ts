@@ -114,15 +114,15 @@ export const authApi = {
 
 // Work Packages API
 export const wpApi = {
-  list: (params: any) => api.get<WPListResponse>('/wp', { params }),
+  list: (params: any) => api.get<WPListResponse>('/workpackages/', { params }),
   
-  get: (id: number) => api.get<WorkPackage>(`/wp/${id}`),
+  get: (id: number) => api.get<WorkPackage>(`/workpackages/${id}`),
   
-  getActivities: (id: number) => api.get(`/wp/${id}/activities`),
+  getActivities: (id: number) => api.get(`/workpackages/${id}/activities`),
   
-  dashboard: () => api.get<DashboardResponse>('/wp/dashboard'),
+  dashboard: () => api.get<DashboardResponse>('/workpackages/dashboard'),
   
-  refresh: () => api.post('/wp/refresh'),
+  refresh: () => api.post('/workpackages/refresh'),
 }
 
 // Admin API

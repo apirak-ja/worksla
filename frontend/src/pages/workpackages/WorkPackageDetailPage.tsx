@@ -79,7 +79,7 @@ const WorkPackageDetailPage: React.FC = () => {
     queryKey: ['workpackage-activities', wpId, activitiesPage, activityFilter],
     queryFn: async () => {
       const offset = (activitiesPage - 1) * activitiesPageSize;
-      const response = await api.get(`/wp/${wpId}/activities`, {
+      const response = await api.get(`/workpackages/${wpId}/activities`, {
         params: {
           offset,
           page_size: activitiesPageSize

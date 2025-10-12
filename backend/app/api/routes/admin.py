@@ -416,8 +416,18 @@ async def get_openproject_assignees(
     try:
         client = OpenProjectClient()
         assignees = client.list_assignees()
-        
-        return [OpenProjectAssigneeResponse(**assignee) for assignee in assignees]
+        # Map client fields (id, name, ...) to schema (op_user_id, display_name, ...)
+        mapped = [
+            OpenProjectAssigneeResponse(
+                op_user_id=a.get("id"),
+                display_name=a.get("name"),
+                email=a.get("email"),
+                firstName=a.get("firstname") or a.get("firstName"),
+                lastName=a.get("lastname") or a.get("lastName"),
+            )
+            for a in assignees
+        ]
+        return mapped
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาดในการดึงข้อมูลจาก OpenProject: {str(e)}")
 
@@ -663,14 +673,14 @@ async def delete_setting(
     """Delete specific setting"""
     try:
         setting_repo = SettingRepository(db)
-        
+
         full_key = f"{tab}.{key}"
         deleted = setting_repo.delete(full_key)
-        
+
         if not deleted:
             raise HTTPException(status_code=404, detail="ไม่พบการตั้งค่านี้")
-        
-    return {"message": f"ลบการตั้งค่า {key} สำเร็จ"}
+
+        return {"message": f"ลบการตั้งค่า {key} สำเร็จ"}
     except HTTPException:
         raise
     except Exception as e:

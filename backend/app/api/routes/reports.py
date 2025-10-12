@@ -16,9 +16,9 @@ router = APIRouter()
 
 @router.get("/sla")
 async def get_sla_report(
-    # Accept both legacy and frontend params: from/to aliases and assignee_ids
-    start_date: Optional[datetime] = Query(None, alias="from"),
-    end_date: Optional[datetime] = Query(None, alias="to"),
+    # Accept frontend aliases as raw strings, parse to datetime below
+    from_: Optional[str] = Query(None, alias="from"),
+    to: Optional[str] = Query(None, alias="to"),
     assignee_id: Optional[int] = None,
     project_id: Optional[int] = None,
     assignee_ids: Optional[str] = None,
@@ -31,11 +31,20 @@ async def get_sla_report(
     """
     wp_repo = WPCacheRepository(db)
     
-    # Default to last 30 days if not specified
-    if not end_date:
-        end_date = datetime.utcnow()
-    if not start_date:
-        start_date = end_date - timedelta(days=30)
+    # Resolve date range
+    def _parse_date(s: Optional[str]) -> Optional[datetime]:
+        if not s:
+            return None
+        try:
+            # Accept YYYY-MM-DD or ISO datetime
+            if 'T' in s or 't' in s or ' ' in s or '_' in s:
+                return datetime.fromisoformat(s.replace('Z', '+00:00'))
+            return datetime.strptime(s, "%Y-%m-%d")
+        except Exception:
+            return None
+
+    end_date = _parse_date(to) or datetime.utcnow()
+    start_date = _parse_date(from_) or (end_date - timedelta(days=30))
     
     filters = {
         'start_date_from': start_date,
