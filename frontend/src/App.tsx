@@ -6,8 +6,8 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import MainLayout from './layouts/MainLayout'
 import LoginPage from './pages/auth/LoginPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
-import WorkPackagesPage from './pages/workpackages/WorkPackagesPage'
-import WorkPackageDetailPage from './pages/workpackages/WorkPackageDetailPage'
+import WorkPackagesPageNew from './pages/workpackages/WorkPackagesPageNew'
+import WorkPackageDetailPageNew from './pages/workpackages/WorkPackageDetailPageNew'
 import UsersAdminPage from './pages/admin/UsersAdminPage'
 import AssigneesAdminPage from './pages/admin/AssigneesAdminPage'
 import SettingsAdminPage from './pages/admin/SettingsAdminPage'
@@ -26,8 +26,8 @@ function App() {
             <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<DashboardPage />} />
-              <Route path="workpackages" element={<WorkPackagesPage />} />
-              <Route path="workpackages/:id" element={<WorkPackageDetailPage />} />
+              <Route path="workpackages" element={<WorkPackagesPageNew />} />
+              <Route path="workpackages/:id" element={<WorkPackageDetailPageNew />} />
               <Route path="reports/sla" element={<SLAReportsPage />} />
               
               {/* Admin Routes */}

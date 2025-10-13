@@ -102,6 +102,18 @@ async def list_work_packages(
             assignee_repo = AssigneeRepository(db)
             allowed_assignees = assignee_repo.get_all(active_only=True)
             allowed_assignee_ids = {assignee.op_user_id for assignee in allowed_assignees if assignee.op_user_id}
+            
+            # If no allowed assignees, return empty result
+            if not allowed_assignee_ids:
+                return WPListResponse(
+                    items=[],
+                    total=0,
+                    page=page,
+                    page_size=page_size,
+                    total_pages=1,
+                    has_next=False,
+                    has_prev=False
+                )
         
         # Prepare filters for OpenProject API
         filters = {}
@@ -109,10 +121,6 @@ async def list_work_packages(
             filters['status'] = status
         if assignee_id:
             filters['assignee'] = str(assignee_id)
-        elif apply_assignee_filter and allowed_assignee_ids:
-            # Add assignee filter to OpenProject query
-            # OpenProject supports multiple values with comma-separated IDs
-            filters['assignee'] = ','.join(str(aid) for aid in allowed_assignee_ids)
         if project_id:
             filters['project'] = str(project_id)
         if type:
@@ -121,13 +129,24 @@ async def list_work_packages(
         # Calculate offset
         offset = (page - 1) * page_size
         
-        # Get work packages from OpenProject
+        # Get work packages from OpenProject (fetch more to filter client-side)
+        # Since we need to filter by multiple assignees, we'll fetch more and filter
+        fetch_limit = page_size * 3 if apply_assignee_filter and not assignee_id else page_size
+        
         work_packages, total_count = openproject_client.list_work_packages(
-            offset=offset,
-            limit=page_size,
+            offset=0 if apply_assignee_filter and not assignee_id else offset,
+            limit=fetch_limit,
             filters=filters,
             sort_by=sort_order
         )
+        
+        # Filter by allowed assignees if needed (client-side filtering)
+        if apply_assignee_filter and allowed_assignee_ids and not assignee_id:
+            work_packages = [
+                wp for wp in work_packages 
+                if wp.get('assignee_id') in allowed_assignee_ids
+            ]
+            total_count = len(work_packages)
         
         # Add cached_at timestamp to each work package
         from datetime import datetime
@@ -140,9 +159,15 @@ async def list_work_packages(
             work_packages = [
                 wp for wp in work_packages 
                 if search.lower() in wp.get('subject', '').lower()
-                or search.lower() in wp.get('description', '').lower()
+                or search.lower() in wp.get('description_plain', '').lower()
             ]
             total_count = len(work_packages)
+        
+        # Apply pagination after filtering
+        if apply_assignee_filter and allowed_assignee_ids and not assignee_id:
+            start_idx = offset
+            end_idx = offset + page_size
+            work_packages = work_packages[start_idx:end_idx]
         
         # Calculate pagination
         total_pages = math.ceil(total_count / page_size) if total_count > 0 else 1
