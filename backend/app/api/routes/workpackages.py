@@ -96,12 +96,23 @@ async def list_work_packages(
     Get paginated list of work packages with filters
     """
     try:
+        # Get assignee allowlist first if filter is enabled
+        allowed_assignee_ids = None
+        if apply_assignee_filter:
+            assignee_repo = AssigneeRepository(db)
+            allowed_assignees = assignee_repo.get_all(active_only=True)
+            allowed_assignee_ids = {assignee.op_user_id for assignee in allowed_assignees if assignee.op_user_id}
+        
         # Prepare filters for OpenProject API
         filters = {}
         if status:
             filters['status'] = status
         if assignee_id:
             filters['assignee'] = str(assignee_id)
+        elif apply_assignee_filter and allowed_assignee_ids:
+            # Add assignee filter to OpenProject query
+            # OpenProject supports multiple values with comma-separated IDs
+            filters['assignee'] = ','.join(str(aid) for aid in allowed_assignee_ids)
         if project_id:
             filters['project'] = str(project_id)
         if type:
@@ -123,19 +134,6 @@ async def list_work_packages(
         cached_at = datetime.now().isoformat()
         for wp in work_packages:
             wp['cached_at'] = cached_at
-        
-        # Apply assignee allowlist filter if enabled
-        if apply_assignee_filter:
-            assignee_repo = AssigneeRepository(db)
-            allowed_assignees = assignee_repo.get_all(active_only=True)
-            allowed_assignee_ids = {assignee.op_user_id for assignee in allowed_assignees if assignee.op_user_id}
-            
-            # Filter work packages to only include those with allowed assignees or no assignee
-            work_packages = [
-                wp for wp in work_packages
-                if wp.get('assignee_id') is None or wp.get('assignee_id') in allowed_assignee_ids
-            ]
-            total_count = len(work_packages)
         
         # Apply text search if provided
         if search:

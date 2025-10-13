@@ -52,15 +52,35 @@ const DashboardPage: React.FC = () => {
   const stats = data?.stats
 
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" fontWeight={600}>
-          Dashboard
-        </Typography>
+    <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Box 
+        sx={{ 
+          p: 3, 
+          mb: 3, 
+          borderRadius: 2, 
+          bgcolor: 'background.paper',
+          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
+        <Box>
+          <Typography variant="h4" fontWeight={600} gutterBottom>
+            Dashboard
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            ภาพรวมและสถานะของ Work Packages
+          </Typography>
+        </Box>
         <Button
           variant="outlined"
           startIcon={<Refresh />}
           onClick={() => refetch()}
+          sx={{ 
+            borderRadius: 2,
+            textTransform: 'none'
+          }}
         >
           Refresh
         </Button>
@@ -69,7 +89,7 @@ const DashboardPage: React.FC = () => {
       {/* KPI Cards */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card elevation={0} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
             <CardContent>
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
@@ -87,7 +107,7 @@ const DashboardPage: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card elevation={0} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
             <CardContent>
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
@@ -105,7 +125,7 @@ const DashboardPage: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card elevation={0} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
             <CardContent>
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
@@ -123,7 +143,7 @@ const DashboardPage: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card elevation={0} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
             <CardContent>
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>

@@ -17,7 +17,10 @@ import {
   FormControlLabel,
   Switch,
   Autocomplete,
-  Checkbox
+  Checkbox,
+  Tooltip,
+  IconButton,
+  Paper
 } from '@mui/material';
 import {
   DataGrid,
@@ -157,6 +160,23 @@ const AssigneesAdminPage: React.FC = () => {
     setSnackbar({ open: true, message, severity });
   };
 
+  // Delete confirmation dialog state
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; assignee?: Assignee }>({ open: false });
+
+  const handleRequestDelete = (assignee: Assignee) => {
+    setDeleteDialog({ open: true, assignee });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteDialog.assignee) return;
+    deleteAssigneeMutation.mutate(deleteDialog.assignee.id);
+    setDeleteDialog({ open: false });
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialog({ open: false });
+  };
+
   const handleAddAssignees = () => {
     const selectedAssignees = opAssignees.filter(a => selectedOPAssignees.includes(a.op_user_id));
     
@@ -180,11 +200,7 @@ const AssigneesAdminPage: React.FC = () => {
     });
   };
 
-  const handleDelete = (assignee: Assignee) => {
-    if (window.confirm(`คุณแน่ใจหรือไม่ที่ต้องการลบ "${assignee.display_name}" จากรายการ?`)) {
-      deleteAssigneeMutation.mutate(assignee.id);
-    }
-  };
+  const handleDelete = (assignee: Assignee) => handleRequestDelete(assignee);
 
   const columns: GridColDef[] = [
     { 
@@ -244,12 +260,24 @@ const AssigneesAdminPage: React.FC = () => {
       width: 150,
       getActions: (params: GridRowParams) => [
         <GridActionsCellItem
-          icon={params.row.active ? <RadioButtonUncheckedIcon /> : <CheckCircleIcon />}
+          icon={
+            <Tooltip title={params.row.active ? 'ปิดการใช้งาน' : 'เปิดการใช้งาน'}>
+              <IconButton size="small" color="primary">
+                {params.row.active ? <RadioButtonUncheckedIcon /> : <CheckCircleIcon />}
+              </IconButton>
+            </Tooltip>
+          }
           label={params.row.active ? "ปิดการใช้งาน" : "เปิดการใช้งาน"}
           onClick={() => handleToggleActive(params.row)}
         />,
         <GridActionsCellItem
-          icon={<DeleteIcon />}
+          icon={
+            <Tooltip title="ลบผู้รับผิดชอบ">
+              <IconButton size="small" color="error">
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          }
           label="ลบ"
           onClick={() => handleDelete(params.row)}
         />
@@ -258,21 +286,35 @@ const AssigneesAdminPage: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          จัดการผู้รับผิดชอบ
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenAddDialog(true)}
-        >
-          เพิ่มผู้รับผิดชอบ
-        </Button>
-      </Box>
+    <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 2, bgcolor: 'background.paper' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h4" component="h1" fontWeight={600} gutterBottom>
+              จัดการผู้รับผิดชอบ
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              จัดการรายชื่อผู้รับผิดชอบที่สามารถเข้าถึงระบบ
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenAddDialog(true)}
+            size="large"
+            sx={{ 
+              borderRadius: 2,
+              textTransform: 'none',
+              px: 3,
+              py: 1.5
+            }}
+          >
+            เพิ่มผู้รับผิดชอบ
+          </Button>
+        </Box>
+      </Paper>
 
-      <Card>
+      <Card elevation={0} sx={{ borderRadius: 2 }}>
         <CardContent>
           <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
             <TextField
@@ -402,6 +444,20 @@ const AssigneesAdminPage: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialog.open} onClose={handleCancelDelete}>
+        <DialogTitle>ยืนยันการลบ</DialogTitle>
+        <DialogContent>
+          <Typography>
+            คุณแน่ใจหรือไม่ว่าต้องการลบ "{deleteDialog.assignee?.display_name}" ออกจากรายการ?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelDelete}>ยกเลิก</Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained">ลบ</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

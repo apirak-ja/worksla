@@ -61,6 +61,14 @@ class AssigneeRepository:
         stmt = select(AssigneeAllowlist).where(AssigneeAllowlist.op_user_id == op_user_id)
         return self.db.execute(stmt).scalar_one_or_none()
 
+    def get_active_names(self) -> list[str]:
+        """Get list of active assignee names"""
+        stmt = select(AssigneeAllowlist.name).where(
+            AssigneeAllowlist.active == True
+        ).order_by(AssigneeAllowlist.name)
+        result = self.db.execute(stmt)
+        return [row[0] for row in result.all()]
+
     def create(self, assignee: AssigneeAllowlist) -> AssigneeAllowlist:
         """Create new assignee allowlist entry"""
         self.db.add(assignee)
@@ -77,55 +85,6 @@ class AssigneeRepository:
         for field, value in update_data.items():
             if hasattr(assignee, field):
                 setattr(assignee, field, value)
-
-        self.db.commit()
-        self.db.refresh(assignee)
-        return assignee
-        return list(result.scalars().all())
-
-    def get_active_names(self) -> list[str]:
-        """Get list of active assignee names"""
-        stmt = select(AssigneeAllowlist.name).where(
-            AssigneeAllowlist.is_active == True
-        ).order_by(AssigneeAllowlist.name)
-        result = self.db.execute(stmt)
-        return [row[0] for row in result.all()]
-
-    def create(
-        self,
-        name: str,
-        openproject_user_id: int = None,
-        is_active: bool = True
-    ) -> AssigneeAllowlist:
-        """Create new assignee"""
-        assignee = AssigneeAllowlist(
-            name=name,
-            openproject_user_id=openproject_user_id,
-            is_active=is_active
-        )
-        self.db.add(assignee)
-        self.db.commit()
-        self.db.refresh(assignee)
-        return assignee
-
-    def update(
-        self,
-        allowlist_id: int,
-        name: str = None,
-        openproject_user_id: int = None,
-        is_active: bool = None
-    ) -> Optional[AssigneeAllowlist]:
-        """Update assignee"""
-        assignee = self.get_by_id(allowlist_id)
-        if not assignee:
-            return None
-
-        if name is not None:
-            assignee.name = name
-        if openproject_user_id is not None:
-            assignee.openproject_user_id = openproject_user_id
-        if is_active is not None:
-            assignee.is_active = is_active
 
         self.db.commit()
         self.db.refresh(assignee)
@@ -147,7 +106,7 @@ class AssigneeRepository:
         if not assignee:
             return None
 
-        assignee.is_active = not assignee.is_active
+        assignee.active = not assignee.active
         self.db.commit()
         self.db.refresh(assignee)
         return assignee
@@ -156,7 +115,7 @@ class AssigneeRepository:
         """Check if assignee name is in active allowlist"""
         stmt = select(AssigneeAllowlist).where(
             AssigneeAllowlist.name == name,
-            AssigneeAllowlist.is_active == True
+            AssigneeAllowlist.active == True
         )
         result = self.db.execute(stmt).scalar_one_or_none()
         return result is not None
@@ -167,7 +126,7 @@ class AssigneeRepository:
         for name in names:
             existing = self.get_by_name(name)
             if not existing:
-                self.db.add(AssigneeAllowlist(name=name, is_active=True))
+                self.db.add(AssigneeAllowlist(name=name, active=True))
                 count += 1
 
         self.db.commit()

@@ -17,6 +17,17 @@ class SettingRepository:
         """Get setting by key"""
         stmt = select(Setting).where(Setting.key == key)
         return self.db.execute(stmt).scalar_one_or_none()
+    
+    def get_value(self, key: str, default: Any = None) -> Any:
+        """Get setting value by key with default"""
+        setting = self.get_by_key(key)
+        if setting:
+            # Extract actual value from nested structure
+            value = setting.value
+            if isinstance(value, dict) and 'data' in value:
+                return value['data']
+            return value
+        return default
 
     def get_all(self) -> list[Setting]:
         """Get all settings"""
