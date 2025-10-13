@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
   Box,
   Typography,
@@ -14,13 +14,20 @@ import {
   Switch,
   Grid,
 } from '@mui/material'
+import { Chip } from '@mui/material'
 import { DataGrid, GridColDef } from '@mui/x-data-grid'
 import { Add, Refresh } from '@mui/icons-material'
-import { wpApi } from '../../api/client'
+import { wpApi, WorkPackage } from '../../api/client'
 import { format } from 'date-fns'
 
 const WorkPackagesPage: React.FC = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const wpIdParam = searchParams.get('wp_id')
+  const wpId = useMemo(() => {
+    const n = parseInt(wpIdParam || '')
+    return Number.isFinite(n) && n > 0 ? n : undefined
+  }, [wpIdParam])
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(50)
   const [filters, setFilters] = useState<any>({})
@@ -34,6 +41,13 @@ const WorkPackagesPage: React.FC = () => {
       apply_assignee_filter: applyAssigneeFilter,
       ...filters 
     }).then((res) => res.data),
+  })
+
+  // Fetch a single Work Package when wp_id query exists
+  const { data: wpDetail, isLoading: isDetailLoading, error: detailError } = useQuery({
+    queryKey: ['workpackage', wpId],
+    queryFn: () => wpApi.get(wpId as number).then((res) => res.data),
+    enabled: !!wpId,
   })
 
   const columns: GridColDef[] = [
@@ -64,7 +78,7 @@ const WorkPackagesPage: React.FC = () => {
     },
   ]
 
-  if (isLoading) {
+  if (isLoading && !wpId) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
         <CircularProgress />
@@ -72,7 +86,7 @@ const WorkPackagesPage: React.FC = () => {
     )
   }
 
-  if (error) {
+  if (error && !wpId) {
     return <Alert severity="error">Failed to load work packages.</Alert>
   }
 
@@ -90,6 +104,58 @@ const WorkPackagesPage: React.FC = () => {
           Refresh
         </Button>
       </Box>
+
+      {/* If wp_id query is present, show the details panel */}
+      {wpId && (
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            รายละเอียด Work Package #{wpId}
+          </Typography>
+          {isDetailLoading ? (
+            <Box display="flex" alignItems="center" gap={1}>
+              <CircularProgress size={18} />
+              <Typography variant="body2">กำลังโหลดข้อมูล...</Typography>
+            </Box>
+          ) : detailError ? (
+            <Alert severity="error">ไม่สามารถโหลดข้อมูล Work Package นี้ได้</Alert>
+          ) : wpDetail ? (
+            <Box>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={8}>
+                  <Typography variant="subtitle1" fontWeight={600}>{wpDetail.subject || '-'}</Typography>
+                  <Box display="flex" gap={1} mt={1}>
+                    <Chip label={`Status: ${wpDetail.status || '-'}`} size="small" />
+                    <Chip label={`Priority: ${wpDetail.priority || '-'}`} size="small" />
+                    <Chip label={`Type: ${wpDetail.type || '-'}`} size="small" />
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Box display="flex" justifyContent={{ xs: 'flex-start', md: 'flex-end' }} gap={1}>
+                    <Button size="small" component={Link} to={`/workpackages/${wpId}`}>เปิดหน้าเต็ม</Button>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2">Assignee: {wpDetail.assignee_name || '-'}</Typography>
+                  <Typography variant="body2">Project: {wpDetail.project_name || '-'}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2">Start: {wpDetail.start_date ? format(new Date(wpDetail.start_date), 'PP p') : '-'}</Typography>
+                  <Typography variant="body2">Due: {wpDetail.due_date ? format(new Date(wpDetail.due_date), 'PP p') : '-'}</Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" gutterBottom>รายละเอียด</Typography>
+                  <Paper variant="outlined" sx={{ p: 2, maxHeight: 240, overflow: 'auto' }}>
+                    {/* wpDetail.description เป็น HTML */}
+                    <div dangerouslySetInnerHTML={{ __html: wpDetail.description || '<i>ไม่มีรายละเอียด</i>' }} />
+                  </Paper>
+                </Grid>
+              </Grid>
+            </Box>
+          ) : (
+            <Alert severity="info">ไม่พบข้อมูลสำหรับ ID นี้</Alert>
+          )}
+        </Paper>
+      )}
 
       {/* Filter Controls */}
       <Paper sx={{ p: 2, mb: 3 }}>
