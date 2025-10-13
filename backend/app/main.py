@@ -33,7 +33,7 @@ app = FastAPI(
     # Set root_path to "/worksla" so routes using API_PREFIX ("/api") are
     # exposed externally as "/worksla/api/..." which matches the frontend baseURL
     # configuration.
-    root_path="/worksla",
+    # root_path="/worksla",  # Temporarily disabled for testing
     docs_url=f"{settings.API_PREFIX}/docs",
     redoc_url=f"{settings.API_PREFIX}/redoc",
     openapi_url=f"{settings.API_PREFIX}/openapi.json"
