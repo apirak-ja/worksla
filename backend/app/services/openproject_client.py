@@ -228,33 +228,42 @@ class OpenProjectClient:
         return sorted(activities, key=lambda x: x["created_at"], reverse=True)
     
     def list_assignees(self) -> List[Dict[str, Any]]:
-        """Get list of available assignees/users"""
-        cache_key = "assignees_list"
-        
-        if self._is_cache_valid(cache_key) and cache_key in self.user_cache:
-            return self.user_cache[cache_key]
-        
-        data = self._make_sync_request("/api/v3/users")
-        
-        if not data:
+        """
+        Get list of assignees from work packages (since /api/v3/users requires admin access)
+        """
+        try:
+            # Get work packages to extract assignees from
+            work_packages, _ = self.list_work_packages(offset=0, limit=1000)  # Get many WPs to find all assignees
+            
+            # Extract unique assignees
+            assignee_map = {}
+            
+            for wp in work_packages:
+                assignee_id = wp.get('assignee_id')
+                assignee_name = wp.get('assignee_name')
+                
+                if assignee_id and assignee_name and assignee_name != 'Unknown':
+                    if assignee_id not in assignee_map:
+                        assignee_map[assignee_id] = {
+                            'id': assignee_id,
+                            'name': assignee_name,
+                            'email': None,  # We don't have email from WP data
+                            'firstName': None,
+                            'lastName': None,
+                            'status': 'active'  # Assume active if assigned to WP
+                        }
+            
+            assignees = list(assignee_map.values())
+            
+            # Sort by name
+            assignees.sort(key=lambda x: x['name'])
+            
+            logger.info(f"Retrieved {len(assignees)} assignees from work packages")
+            return assignees
+            
+        except Exception as e:
+            logger.error(f"Error fetching assignees from work packages: {e}")
             return []
-        
-        assignees = []
-        for user in data.get("_embedded", {}).get("elements", []):
-            if user.get("status") == "active":
-                assignees.append({
-                    "id": user.get("id"),
-                    "name": user.get("name"),
-                    "firstname": user.get("firstName", ""),
-                    "lastname": user.get("lastName", ""),
-                    "email": user.get("email"),
-                    "avatar_url": user.get("_links", {}).get("avatar", {}).get("href")
-                })
-        
-        # Cache result
-        self._cache_data(cache_key, assignees, self.user_cache)
-        
-        return assignees
     
     def get_sla_metrics(self, 
                        start_date: Optional[str] = None, 
@@ -388,33 +397,1848 @@ class OpenProjectClient:
     
     def list_assignees(self) -> List[Dict[str, Any]]:
         """
-        Get list of users from OpenProject
+        Get list of assignees from work packages (since /api/v3/users requires admin access)
         """
         try:
-            response = self._make_sync_request("/api/v3/users")
-            if not response or '_embedded' not in response:
-                logger.warning("No users data found in OpenProject response")
-                return []
+            # Get work packages to extract assignees from
+            work_packages, _ = self.list_work_packages(offset=0, limit=1000)  # Get many WPs to find all assignees
             
-            users = response['_embedded'].get('elements', [])
-            assignees = []
+            # Extract unique assignees
+            assignee_map = {}
             
-            for user in users:
-                if user.get('status') == 'active':  # Only active users
-                    assignees.append({
-                        'op_user_id': user.get('id'),
-                        'display_name': user.get('name', 'Unknown'),
-                        'email': user.get('email'),
-                        'firstName': user.get('firstName'),
-                        'lastName': user.get('lastName')
-                    })
+            for wp in work_packages:
+                assignee_id = wp.get('assignee_id')
+                assignee_name = wp.get('assignee_name')
+                
+                if assignee_id and assignee_name and assignee_name != 'Unknown':
+                    if assignee_id not in assignee_map:
+                        assignee_map[assignee_id] = {
+                            'id': assignee_id,
+                            'name': assignee_name,
+                            'email': None,  # We don't have email from WP data
+                            'firstName': None,
+                            'lastName': None,
+                            'status': 'active'  # Assume active if assigned to WP
+                        }
             
-            logger.info(f"Retrieved {len(assignees)} assignees from OpenProject")
+            assignees = list(assignee_map.values())
+            
+            # Sort by name
+            assignees.sort(key=lambda x: x['name'])
+            
+            logger.info(f"Retrieved {len(assignees)} assignees from work packages")
             return assignees
             
         except Exception as e:
-            logger.error(f"Error fetching assignees from OpenProject: {e}")
+            logger.error(f"Error fetching assignees from work packages: {e}")
             return []
-
-# Global client instance
-openproject_client = OpenProjectClient()
+    
+    def get_sla_metrics(self, 
+                       start_date: Optional[str] = None, 
+                       end_date: Optional[str] = None) -> Dict[str, Any]:
+        """Calculate SLA metrics from work packages"""
+        # Default to last 30 days if no dates provided
+        if not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        # Get work packages for the period
+        filters = {
+            "created_at": f">={start_date}",
+            "created_at": f"<={end_date}"
+        }
+        
+        work_packages, total = self.list_work_packages(
+            offset=0, 
+            limit=1000,  # Get more for metrics
+            filters=filters
+        )
+        
+        # Calculate metrics
+        total_count = len(work_packages)
+        completed_count = len([wp for wp in work_packages if wp.get("done_ratio") == 100])
+        overdue_count = 0
+        due_soon_count = 0
+        
+        now = datetime.now()
+        for wp in work_packages:
+            if wp.get("due_date"):
+                try:
+                    due_date = datetime.fromisoformat(wp["due_date"].replace("Z", "+00:00"))
+                    if due_date < now and wp.get("done_ratio", 0) < 100:
+                        overdue_count += 1
+                    elif due_date < now + timedelta(days=7) and wp.get("done_ratio", 0) < 100:
+                        due_soon_count += 1
+                except (ValueError, TypeError):
+                    continue
+        
+        return {
+            "total_work_packages": total_count,
+            "completed": completed_count,
+            "overdue": overdue_count,
+            "due_soon": due_soon_count,
+            "completion_rate": (completed_count / total_count * 100) if total_count > 0 else 0,
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+        }
+    
+    def _extract_id_from_link(self, link_obj: Optional[Dict]) -> Optional[int]:
+        """Extract ID from OpenProject API link object"""
+        if not link_obj or not link_obj.get("href"):
+            return None
+        
+        href = link_obj["href"]
+        # Extract ID from URL like "/api/v3/users/123"
+        try:
+            return int(href.split("/")[-1])
+        except (ValueError, IndexError):
+            return None
+    
+    def _extract_custom_fields(self, custom_fields: Dict) -> Dict[str, Any]:
+        """Extract and format custom fields"""
+        extracted = {}
+        for key, value in custom_fields.items():
+            if isinstance(value, dict) and "raw" in value:
+                extracted[key] = value["raw"]
+            else:
+                extracted[key] = value
+        return extracted
+    
+    @staticmethod
+    def safe_get(data: Any, *keys: str, default: Any = None) -> Any:
+        """
+        Safely get nested dictionary values
+        """
+        try:
+            for key in keys:
+                if isinstance(data, dict) and key in data:
+                    data = data[key]
+                else:
+                    return default
+            return data if data is not None and data != "" else default
+        except (KeyError, TypeError, AttributeError):
+            return default
+    
+    @staticmethod
+    def clean_html(text: str) -> str:
+        """
+        Remove HTML tags and convert entities
+        """
+        if not text:
+            return ""
+        
+        # Remove HTML tags
+        text = re.sub('<[^<]+?>', '', text)
+        
+        # Convert HTML entities
+        text = text.replace('&nbsp;', ' ')
+        text = text.replace('&lt;', '<')
+        text = text.replace('&gt;', '>')
+        text = text.replace('&amp;', '&')
+        text = text.replace('&quot;', '"')
+        text = text.replace('&#39;', "'")
+        
+        # Remove excess whitespace
+        text = ' '.join(text.split())
+        return text.strip()
+    
+    @staticmethod
+    def format_date(date_str: Optional[str]) -> Optional[datetime]:
+        """
+        Parse ISO date string to datetime
+        """
+        if not date_str:
+            return None
+        
+        try:
+            if date_str.endswith('Z'):
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            else:
+                dt = datetime.fromisoformat(date_str)
+            return dt
+        except Exception as e:
+            logger.warning(f"Error parsing date {date_str}: {e}")
+            return None
+    
+    def list_assignees(self) -> List[Dict[str, Any]]:
+        """
+        Get list of assignees from work packages (since /api/v3/users requires admin access)
+        """
+        try:
+            # Get work packages to extract assignees from
+            work_packages, _ = self.list_work_packages(offset=0, limit=1000)  # Get many WPs to find all assignees
+            
+            # Extract unique assignees
+            assignee_map = {}
+            
+            for wp in work_packages:
+                assignee_id = wp.get('assignee_id')
+                assignee_name = wp.get('assignee_name')
+                
+                if assignee_id and assignee_name and assignee_name != 'Unknown':
+                    if assignee_id not in assignee_map:
+                        assignee_map[assignee_id] = {
+                            'id': assignee_id,
+                            'name': assignee_name,
+                            'email': None,  # We don't have email from WP data
+                            'firstName': None,
+                            'lastName': None,
+                            'status': 'active'  # Assume active if assigned to WP
+                        }
+            
+            assignees = list(assignee_map.values())
+            
+            # Sort by name
+            assignees.sort(key=lambda x: x['name'])
+            
+            logger.info(f"Retrieved {len(assignees)} assignees from work packages")
+            return assignees
+            
+        except Exception as e:
+            logger.error(f"Error fetching assignees from work packages: {e}")
+            return []
+    
+    def get_sla_metrics(self, 
+                       start_date: Optional[str] = None, 
+                       end_date: Optional[str] = None) -> Dict[str, Any]:
+        """Calculate SLA metrics from work packages"""
+        # Default to last 30 days if no dates provided
+        if not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        # Get work packages for the period
+        filters = {
+            "created_at": f">={start_date}",
+            "created_at": f"<={end_date}"
+        }
+        
+        work_packages, total = self.list_work_packages(
+            offset=0, 
+            limit=1000,  # Get more for metrics
+            filters=filters
+        )
+        
+        # Calculate metrics
+        total_count = len(work_packages)
+        completed_count = len([wp for wp in work_packages if wp.get("done_ratio") == 100])
+        overdue_count = 0
+        due_soon_count = 0
+        
+        now = datetime.now()
+        for wp in work_packages:
+            if wp.get("due_date"):
+                try:
+                    due_date = datetime.fromisoformat(wp["due_date"].replace("Z", "+00:00"))
+                    if due_date < now and wp.get("done_ratio", 0) < 100:
+                        overdue_count += 1
+                    elif due_date < now + timedelta(days=7) and wp.get("done_ratio", 0) < 100:
+                        due_soon_count += 1
+                except (ValueError, TypeError):
+                    continue
+        
+        return {
+            "total_work_packages": total_count,
+            "completed": completed_count,
+            "overdue": overdue_count,
+            "due_soon": due_soon_count,
+            "completion_rate": (completed_count / total_count * 100) if total_count > 0 else 0,
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+        }
+    
+    def _extract_id_from_link(self, link_obj: Optional[Dict]) -> Optional[int]:
+        """Extract ID from OpenProject API link object"""
+        if not link_obj or not link_obj.get("href"):
+            return None
+        
+        href = link_obj["href"]
+        # Extract ID from URL like "/api/v3/users/123"
+        try:
+            return int(href.split("/")[-1])
+        except (ValueError, IndexError):
+            return None
+    
+    def _extract_custom_fields(self, custom_fields: Dict) -> Dict[str, Any]:
+        """Extract and format custom fields"""
+        extracted = {}
+        for key, value in custom_fields.items():
+            if isinstance(value, dict) and "raw" in value:
+                extracted[key] = value["raw"]
+            else:
+                extracted[key] = value
+        return extracted
+    
+    @staticmethod
+    def safe_get(data: Any, *keys: str, default: Any = None) -> Any:
+        """
+        Safely get nested dictionary values
+        """
+        try:
+            for key in keys:
+                if isinstance(data, dict) and key in data:
+                    data = data[key]
+                else:
+                    return default
+            return data if data is not None and data != "" else default
+        except (KeyError, TypeError, AttributeError):
+            return default
+    
+    @staticmethod
+    def clean_html(text: str) -> str:
+        """
+        Remove HTML tags and convert entities
+        """
+        if not text:
+            return ""
+        
+        # Remove HTML tags
+        text = re.sub('<[^<]+?>', '', text)
+        
+        # Convert HTML entities
+        text = text.replace('&nbsp;', ' ')
+        text = text.replace('&lt;', '<')
+        text = text.replace('&gt;', '>')
+        text = text.replace('&amp;', '&')
+        text = text.replace('&quot;', '"')
+        text = text.replace('&#39;', "'")
+        
+        # Remove excess whitespace
+        text = ' '.join(text.split())
+        return text.strip()
+    
+    @staticmethod
+    def format_date(date_str: Optional[str]) -> Optional[datetime]:
+        """
+        Parse ISO date string to datetime
+        """
+        if not date_str:
+            return None
+        
+        try:
+            if date_str.endswith('Z'):
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            else:
+                dt = datetime.fromisoformat(date_str)
+            return dt
+        except Exception as e:
+            logger.warning(f"Error parsing date {date_str}: {e}")
+            return None
+    
+    def list_assignees(self) -> List[Dict[str, Any]]:
+        """
+        Get list of assignees from work packages (since /api/v3/users requires admin access)
+        """
+        try:
+            # Get work packages to extract assignees from
+            work_packages, _ = self.list_work_packages(offset=0, limit=1000)  # Get many WPs to find all assignees
+            
+            # Extract unique assignees
+            assignee_map = {}
+            
+            for wp in work_packages:
+                assignee_id = wp.get('assignee_id')
+                assignee_name = wp.get('assignee_name')
+                
+                if assignee_id and assignee_name and assignee_name != 'Unknown':
+                    if assignee_id not in assignee_map:
+                        assignee_map[assignee_id] = {
+                            'id': assignee_id,
+                            'name': assignee_name,
+                            'email': None,  # We don't have email from WP data
+                            'firstName': None,
+                            'lastName': None,
+                            'status': 'active'  # Assume active if assigned to WP
+                        }
+            
+            assignees = list(assignee_map.values())
+            
+            # Sort by name
+            assignees.sort(key=lambda x: x['name'])
+            
+            logger.info(f"Retrieved {len(assignees)} assignees from work packages")
+            return assignees
+            
+        except Exception as e:
+            logger.error(f"Error fetching assignees from work packages: {e}")
+            return []
+    
+    def get_sla_metrics(self, 
+                       start_date: Optional[str] = None, 
+                       end_date: Optional[str] = None) -> Dict[str, Any]:
+        """Calculate SLA metrics from work packages"""
+        # Default to last 30 days if no dates provided
+        if not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        # Get work packages for the period
+        filters = {
+            "created_at": f">={start_date}",
+            "created_at": f"<={end_date}"
+        }
+        
+        work_packages, total = self.list_work_packages(
+            offset=0, 
+            limit=1000,  # Get more for metrics
+            filters=filters
+        )
+        
+        # Calculate metrics
+        total_count = len(work_packages)
+        completed_count = len([wp for wp in work_packages if wp.get("done_ratio") == 100])
+        overdue_count = 0
+        due_soon_count = 0
+        
+        now = datetime.now()
+        for wp in work_packages:
+            if wp.get("due_date"):
+                try:
+                    due_date = datetime.fromisoformat(wp["due_date"].replace("Z", "+00:00"))
+                    if due_date < now and wp.get("done_ratio", 0) < 100:
+                        overdue_count += 1
+                    elif due_date < now + timedelta(days=7) and wp.get("done_ratio", 0) < 100:
+                        due_soon_count += 1
+                except (ValueError, TypeError):
+                    continue
+        
+        return {
+            "total_work_packages": total_count,
+            "completed": completed_count,
+            "overdue": overdue_count,
+            "due_soon": due_soon_count,
+            "completion_rate": (completed_count / total_count * 100) if total_count > 0 else 0,
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+        }
+    
+    def _extract_id_from_link(self, link_obj: Optional[Dict]) -> Optional[int]:
+        """Extract ID from OpenProject API link object"""
+        if not link_obj or not link_obj.get("href"):
+            return None
+        
+        href = link_obj["href"]
+        # Extract ID from URL like "/api/v3/users/123"
+        try:
+            return int(href.split("/")[-1])
+        except (ValueError, IndexError):
+            return None
+    
+    def _extract_custom_fields(self, custom_fields: Dict) -> Dict[str, Any]:
+        """Extract and format custom fields"""
+        extracted = {}
+        for key, value in custom_fields.items():
+            if isinstance(value, dict) and "raw" in value:
+                extracted[key] = value["raw"]
+            else:
+                extracted[key] = value
+        return extracted
+    
+    @staticmethod
+    def safe_get(data: Any, *keys: str, default: Any = None) -> Any:
+        """
+        Safely get nested dictionary values
+        """
+        try:
+            for key in keys:
+                if isinstance(data, dict) and key in data:
+                    data = data[key]
+                else:
+                    return default
+            return data if data is not None and data != "" else default
+        except (KeyError, TypeError, AttributeError):
+            return default
+    
+    @staticmethod
+    def clean_html(text: str) -> str:
+        """
+        Remove HTML tags and convert entities
+        """
+        if not text:
+            return ""
+        
+        # Remove HTML tags
+        text = re.sub('<[^<]+?>', '', text)
+        
+        # Convert HTML entities
+        text = text.replace('&nbsp;', ' ')
+        text = text.replace('&lt;', '<')
+        text = text.replace('&gt;', '>')
+        text = text.replace('&amp;', '&')
+        text = text.replace('&quot;', '"')
+        text = text.replace('&#39;', "'")
+        
+        # Remove excess whitespace
+        text = ' '.join(text.split())
+        return text.strip()
+    
+    @staticmethod
+    def format_date(date_str: Optional[str]) -> Optional[datetime]:
+        """
+        Parse ISO date string to datetime
+        """
+        if not date_str:
+            return None
+        
+        try:
+            if date_str.endswith('Z'):
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            else:
+                dt = datetime.fromisoformat(date_str)
+            return dt
+        except Exception as e:
+            logger.warning(f"Error parsing date {date_str}: {e}")
+            return None
+    
+    def list_assignees(self) -> List[Dict[str, Any]]:
+        """
+        Get list of assignees from work packages (since /api/v3/users requires admin access)
+        """
+        try:
+            # Get work packages to extract assignees from
+            work_packages, _ = self.list_work_packages(offset=0, limit=1000)  # Get many WPs to find all assignees
+            
+            # Extract unique assignees
+            assignee_map = {}
+            
+            for wp in work_packages:
+                assignee_id = wp.get('assignee_id')
+                assignee_name = wp.get('assignee_name')
+                
+                if assignee_id and assignee_name and assignee_name != 'Unknown':
+                    if assignee_id not in assignee_map:
+                        assignee_map[assignee_id] = {
+                            'id': assignee_id,
+                            'name': assignee_name,
+                            'email': None,  # We don't have email from WP data
+                            'firstName': None,
+                            'lastName': None,
+                            'status': 'active'  # Assume active if assigned to WP
+                        }
+            
+            assignees = list(assignee_map.values())
+            
+            # Sort by name
+            assignees.sort(key=lambda x: x['name'])
+            
+            logger.info(f"Retrieved {len(assignees)} assignees from work packages")
+            return assignees
+            
+        except Exception as e:
+            logger.error(f"Error fetching assignees from work packages: {e}")
+            return []
+    
+    def get_sla_metrics(self, 
+                       start_date: Optional[str] = None, 
+                       end_date: Optional[str] = None) -> Dict[str, Any]:
+        """Calculate SLA metrics from work packages"""
+        # Default to last 30 days if no dates provided
+        if not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        # Get work packages for the period
+        filters = {
+            "created_at": f">={start_date}",
+            "created_at": f"<={end_date}"
+        }
+        
+        work_packages, total = self.list_work_packages(
+            offset=0, 
+            limit=1000,  # Get more for metrics
+            filters=filters
+        )
+        
+        # Calculate metrics
+        total_count = len(work_packages)
+        completed_count = len([wp for wp in work_packages if wp.get("done_ratio") == 100])
+        overdue_count = 0
+        due_soon_count = 0
+        
+        now = datetime.now()
+        for wp in work_packages:
+            if wp.get("due_date"):
+                try:
+                    due_date = datetime.fromisoformat(wp["due_date"].replace("Z", "+00:00"))
+                    if due_date < now and wp.get("done_ratio", 0) < 100:
+                        overdue_count += 1
+                    elif due_date < now + timedelta(days=7) and wp.get("done_ratio", 0) < 100:
+                        due_soon_count += 1
+                except (ValueError, TypeError):
+                    continue
+        
+        return {
+            "total_work_packages": total_count,
+            "completed": completed_count,
+            "overdue": overdue_count,
+            "due_soon": due_soon_count,
+            "completion_rate": (completed_count / total_count * 100) if total_count > 0 else 0,
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+        }
+    
+    def _extract_id_from_link(self, link_obj: Optional[Dict]) -> Optional[int]:
+        """Extract ID from OpenProject API link object"""
+        if not link_obj or not link_obj.get("href"):
+            return None
+        
+        href = link_obj["href"]
+        # Extract ID from URL like "/api/v3/users/123"
+        try:
+            return int(href.split("/")[-1])
+        except (ValueError, IndexError):
+            return None
+    
+    def _extract_custom_fields(self, custom_fields: Dict) -> Dict[str, Any]:
+        """Extract and format custom fields"""
+        extracted = {}
+        for key, value in custom_fields.items():
+            if isinstance(value, dict) and "raw" in value:
+                extracted[key] = value["raw"]
+            else:
+                extracted[key] = value
+        return extracted
+    
+    @staticmethod
+    def safe_get(data: Any, *keys: str, default: Any = None) -> Any:
+        """
+        Safely get nested dictionary values
+        """
+        try:
+            for key in keys:
+                if isinstance(data, dict) and key in data:
+                    data = data[key]
+                else:
+                    return default
+            return data if data is not None and data != "" else default
+        except (KeyError, TypeError, AttributeError):
+            return default
+    
+    @staticmethod
+    def clean_html(text: str) -> str:
+        """
+        Remove HTML tags and convert entities
+        """
+        if not text:
+            return ""
+        
+        # Remove HTML tags
+        text = re.sub('<[^<]+?>', '', text)
+        
+        # Convert HTML entities
+        text = text.replace('&nbsp;', ' ')
+        text = text.replace('&lt;', '<')
+        text = text.replace('&gt;', '>')
+        text = text.replace('&amp;', '&')
+        text = text.replace('&quot;', '"')
+        text = text.replace('&#39;', "'")
+        
+        # Remove excess whitespace
+        text = ' '.join(text.split())
+        return text.strip()
+    
+    @staticmethod
+    def format_date(date_str: Optional[str]) -> Optional[datetime]:
+        """
+        Parse ISO date string to datetime
+        """
+        if not date_str:
+            return None
+        
+        try:
+            if date_str.endswith('Z'):
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            else:
+                dt = datetime.fromisoformat(date_str)
+            return dt
+        except Exception as e:
+            logger.warning(f"Error parsing date {date_str}: {e}")
+            return None
+    
+    def list_assignees(self) -> List[Dict[str, Any]]:
+        """
+        Get list of assignees from work packages (since /api/v3/users requires admin access)
+        """
+        try:
+            # Get work packages to extract assignees from
+            work_packages, _ = self.list_work_packages(offset=0, limit=1000)  # Get many WPs to find all assignees
+            
+            # Extract unique assignees
+            assignee_map = {}
+            
+            for wp in work_packages:
+                assignee_id = wp.get('assignee_id')
+                assignee_name = wp.get('assignee_name')
+                
+                if assignee_id and assignee_name and assignee_name != 'Unknown':
+                    if assignee_id not in assignee_map:
+                        assignee_map[assignee_id] = {
+                            'id': assignee_id,
+                            'name': assignee_name,
+                            'email': None,  # We don't have email from WP data
+                            'firstName': None,
+                            'lastName': None,
+                            'status': 'active'  # Assume active if assigned to WP
+                        }
+            
+            assignees = list(assignee_map.values())
+            
+            # Sort by name
+            assignees.sort(key=lambda x: x['name'])
+            
+            logger.info(f"Retrieved {len(assignees)} assignees from work packages")
+            return assignees
+            
+        except Exception as e:
+            logger.error(f"Error fetching assignees from work packages: {e}")
+            return []
+    
+    def get_sla_metrics(self, 
+                       start_date: Optional[str] = None, 
+                       end_date: Optional[str] = None) -> Dict[str, Any]:
+        """Calculate SLA metrics from work packages"""
+        # Default to last 30 days if no dates provided
+        if not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        # Get work packages for the period
+        filters = {
+            "created_at": f">={start_date}",
+            "created_at": f"<={end_date}"
+        }
+        
+        work_packages, total = self.list_work_packages(
+            offset=0, 
+            limit=1000,  # Get more for metrics
+            filters=filters
+        )
+        
+        # Calculate metrics
+        total_count = len(work_packages)
+        completed_count = len([wp for wp in work_packages if wp.get("done_ratio") == 100])
+        overdue_count = 0
+        due_soon_count = 0
+        
+        now = datetime.now()
+        for wp in work_packages:
+            if wp.get("due_date"):
+                try:
+                    due_date = datetime.fromisoformat(wp["due_date"].replace("Z", "+00:00"))
+                    if due_date < now and wp.get("done_ratio", 0) < 100:
+                        overdue_count += 1
+                    elif due_date < now + timedelta(days=7) and wp.get("done_ratio", 0) < 100:
+                        due_soon_count += 1
+                except (ValueError, TypeError):
+                    continue
+        
+        return {
+            "total_work_packages": total_count,
+            "completed": completed_count,
+            "overdue": overdue_count,
+            "due_soon": due_soon_count,
+            "completion_rate": (completed_count / total_count * 100) if total_count > 0 else 0,
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+        }
+    
+    def _extract_id_from_link(self, link_obj: Optional[Dict]) -> Optional[int]:
+        """Extract ID from OpenProject API link object"""
+        if not link_obj or not link_obj.get("href"):
+            return None
+        
+        href = link_obj["href"]
+        # Extract ID from URL like "/api/v3/users/123"
+        try:
+            return int(href.split("/")[-1])
+        except (ValueError, IndexError):
+            return None
+    
+    def _extract_custom_fields(self, custom_fields: Dict) -> Dict[str, Any]:
+        """Extract and format custom fields"""
+        extracted = {}
+        for key, value in custom_fields.items():
+            if isinstance(value, dict) and "raw" in value:
+                extracted[key] = value["raw"]
+            else:
+                extracted[key] = value
+        return extracted
+    
+    @staticmethod
+    def safe_get(data: Any, *keys: str, default: Any = None) -> Any:
+        """
+        Safely get nested dictionary values
+        """
+        try:
+            for key in keys:
+                if isinstance(data, dict) and key in data:
+                    data = data[key]
+                else:
+                    return default
+            return data if data is not None and data != "" else default
+        except (KeyError, TypeError, AttributeError):
+            return default
+    
+    @staticmethod
+    def clean_html(text: str) -> str:
+        """
+        Remove HTML tags and convert entities
+        """
+        if not text:
+            return ""
+        
+        # Remove HTML tags
+        text = re.sub('<[^<]+?>', '', text)
+        
+        # Convert HTML entities
+        text = text.replace('&nbsp;', ' ')
+        text = text.replace('&lt;', '<')
+        text = text.replace('&gt;', '>')
+        text = text.replace('&amp;', '&')
+        text = text.replace('&quot;', '"')
+        text = text.replace('&#39;', "'")
+        
+        # Remove excess whitespace
+        text = ' '.join(text.split())
+        return text.strip()
+    
+    @staticmethod
+    def format_date(date_str: Optional[str]) -> Optional[datetime]:
+        """
+        Parse ISO date string to datetime
+        """
+        if not date_str:
+            return None
+        
+        try:
+            if date_str.endswith('Z'):
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            else:
+                dt = datetime.fromisoformat(date_str)
+            return dt
+        except Exception as e:
+            logger.warning(f"Error parsing date {date_str}: {e}")
+            return None
+    
+    def list_assignees(self) -> List[Dict[str, Any]]:
+        """
+        Get list of assignees from work packages (since /api/v3/users requires admin access)
+        """
+        try:
+            # Get work packages to extract assignees from
+            work_packages, _ = self.list_work_packages(offset=0, limit=1000)  # Get many WPs to find all assignees
+            
+            # Extract unique assignees
+            assignee_map = {}
+            
+            for wp in work_packages:
+                assignee_id = wp.get('assignee_id')
+                assignee_name = wp.get('assignee_name')
+                
+                if assignee_id and assignee_name and assignee_name != 'Unknown':
+                    if assignee_id not in assignee_map:
+                        assignee_map[assignee_id] = {
+                            'id': assignee_id,
+                            'name': assignee_name,
+                            'email': None,  # We don't have email from WP data
+                            'firstName': None,
+                            'lastName': None,
+                            'status': 'active'  # Assume active if assigned to WP
+                        }
+            
+            assignees = list(assignee_map.values())
+            
+            # Sort by name
+            assignees.sort(key=lambda x: x['name'])
+            
+            logger.info(f"Retrieved {len(assignees)} assignees from work packages")
+            return assignees
+            
+        except Exception as e:
+            logger.error(f"Error fetching assignees from work packages: {e}")
+            return []
+    
+    def get_sla_metrics(self, 
+                       start_date: Optional[str] = None, 
+                       end_date: Optional[str] = None) -> Dict[str, Any]:
+        """Calculate SLA metrics from work packages"""
+        # Default to last 30 days if no dates provided
+        if not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        # Get work packages for the period
+        filters = {
+            "created_at": f">={start_date}",
+            "created_at": f"<={end_date}"
+        }
+        
+        work_packages, total = self.list_work_packages(
+            offset=0, 
+            limit=1000,  # Get more for metrics
+            filters=filters
+        )
+        
+        # Calculate metrics
+        total_count = len(work_packages)
+        completed_count = len([wp for wp in work_packages if wp.get("done_ratio") == 100])
+        overdue_count = 0
+        due_soon_count = 0
+        
+        now = datetime.now()
+        for wp in work_packages:
+            if wp.get("due_date"):
+                try:
+                    due_date = datetime.fromisoformat(wp["due_date"].replace("Z", "+00:00"))
+                    if due_date < now and wp.get("done_ratio", 0) < 100:
+                        overdue_count += 1
+                    elif due_date < now + timedelta(days=7) and wp.get("done_ratio", 0) < 100:
+                        due_soon_count += 1
+                except (ValueError, TypeError):
+                    continue
+        
+        return {
+            "total_work_packages": total_count,
+            "completed": completed_count,
+            "overdue": overdue_count,
+            "due_soon": due_soon_count,
+            "completion_rate": (completed_count / total_count * 100) if total_count > 0 else 0,
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+        }
+    
+    def _extract_id_from_link(self, link_obj: Optional[Dict]) -> Optional[int]:
+        """Extract ID from OpenProject API link object"""
+        if not link_obj or not link_obj.get("href"):
+            return None
+        
+        href = link_obj["href"]
+        # Extract ID from URL like "/api/v3/users/123"
+        try:
+            return int(href.split("/")[-1])
+        except (ValueError, IndexError):
+            return None
+    
+    def _extract_custom_fields(self, custom_fields: Dict) -> Dict[str, Any]:
+        """Extract and format custom fields"""
+        extracted = {}
+        for key, value in custom_fields.items():
+            if isinstance(value, dict) and "raw" in value:
+                extracted[key] = value["raw"]
+            else:
+                extracted[key] = value
+        return extracted
+    
+    @staticmethod
+    def safe_get(data: Any, *keys: str, default: Any = None) -> Any:
+        """
+        Safely get nested dictionary values
+        """
+        try:
+            for key in keys:
+                if isinstance(data, dict) and key in data:
+                    data = data[key]
+                else:
+                    return default
+            return data if data is not None and data != "" else default
+        except (KeyError, TypeError, AttributeError):
+            return default
+    
+    @staticmethod
+    def clean_html(text: str) -> str:
+        """
+        Remove HTML tags and convert entities
+        """
+        if not text:
+            return ""
+        
+        # Remove HTML tags
+        text = re.sub('<[^<]+?>', '', text)
+        
+        # Convert HTML entities
+        text = text.replace('&nbsp;', ' ')
+        text = text.replace('&lt;', '<')
+        text = text.replace('&gt;', '>')
+        text = text.replace('&amp;', '&')
+        text = text.replace('&quot;', '"')
+        text = text.replace('&#39;', "'")
+        
+        # Remove excess whitespace
+        text = ' '.join(text.split())
+        return text.strip()
+    
+    @staticmethod
+    def format_date(date_str: Optional[str]) -> Optional[datetime]:
+        """
+        Parse ISO date string to datetime
+        """
+        if not date_str:
+            return None
+        
+        try:
+            if date_str.endswith('Z'):
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            else:
+                dt = datetime.fromisoformat(date_str)
+            return dt
+        except Exception as e:
+            logger.warning(f"Error parsing date {date_str}: {e}")
+            return None
+    
+    def list_assignees(self) -> List[Dict[str, Any]]:
+        """
+        Get list of assignees from work packages (since /api/v3/users requires admin access)
+        """
+        try:
+            # Get work packages to extract assignees from
+            work_packages, _ = self.list_work_packages(offset=0, limit=1000)  # Get many WPs to find all assignees
+            
+            # Extract unique assignees
+            assignee_map = {}
+            
+            for wp in work_packages:
+                assignee_id = wp.get('assignee_id')
+                assignee_name = wp.get('assignee_name')
+                
+                if assignee_id and assignee_name and assignee_name != 'Unknown':
+                    if assignee_id not in assignee_map:
+                        assignee_map[assignee_id] = {
+                            'id': assignee_id,
+                            'name': assignee_name,
+                            'email': None,  # We don't have email from WP data
+                            'firstName': None,
+                            'lastName': None,
+                            'status': 'active'  # Assume active if assigned to WP
+                        }
+            
+            assignees = list(assignee_map.values())
+            
+            # Sort by name
+            assignees.sort(key=lambda x: x['name'])
+            
+            logger.info(f"Retrieved {len(assignees)} assignees from work packages")
+            return assignees
+            
+        except Exception as e:
+            logger.error(f"Error fetching assignees from work packages: {e}")
+            return []
+    
+    def get_sla_metrics(self, 
+                       start_date: Optional[str] = None, 
+                       end_date: Optional[str] = None) -> Dict[str, Any]:
+        """Calculate SLA metrics from work packages"""
+        # Default to last 30 days if no dates provided
+        if not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        # Get work packages for the period
+        filters = {
+            "created_at": f">={start_date}",
+            "created_at": f"<={end_date}"
+        }
+        
+        work_packages, total = self.list_work_packages(
+            offset=0, 
+            limit=1000,  # Get more for metrics
+            filters=filters
+        )
+        
+        # Calculate metrics
+        total_count = len(work_packages)
+        completed_count = len([wp for wp in work_packages if wp.get("done_ratio") == 100])
+        overdue_count = 0
+        due_soon_count = 0
+        
+        now = datetime.now()
+        for wp in work_packages:
+            if wp.get("due_date"):
+                try:
+                    due_date = datetime.fromisoformat(wp["due_date"].replace("Z", "+00:00"))
+                    if due_date < now and wp.get("done_ratio", 0) < 100:
+                        overdue_count += 1
+                    elif due_date < now + timedelta(days=7) and wp.get("done_ratio", 0) < 100:
+                        due_soon_count += 1
+                except (ValueError, TypeError):
+                    continue
+        
+        return {
+            "total_work_packages": total_count,
+            "completed": completed_count,
+            "overdue": overdue_count,
+            "due_soon": due_soon_count,
+            "completion_rate": (completed_count / total_count * 100) if total_count > 0 else 0,
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+        }
+    
+    def _extract_id_from_link(self, link_obj: Optional[Dict]) -> Optional[int]:
+        """Extract ID from OpenProject API link object"""
+        if not link_obj or not link_obj.get("href"):
+            return None
+        
+        href = link_obj["href"]
+        # Extract ID from URL like "/api/v3/users/123"
+        try:
+            return int(href.split("/")[-1])
+        except (ValueError, IndexError):
+            return None
+    
+    def _extract_custom_fields(self, custom_fields: Dict) -> Dict[str, Any]:
+        """Extract and format custom fields"""
+        extracted = {}
+        for key, value in custom_fields.items():
+            if isinstance(value, dict) and "raw" in value:
+                extracted[key] = value["raw"]
+            else:
+                extracted[key] = value
+        return extracted
+    
+    @staticmethod
+    def safe_get(data: Any, *keys: str, default: Any = None) -> Any:
+        """
+        Safely get nested dictionary values
+        """
+        try:
+            for key in keys:
+                if isinstance(data, dict) and key in data:
+                    data = data[key]
+                else:
+                    return default
+            return data if data is not None and data != "" else default
+        except (KeyError, TypeError, AttributeError):
+            return default
+    
+    @staticmethod
+    def clean_html(text: str) -> str:
+        """
+        Remove HTML tags and convert entities
+        """
+        if not text:
+            return ""
+        
+        # Remove HTML tags
+        text = re.sub('<[^<]+?>', '', text)
+        
+        # Convert HTML entities
+        text = text.replace('&nbsp;', ' ')
+        text = text.replace('&lt;', '<')
+        text = text.replace('&gt;', '>')
+        text = text.replace('&amp;', '&')
+        text = text.replace('&quot;', '"')
+        text = text.replace('&#39;', "'")
+        
+        # Remove excess whitespace
+        text = ' '.join(text.split())
+        return text.strip()
+    
+    @staticmethod
+    def format_date(date_str: Optional[str]) -> Optional[datetime]:
+        """
+        Parse ISO date string to datetime
+        """
+        if not date_str:
+            return None
+        
+        try:
+            if date_str.endswith('Z'):
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            else:
+                dt = datetime.fromisoformat(date_str)
+            return dt
+        except Exception as e:
+            logger.warning(f"Error parsing date {date_str}: {e}")
+            return None
+    
+    def list_assignees(self) -> List[Dict[str, Any]]:
+        """
+        Get list of assignees from work packages (since /api/v3/users requires admin access)
+        """
+        try:
+            # Get work packages to extract assignees from
+            work_packages, _ = self.list_work_packages(offset=0, limit=1000)  # Get many WPs to find all assignees
+            
+            # Extract unique assignees
+            assignee_map = {}
+            
+            for wp in work_packages:
+                assignee_id = wp.get('assignee_id')
+                assignee_name = wp.get('assignee_name')
+                
+                if assignee_id and assignee_name and assignee_name != 'Unknown':
+                    if assignee_id not in assignee_map:
+                        assignee_map[assignee_id] = {
+                            'id': assignee_id,
+                            'name': assignee_name,
+                            'email': None,  # We don't have email from WP data
+                            'firstName': None,
+                            'lastName': None,
+                            'status': 'active'  # Assume active if assigned to WP
+                        }
+            
+            assignees = list(assignee_map.values())
+            
+            # Sort by name
+            assignees.sort(key=lambda x: x['name'])
+            
+            logger.info(f"Retrieved {len(assignees)} assignees from work packages")
+            return assignees
+            
+        except Exception as e:
+            logger.error(f"Error fetching assignees from work packages: {e}")
+            return []
+    
+    def get_sla_metrics(self, 
+                       start_date: Optional[str] = None, 
+                       end_date: Optional[str] = None) -> Dict[str, Any]:
+        """Calculate SLA metrics from work packages"""
+        # Default to last 30 days if no dates provided
+        if not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        # Get work packages for the period
+        filters = {
+            "created_at": f">={start_date}",
+            "created_at": f"<={end_date}"
+        }
+        
+        work_packages, total = self.list_work_packages(
+            offset=0, 
+            limit=1000,  # Get more for metrics
+            filters=filters
+        )
+        
+        # Calculate metrics
+        total_count = len(work_packages)
+        completed_count = len([wp for wp in work_packages if wp.get("done_ratio") == 100])
+        overdue_count = 0
+        due_soon_count = 0
+        
+        now = datetime.now()
+        for wp in work_packages:
+            if wp.get("due_date"):
+                try:
+                    due_date = datetime.fromisoformat(wp["due_date"].replace("Z", "+00:00"))
+                    if due_date < now and wp.get("done_ratio", 0) < 100:
+                        overdue_count += 1
+                    elif due_date < now + timedelta(days=7) and wp.get("done_ratio", 0) < 100:
+                        due_soon_count += 1
+                except (ValueError, TypeError):
+                    continue
+        
+        return {
+            "total_work_packages": total_count,
+            "completed": completed_count,
+            "overdue": overdue_count,
+            "due_soon": due_soon_count,
+            "completion_rate": (completed_count / total_count * 100) if total_count > 0 else 0,
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+        }
+    
+    def _extract_id_from_link(self, link_obj: Optional[Dict]) -> Optional[int]:
+        """Extract ID from OpenProject API link object"""
+        if not link_obj or not link_obj.get("href"):
+            return None
+        
+        href = link_obj["href"]
+        # Extract ID from URL like "/api/v3/users/123"
+        try:
+            return int(href.split("/")[-1])
+        except (ValueError, IndexError):
+            return None
+    
+    def _extract_custom_fields(self, custom_fields: Dict) -> Dict[str, Any]:
+        """Extract and format custom fields"""
+        extracted = {}
+        for key, value in custom_fields.items():
+            if isinstance(value, dict) and "raw" in value:
+                extracted[key] = value["raw"]
+            else:
+                extracted[key] = value
+        return extracted
+    
+    @staticmethod
+    def safe_get(data: Any, *keys: str, default: Any = None) -> Any:
+        """
+        Safely get nested dictionary values
+        """
+        try:
+            for key in keys:
+                if isinstance(data, dict) and key in data:
+                    data = data[key]
+                else:
+                    return default
+            return data if data is not None and data != "" else default
+        except (KeyError, TypeError, AttributeError):
+            return default
+    
+    @staticmethod
+    def clean_html(text: str) -> str:
+        """
+        Remove HTML tags and convert entities
+        """
+        if not text:
+            return ""
+        
+        # Remove HTML tags
+        text = re.sub('<[^<]+?>', '', text)
+        
+        # Convert HTML entities
+        text = text.replace('&nbsp;', ' ')
+        text = text.replace('&lt;', '<')
+        text = text.replace('&gt;', '>')
+        text = text.replace('&amp;', '&')
+        text = text.replace('&quot;', '"')
+        text = text.replace('&#39;', "'")
+        
+        # Remove excess whitespace
+        text = ' '.join(text.split())
+        return text.strip()
+    
+    @staticmethod
+    def format_date(date_str: Optional[str]) -> Optional[datetime]:
+        """
+        Parse ISO date string to datetime
+        """
+        if not date_str:
+            return None
+        
+        try:
+            if date_str.endswith('Z'):
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            else:
+                dt = datetime.fromisoformat(date_str)
+            return dt
+        except Exception as e:
+            logger.warning(f"Error parsing date {date_str}: {e}")
+            return None
+    
+    def list_assignees(self) -> List[Dict[str, Any]]:
+        """
+        Get list of assignees from work packages (since /api/v3/users requires admin access)
+        """
+        try:
+            # Get work packages to extract assignees from
+            work_packages, _ = self.list_work_packages(offset=0, limit=1000)  # Get many WPs to find all assignees
+            
+            # Extract unique assignees
+            assignee_map = {}
+            
+            for wp in work_packages:
+                assignee_id = wp.get('assignee_id')
+                assignee_name = wp.get('assignee_name')
+                
+                if assignee_id and assignee_name and assignee_name != 'Unknown':
+                    if assignee_id not in assignee_map:
+                        assignee_map[assignee_id] = {
+                            'id': assignee_id,
+                            'name': assignee_name,
+                            'email': None,  # We don't have email from WP data
+                            'firstName': None,
+                            'lastName': None,
+                            'status': 'active'  # Assume active if assigned to WP
+                        }
+            
+            assignees = list(assignee_map.values())
+            
+            # Sort by name
+            assignees.sort(key=lambda x: x['name'])
+            
+            logger.info(f"Retrieved {len(assignees)} assignees from work packages")
+            return assignees
+            
+        except Exception as e:
+            logger.error(f"Error fetching assignees from work packages: {e}")
+            return []
+    
+    def get_sla_metrics(self, 
+                       start_date: Optional[str] = None, 
+                       end_date: Optional[str] = None) -> Dict[str, Any]:
+        """Calculate SLA metrics from work packages"""
+        # Default to last 30 days if no dates provided
+        if not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        # Get work packages for the period
+        filters = {
+            "created_at": f">={start_date}",
+            "created_at": f"<={end_date}"
+        }
+        
+        work_packages, total = self.list_work_packages(
+            offset=0, 
+            limit=1000,  # Get more for metrics
+            filters=filters
+        )
+        
+        # Calculate metrics
+        total_count = len(work_packages)
+        completed_count = len([wp for wp in work_packages if wp.get("done_ratio") == 100])
+        overdue_count = 0
+        due_soon_count = 0
+        
+        now = datetime.now()
+        for wp in work_packages:
+            if wp.get("due_date"):
+                try:
+                    due_date = datetime.fromisoformat(wp["due_date"].replace("Z", "+00:00"))
+                    if due_date < now and wp.get("done_ratio", 0) < 100:
+                        overdue_count += 1
+                    elif due_date < now + timedelta(days=7) and wp.get("done_ratio", 0) < 100:
+                        due_soon_count += 1
+                except (ValueError, TypeError):
+                    continue
+        
+        return {
+            "total_work_packages": total_count,
+            "completed": completed_count,
+            "overdue": overdue_count,
+            "due_soon": due_soon_count,
+            "completion_rate": (completed_count / total_count * 100) if total_count > 0 else 0,
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+        }
+    
+    def _extract_id_from_link(self, link_obj: Optional[Dict]) -> Optional[int]:
+        """Extract ID from OpenProject API link object"""
+        if not link_obj or not link_obj.get("href"):
+            return None
+        
+        href = link_obj["href"]
+        # Extract ID from URL like "/api/v3/users/123"
+        try:
+            return int(href.split("/")[-1])
+        except (ValueError, IndexError):
+            return None
+    
+    def _extract_custom_fields(self, custom_fields: Dict) -> Dict[str, Any]:
+        """Extract and format custom fields"""
+        extracted = {}
+        for key, value in custom_fields.items():
+            if isinstance(value, dict) and "raw" in value:
+                extracted[key] = value["raw"]
+            else:
+                extracted[key] = value
+        return extracted
+    
+    @staticmethod
+    def safe_get(data: Any, *keys: str, default: Any = None) -> Any:
+        """
+        Safely get nested dictionary values
+        """
+        try:
+            for key in keys:
+                if isinstance(data, dict) and key in data:
+                    data = data[key]
+                else:
+                    return default
+            return data if data is not None and data != "" else default
+        except (KeyError, TypeError, AttributeError):
+            return default
+    
+    @staticmethod
+    def clean_html(text: str) -> str:
+        """
+        Remove HTML tags and convert entities
+        """
+        if not text:
+            return ""
+        
+        # Remove HTML tags
+        text = re.sub('<[^<]+?>', '', text)
+        
+        # Convert HTML entities
+        text = text.replace('&nbsp;', ' ')
+        text = text.replace('&lt;', '<')
+        text = text.replace('&gt;', '>')
+        text = text.replace('&amp;', '&')
+        text = text.replace('&quot;', '"')
+        text = text.replace('&#39;', "'")
+        
+        # Remove excess whitespace
+        text = ' '.join(text.split())
+        return text.strip()
+    
+    @staticmethod
+    def format_date(date_str: Optional[str]) -> Optional[datetime]:
+        """
+        Parse ISO date string to datetime
+        """
+        if not date_str:
+            return None
+        
+        try:
+            if date_str.endswith('Z'):
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            else:
+                dt = datetime.fromisoformat(date_str)
+            return dt
+        except Exception as e:
+            logger.warning(f"Error parsing date {date_str}: {e}")
+            return None
+    
+    def list_assignees(self) -> List[Dict[str, Any]]:
+        """
+        Get list of assignees from work packages (since /api/v3/users requires admin access)
+        """
+        try:
+            # Get work packages to extract assignees from
+            work_packages, _ = self.list_work_packages(offset=0, limit=1000)  # Get many WPs to find all assignees
+            
+            # Extract unique assignees
+            assignee_map = {}
+            
+            for wp in work_packages:
+                assignee_id = wp.get('assignee_id')
+                assignee_name = wp.get('assignee_name')
+                
+                if assignee_id and assignee_name and assignee_name != 'Unknown':
+                    if assignee_id not in assignee_map:
+                        assignee_map[assignee_id] = {
+                            'id': assignee_id,
+                            'name': assignee_name,
+                            'email': None,  # We don't have email from WP data
+                            'firstName': None,
+                            'lastName': None,
+                            'status': 'active'  # Assume active if assigned to WP
+                        }
+            
+            assignees = list(assignee_map.values())
+            
+            # Sort by name
+            assignees.sort(key=lambda x: x['name'])
+            
+            logger.info(f"Retrieved {len(assignees)} assignees from work packages")
+            return assignees
+            
+        except Exception as e:
+            logger.error(f"Error fetching assignees from work packages: {e}")
+            return []
+    
+    def get_sla_metrics(self, 
+                       start_date: Optional[str] = None, 
+                       end_date: Optional[str] = None) -> Dict[str, Any]:
+        """Calculate SLA metrics from work packages"""
+        # Default to last 30 days if no dates provided
+        if not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        # Get work packages for the period
+        filters = {
+            "created_at": f">={start_date}",
+            "created_at": f"<={end_date}"
+        }
+        
+        work_packages, total = self.list_work_packages(
+            offset=0, 
+            limit=1000,  # Get more for metrics
+            filters=filters
+        )
+        
+        # Calculate metrics
+        total_count = len(work_packages)
+        completed_count = len([wp for wp in work_packages if wp.get("done_ratio") == 100])
+        overdue_count = 0
+        due_soon_count = 0
+        
+        now = datetime.now()
+        for wp in work_packages:
+            if wp.get("due_date"):
+                try:
+                    due_date = datetime.fromisoformat(wp["due_date"].replace("Z", "+00:00"))
+                    if due_date < now and wp.get("done_ratio", 0) < 100:
+                        overdue_count += 1
+                    elif due_date < now + timedelta(days=7) and wp.get("done_ratio", 0) < 100:
+                        due_soon_count += 1
+                except (ValueError, TypeError):
+                    continue
+        
+        return {
+            "total_work_packages": total_count,
+            "completed": completed_count,
+            "overdue": overdue_count,
+            "due_soon": due_soon_count,
+            "completion_rate": (completed_count / total_count * 100) if total_count > 0 else 0,
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+        }
+    
+    def _extract_id_from_link(self, link_obj: Optional[Dict]) -> Optional[int]:
+        """Extract ID from OpenProject API link object"""
+        if not link_obj or not link_obj.get("href"):
+            return None
+        
+        href = link_obj["href"]
+        # Extract ID from URL like "/api/v3/users/123"
+        try:
+            return int(href.split("/")[-1])
+        except (ValueError, IndexError):
+            return None
+    
+    def _extract_custom_fields(self, custom_fields: Dict) -> Dict[str, Any]:
+        """Extract and format custom fields"""
+        extracted = {}
+        for key, value in custom_fields.items():
+            if isinstance(value, dict) and "raw" in value:
+                extracted[key] = value["raw"]
+            else:
+                extracted[key] = value
+        return extracted
+    
+    @staticmethod
+    def safe_get(data: Any, *keys: str, default: Any = None) -> Any:
+        """
+        Safely get nested dictionary values
+        """
+        try:
+            for key in keys:
+                if isinstance(data, dict) and key in data:
+                    data = data[key]
+                else:
+                    return default
+            return data if data is not None and data != "" else default
+        except (KeyError, TypeError, AttributeError):
+            return default
+    
+    @staticmethod
+    def clean_html(text: str) -> str:
+        """
+        Remove HTML tags and convert entities
+        """
+        if not text:
+            return ""
+        
+        # Remove HTML tags
+        text = re.sub('<[^<]+?>', '', text)
+        
+        # Convert HTML entities
+        text = text.replace('&nbsp;', ' ')
+        text = text.replace('&lt;', '<')
+        text = text.replace('&gt;', '>')
+        text = text.replace('&amp;', '&')
+        text = text.replace('&quot;', '"')
+        text = text.replace('&#39;', "'")
+        
+        # Remove excess whitespace
+        text = ' '.join(text.split())
+        return text.strip()
+    
+    @staticmethod
+    def format_date(date_str: Optional[str]) -> Optional[datetime]:
+        """
+        Parse ISO date string to datetime
+        """
+        if not date_str:
+            return None
+        
+        try:
+            if date_str.endswith('Z'):
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            else:
+                dt = datetime.fromisoformat(date_str)
+            return dt
+        except Exception as e:
+                       logger.warning(f"Error parsing date {date_str}: {e}")
+            return None
+    
+    def list_assignees(self) -> List[Dict[str, Any]]:
+        """
+        Get list of assignees from work packages (since /api/v3/users requires admin access)
+        """
+        try:
+            # Get work packages to extract assignees from
+            work_packages, _ = self.list_work_packages(offset=0, limit=1000)  # Get many WPs to find all assignees
+            
+            # Extract unique assignees
+            assignee_map = {}
+            
+            for wp in work_packages:
+                assignee_id = wp.get('assignee_id')
+                assignee_name = wp.get('assignee_name')
+                
+                if assignee_id and assignee_name and assignee_name != 'Unknown':
+                    if assignee_id not in assignee_map:
+                        assignee_map[assignee_id] = {
+                            'id': assignee_id,
+                            'name': assignee_name,
+                            'email': None,  # We don't have email from WP data
+                            'firstName': None,
+                            'lastName': None,
+                            'status': 'active'  # Assume active if assigned to WP
+                        }
+            
+            assignees = list(assignee_map.values())
+            
+            # Sort by name
+            assignees.sort(key=lambda x: x['name'])
+            
+            logger.info(f"Retrieved {len(assignees)} assignees from work packages")
+            return assignees
+            
+        except Exception as e:
+            logger.error(f"Error fetching assignees from work packages: {e}")
+            return []
+    
+    def get_sla_metrics(self, 
+                       start_date: Optional[str] = None, 
+                       end_date: Optional[str] = None) -> Dict[str, Any]:
+        """Calculate SLA metrics from work packages"""
+        # Default to last 30 days if no dates provided
+        if not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        # Get work packages for the period
+        filters = {
+            "created_at": f">={start_date}",
+            "created_at": f"<={end_date}"
+        }
+        
+        work_packages, total = self.list_work_packages(
+            offset=0, 
+            limit=1000,  # Get more for metrics
+            filters=filters
+        )
+        
+        # Calculate metrics
+        total_count = len(work_packages)
+        completed_count = len([wp for wp in work_packages if wp.get("done_ratio") == 100])
+        overdue_count = 0
+        due_soon_count = 0
+        
+        now = datetime.now()
+        for wp in work_packages:
+            if wp.get("due_date"):
+                try:
+                    due_date = datetime.fromisoformat(wp["due_date"].replace("Z", "+00:00"))
+                    if due_date < now and wp.get("done_ratio", 0) < 100:
+                        overdue_count += 1
+                    elif due_date < now + timedelta(days=7) and wp.get("done_ratio", 0) < 100:
+                        due_soon_count += 1
+                except (ValueError, TypeError):
+                    continue
+        
+        return {
+            "total_work_packages": total_count,
+            "completed": completed_count,
+            "overdue": overdue_count,
+            "due_soon": due_soon_count,
+            "completion_rate": (completed_count / total_count * 100) if total_count > 0 else 0,
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+        }
+    
+    def _extract_id_from_link(self, link_obj: Optional[Dict]) -> Optional[int]:
+        """Extract ID from OpenProject API link object"""
+        if not link_obj or not link_obj.get("href"):
+            return None
+        
+        href = link_obj["href"]
+        # Extract ID from URL like "/api/v3/users/123"
+        try:
+            return int(href.split("/")[-1])
+        except (ValueError, IndexError):
+            return None
+    
+    def _extract_custom_fields(self, custom_fields: Dict) -> Dict[str, Any]:
+        """Extract and format custom fields"""
+        extracted = {}
+        for key, value in custom_fields.items():
+            if isinstance(value, dict) and "raw" in value:
+                extracted[key] = value["raw"]
+            else:
+                extracted[key] = value
+        return extracted
+    
+    @staticmethod
+    def safe_get(data: Any, *keys: str, default: Any = None) -> Any:
+        """
+        Safely get nested dictionary values
+        """
+        try:
+            for key in keys:
+                if isinstance(data, dict) and key in data:
+                    data = data[key]
+                else:
+                    return default
+            return data if data is not None and data != "" else default
+        except (KeyError, TypeError, AttributeError):
+            return default
+    
+    @staticmethod
+    def clean_html(text: str) -> str:
+        """
+        Remove HTML tags and convert entities
+        """
+        if not text:
+            return ""
+        
+        # Remove HTML tags
+        text = re.sub('<[^<]+?>', '', text)
+        
+        # Convert HTML entities
+        text = text.replace('&nbsp;', ' ')
+        text = text.replace('&lt;', '<')
+        text = text.replace('&gt;', '>')
+        text = text.replace('&amp;', '&')
+        text = text.replace('&quot;', '"')
+        text = text.replace('&#39;', "'")
+        
+        # Remove excess whitespace
+        text = ' '.join(text.split())
+        return text.strip()
+    
+    @staticmethod
+    def format_date(date_str: Optional[str]) -> Optional[datetime]:
+        """
+        Parse ISO date string to datetime
+        """
+        if not date_str:
+            return None
+        
+        try:
+            if date_str.endswith('Z'):
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            else:
+                dt = datetime.fromisoformat(date_str)
+            return dt
+        except Exception as e:
+            logger.warning(f"Error parsing date {date_str}: {e}")
+            return None

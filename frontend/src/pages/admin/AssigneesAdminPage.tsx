@@ -15,7 +15,9 @@ import {
   TextField,
   InputAdornment,
   FormControlLabel,
-  Switch
+  Switch,
+  Autocomplete,
+  Checkbox
 } from '@mui/material';
 import {
   DataGrid,
@@ -323,22 +325,56 @@ const AssigneesAdminPage: React.FC = () => {
       <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)} maxWidth="md" fullWidth>
         <DialogTitle>เพิ่มผู้รับผิดชอบจาก OpenProject</DialogTitle>
         <DialogContent>
-          <DataGrid
-            rows={opAssignees}
-            columns={[
-              { field: 'op_user_id', headerName: 'ID', width: 80 },
-              { field: 'display_name', headerName: 'ชื่อ', width: 200 },
-              { field: 'email', headerName: 'อีเมล', width: 250 },
-            ]}
-            loading={isLoadingOP}
-            autoHeight
-            checkboxSelection
-            rowSelectionModel={selectedOPAssignees}
-            onRowSelectionModelChange={(selection) => setSelectedOPAssignees(selection as number[])}
-            getRowId={(row) => row.op_user_id}
-            localeText={{
-              noRowsLabel: 'ไม่พบข้อมูลผู้รับผิดชอบใน OpenProject',
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+            เลือกผู้รับผิดชอบที่ต้องการเพิ่มจากรายชื่อทั้งหมดใน OpenProject:
+          </Typography>
+          
+          <Autocomplete
+            multiple
+            options={opAssignees}
+            value={opAssignees.filter(a => selectedOPAssignees.includes(a.op_user_id))}
+            onChange={(event, newValue) => {
+              setSelectedOPAssignees(newValue.map(a => a.op_user_id));
             }}
+            getOptionLabel={(option) => `${option.display_name} (${option.op_user_id})`}
+            renderOption={(props, option, { selected }) => (
+              <li {...props}>
+                <Checkbox
+                  icon={<RadioButtonUncheckedIcon />}
+                  checkedIcon={<CheckCircleIcon />}
+                  style={{ marginRight: 8 }}
+                  checked={selected}
+                />
+                <Box>
+                  <Typography variant="body1">{option.display_name}</Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    ID: {option.op_user_id} {option.email && `• ${option.email}`}
+                  </Typography>
+                </Box>
+              </li>
+            )}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="ค้นหาและเลือกผู้รับผิดชอบ"
+                placeholder="พิมพ์ชื่อหรือเลือกจากรายการ..."
+                helperText={`แสดง ${opAssignees.length} ผู้รับผิดชอบจาก OpenProject`}
+              />
+            )}
+            renderTags={(tagValue, getTagProps) =>
+              tagValue.map((option, index) => (
+                <Chip
+                  {...getTagProps({ index })}
+                  key={option.op_user_id}
+                  label={`${option.display_name} (${option.op_user_id})`}
+                  size="small"
+                />
+              ))
+            }
+            loading={isLoadingOP}
+            loadingText="กำลังโหลดรายชื่อผู้รับผิดชอบ..."
+            noOptionsText="ไม่พบผู้รับผิดชอบ"
+            sx={{ mt: 1 }}
           />
         </DialogContent>
         <DialogActions>
@@ -348,7 +384,7 @@ const AssigneesAdminPage: React.FC = () => {
             variant="contained"
             disabled={selectedOPAssignees.length === 0 || addAssigneeMutation.isPending}
           >
-            เพิ่ม ({selectedOPAssignees.length})
+            เพิ่มผู้รับผิดชอบ ({selectedOPAssignees.length})
           </Button>
         </DialogActions>
       </Dialog>

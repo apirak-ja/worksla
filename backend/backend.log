@@ -12,3 +12,5 @@ INFO:     127.0.0.1:39704 - "GET /worksla/api/openapi.json HTTP/1.1" 404 Not Fou
 INFO:     127.0.0.1:34662 - "GET /worksla/api/admin/assignees HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:34664 - "GET /api/admin/assignees HTTP/1.1" 401 Unauthorized
 INFO:     127.0.0.1:34674 - "GET /worksla/api/openapi.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:35974 - "GET /worksla/api/admin/assignees/openproject HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36398 - "GET /worksla/api/admin/assignees/openproject HTTP/1.1" 404 Not Found

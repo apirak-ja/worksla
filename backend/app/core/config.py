@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     OPENPROJECT_API_KEY: str = os.getenv("OPENPROJECT_API_KEY", "")
     WORK_PACKAGE_ID: str = os.getenv("WORK_PACKAGE_ID", "")
     
+    @property
+    def OPENPROJECT_BASE_URL(self) -> str:
+        """Construct OpenProject base URL"""
+        if self.OPENPROJECT_URL:
+            return self.OPENPROJECT_URL.rstrip('/')
+        return "https://hosp.wu.ac.th/cmms"
+    
     # Database
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "apirak.ja")
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "")
@@ -58,7 +65,6 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: List[str] = ["10.251.150.222", "localhost"]
     
     # OpenProject API
-    OPENPROJECT_BASE_URL: str = os.getenv("OPENPROJECT_URL", "https://hosp.wu.ac.th/cmms/api/v3")
     OPENPROJECT_API_KEY: str = os.getenv("OPENPROJECT_API_KEY", "")
     OPENPROJECT_VERIFY_SSL: bool = os.getenv("OPENPROJECT_VERIFY_SSL", "false").lower() == "true"
     
