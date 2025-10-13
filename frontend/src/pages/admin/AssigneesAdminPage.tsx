@@ -68,7 +68,7 @@ interface OpenProjectAssignee {
 }
 
 const AssigneesAdminPage: React.FC = () => {
-  const [showActiveOnly, setShowActiveOnly] = useState(true);
+  const [showActiveOnly, setShowActiveOnly] = useState(false);
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
     pageSize: 20,

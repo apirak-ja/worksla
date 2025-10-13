@@ -35,7 +35,7 @@ class SettingRepository:
         result = self.db.execute(stmt)
         return list(result.scalars().all())
 
-    def create_or_update(self, key: str, value: Dict[str, Any], description: str = None) -> Setting:
+    def create_or_update(self, key: str, value: Any, description: str = None) -> Setting:
         """Create or update setting"""
         setting = self.get_by_key(key)
         
