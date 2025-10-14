@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional, List
 import math
+import logging
 
 from app.core.database import get_db
 from app.core.security import get_current_user
@@ -210,8 +211,8 @@ async def get_work_package(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch work package: {str(e)}")
 
-@router.get("/{wp_id}/activities")
-async def get_work_package_activities(
+@router.get("/{wp_id}/journals")
+async def get_work_package_journals(
     wp_id: int,
     offset: int = Query(0, ge=0),
     page_size: int = Query(20, ge=1, le=100),
@@ -219,16 +220,17 @@ async def get_work_package_activities(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Get work package activities/journal entries with pagination
+    Get work package journals/activities with pagination
     """
+    logging.info(f"Getting journals for work package {wp_id}")
     try:
         # Get all activities (OpenProject API doesn't support pagination on activities endpoint)
-        all_activities = openproject_client.get_work_package_activities(wp_id)
+        all_activities = openproject_client.get_work_package_journals(wp_id)
         
         if not all_activities:
             return {
                 "wp_id": wp_id,
-                "activities": [],
+                "journals": [],
                 "total": 0,
                 "offset": offset,
                 "page_size": page_size,
@@ -238,11 +240,11 @@ async def get_work_package_activities(
         # Manual pagination
         total = len(all_activities)
         end_index = offset + page_size
-        paginated_activities = all_activities[offset:end_index]
+        paginated_journals = all_activities[offset:end_index]
         
         return {
             "wp_id": wp_id,
-            "activities": paginated_activities,
+            "journals": paginated_journals,
             "total": total,
             "offset": offset,
             "page_size": page_size,
@@ -250,7 +252,8 @@ async def get_work_package_activities(
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch activities: {str(e)}")
+        logging.error(f"Failed to get journals for {wp_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch journals: {str(e)}")
 
 @router.post("/refresh")
 async def refresh_work_packages(

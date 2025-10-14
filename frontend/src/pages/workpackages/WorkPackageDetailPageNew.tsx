@@ -81,10 +81,9 @@ const WorkPackageDetailPageNew: React.FC = () => {
     enabled: !!wpId,
   });
 
-  const { data: activities, isLoading: isActivitiesLoading } = useQuery({
-    queryKey: ['workpackage-activities', wpId],
-    queryFn: () => wpApi.getActivities(wpId).then((res) => res.data),
-    enabled: !!wpId,
+  const { data: journals, isLoading: isJournalsLoading } = useQuery({
+    queryKey: ['workpackage-journals', wpId],
+    queryFn: () => wpApi.getJournals(wpId).then((res) => res.data),
   });
 
   const getStatusColor = (status: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
@@ -184,7 +183,7 @@ const WorkPackageDetailPageNew: React.FC = () => {
   };
 
   const getTotalDuration = () => {
-    const activityList = activities?.activities || [];
+    const activityList = journals?.journals || [];
     if (activityList.length < 2) return null;
     
     const firstActivity = activityList[activityList.length - 1];
@@ -361,7 +360,7 @@ const WorkPackageDetailPageNew: React.FC = () => {
 
   // Timeline Tab Content - Redesigned to match ID34909 structure
   const renderTimelineTab = () => {
-    if (isActivitiesLoading) {
+    if (isJournalsLoading) {
       return (
         <Box display="flex" justifyContent="center" p={4}>
           <CircularProgress />
@@ -369,7 +368,7 @@ const WorkPackageDetailPageNew: React.FC = () => {
       );
     }
 
-    const activityList = activities?.activities || [];
+    const activityList = journals?.journals || [];
 
     if (activityList.length === 0) {
       return (

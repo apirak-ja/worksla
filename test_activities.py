@@ -3,14 +3,23 @@ import json
 import urllib3
 urllib3.disable_warnings()
 
+print("Starting test")
+
 # Get activities from OpenProject directly
 url = 'https://hosp.wu.ac.th/cmms/api/v3/work_packages/34909/activities'
 headers = {
     'Authorization': 'Basic YXBpcmFrajphcGlyYWtAcGQ='
 }
 
-response = httpx.get(url, headers=headers, verify=False, timeout=10)
-data = response.json()
+try:
+    response = httpx.get(url, headers=headers, verify=False, timeout=10)
+    if response.status_code != 200:
+        print(f"HTTP {response.status_code}: {response.text}")
+        exit(1)
+    data = response.json()
+except Exception as e:
+    print(f"Error: {e}")
+    exit(1)
 
 # Print first activity with details
 if '_embedded' in data and 'elements' in data['_embedded']:
