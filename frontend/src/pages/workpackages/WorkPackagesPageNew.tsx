@@ -1,370 +1,348 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import * as React from 'react'
+import { useState, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Typography,
   Button,
   Card,
   CardContent,
-  CardActions,
-  CircularProgress,
-  Alert,
   TextField,
   MenuItem,
   FormControlLabel,
   Switch,
   Grid,
   Chip,
-  Avatar,
   IconButton,
   Tooltip,
   InputAdornment,
-  Pagination,
-  Stack,
   Paper,
-  Divider,
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TablePagination,
+  Skeleton,
 } from '@mui/material';
 import {
   Refresh,
   Search,
-  FilterList,
   ViewModule,
   ViewList,
   Assignment,
-  Person,
-  Event,
-  TrendingUp,
-  AccessTime,
-  FiberManualRecord,
   ArrowForward,
+  Clear,
+  GetApp,
+  CheckCircle,
+  NewReleases,
+  PlayArrow,
 } from '@mui/icons-material';
-import { wpApi, WorkPackage } from '../../api/client';
-import { format, formatDistanceToNow } from 'date-fns';
-import { th } from 'date-fns/locale';
+import { wpApi, WorkPackage } from '../../api/client'
+import { format } from 'date-fns'
+import { th } from 'date-fns/locale'
+
+// ============================================================
+// Utility Functions
+// ============================================================
+
+const getStatusColor = (status: string) => {
+  const statusColors: Record<string, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
+    'New': 'info',
+    'รับเรื่อง': 'primary', 
+    'กำลังดำเนินการ': 'warning',
+    'ดำเนินการเสร็จ': 'success',
+    'ปิดงาน': 'default',
+  };
+  return statusColors[status] || 'default';
+};
+
+const getPriorityColor = (priority: string) => {
+  const priorityColors: Record<string, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
+    'High': 'error',
+    'Normal': 'warning', 
+    'Low': 'success',
+  };
+  return priorityColors[priority] || 'default';
+};
+
+const formatDateThai = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    return format(date, 'dd/MM/yyyy HH:mm', { locale: th });
+  } catch {
+    return dateString;
+  }
+};
+
+// ============================================================
+// Summary Card Component  
+// ============================================================
+
+interface SummaryCardProps {
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  color: 'primary' | 'success' | 'warning' | 'error' | 'info';
+}
+
+const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, icon, color }) => {
+  const colorMap = {
+    primary: { bg: 'rgba(123, 91, 164, 0.1)', text: '#7B5BA4' },
+    success: { bg: 'rgba(76, 175, 80, 0.1)', text: '#4CAF50' },
+    warning: { bg: 'rgba(255, 152, 0, 0.1)', text: '#FF9800' },
+    error: { bg: 'rgba(244, 67, 54, 0.1)', text: '#F44336' },
+    info: { bg: 'rgba(33, 150, 243, 0.1)', text: '#2196F3' },
+  };
+
+  return (
+    <Card
+      elevation={0}
+      sx={{
+        height: '100%',
+        border: '2px solid',
+        borderColor: colorMap[color].bg,
+        background: `linear-gradient(135deg, ${colorMap[color].bg} 0%, transparent 100%)`,
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          transform: 'translateY(-8px)',
+          boxShadow: `0 12px 24px ${colorMap[color].bg}`,
+          borderColor: colorMap[color].text,
+        },
+      }}
+    >
+      <CardContent>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+          <Box sx={{ color: colorMap[color].text, fontSize: 48 }}>
+            {icon}
+          </Box>
+          <Box
+            sx={{
+              bgcolor: colorMap[color].text,
+              color: 'white',
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 2,
+              fontSize: '0.75rem',
+              fontWeight: 700,
+            }}
+          >
+            {title}
+          </Box>
+        </Box>
+        <Typography variant="h3" fontWeight={700} color={colorMap[color].text}>
+          {value}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ============================================================
+// Status Chip Component
+// ============================================================
+
+interface StatusChipProps {
+  status: string;
+}
+
+const StatusChip: React.FC<StatusChipProps> = ({ status }) => {
+  return (
+    <Chip
+      label={status}
+      size="small"
+      color={getStatusColor(status)}
+      variant="filled"
+      sx={{ fontWeight: 600 }}
+    />
+  );
+};
+
+// ============================================================
+// Loading/Empty States
+// ============================================================
+
+const LoadingState: React.FC = () => (
+  <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="60vh" gap={3}>
+    <Box width="100%">
+      {[...Array(3)].map((_, i) => (
+        <Skeleton key={i} variant="rectangular" width="100%" height={80} sx={{ mb: 2, borderRadius: 2 }} />
+      ))}
+    </Box>
+    <Typography variant="h6" color="text.secondary" fontWeight={600}>
+      กำลังโหลด...
+    </Typography>
+  </Box>
+);
+
+const EmptyState: React.FC<{ icon: React.ReactNode; title: string; message?: string }> = ({ 
+  icon, title, message 
+}) => (
+  <Paper
+    elevation={0}
+    sx={{
+      p: 6,
+      textAlign: 'center',
+      border: '2px dashed',
+      borderColor: 'divider',
+      borderRadius: 3,
+      bgcolor: 'action.hover',
+    }}
+  >
+    {icon}
+    <Typography variant="h5" fontWeight={700} gutterBottom>
+      {title}
+    </Typography>
+    {message && (
+      <Typography variant="body2" color="text.secondary">
+        {message}
+      </Typography>
+    )}
+  </Paper>
+);
+
+// ============================================================
+// Main Component
+// ============================================================
 
 const WorkPackagesPage: React.FC = () => {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [applyAssigneeFilter, setApplyAssigneeFilter] = useState(true);
-  const [filters, setFilters] = useState<any>({
+  const [filters, setFilters] = useState({
     status: '',
     priority: '',
     search: '',
   });
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['workpackages', page, pageSize, filters, applyAssigneeFilter],
-    queryFn: () =>
-      wpApi
-        .list({
-          page,
-          page_size: pageSize,
-          apply_assignee_filter: applyAssigneeFilter,
-          ...filters,
-        })
-        .then((res) => res.data),
+    queryKey: ['work-packages', page, pageSize, filters, applyAssigneeFilter],
+    queryFn: () => wpApi.list({ page: page + 1, pageSize, filters, applyAssigneeFilter }),
   });
 
-  const getPriorityColor = (priority: string) => {
-    const priorityMap: Record<string, any> = {
-      High: { color: 'error', icon: '🔴' },
-      Normal: { color: 'warning', icon: '🟡' },
-      Low: { color: 'success', icon: '🟢' },
-    };
-    return priorityMap[priority] || { color: 'default', icon: '⚪' };
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
   };
 
-  const getStatusColor = (status: string) => {
-    const statusMap: Record<string, string> = {
-      New: '#64B5F6',
-      'รับเรื่อง': '#FFA726',
-      'กำลังดำเนินการ': '#42A5F5',
-      'ดำเนินการเสร็จ': '#66BB6A',
-      'ปิดงาน': '#78909C',
-      Completed: '#66BB6A',
-      'In Progress': '#42A5F5',
-    };
-    return statusMap[status] || '#90A4AE';
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPageSize(parseInt(event.target.value, 10));
+    setPage(0);
   };
-
-  const renderWorkPackageCard = (wp: WorkPackage) => (
-    <Card
-      key={wp.wp_id}
-      elevation={0}
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        border: '1px solid',
-        borderColor: 'divider',
-        borderRadius: 2,
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          boxShadow: 6,
-          transform: 'translateY(-4px)',
-          borderColor: 'primary.main',
-        },
-      }}
-    >
-      <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-        {/* Header with ID and Priority */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
-          <Chip
-            label={`#${wp.wp_id}`}
-            size="small"
-            icon={<Assignment />}
-            sx={{ fontWeight: 600 }}
-          />
-          <Chip
-            label={wp.priority || 'Normal'}
-            size="small"
-            color={getPriorityColor(wp.priority || 'Normal').color}
-            icon={<TrendingUp />}
-          />
-        </Box>
-
-        {/* Title */}
-        <Typography
-          variant="h6"
-          component="h3"
-          sx={{
-            mb: 1.5,
-            fontWeight: 600,
-            fontSize: '1rem',
-            lineHeight: 1.4,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            minHeight: '2.8em',
-          }}
-        >
-          {wp.subject}
-        </Typography>
-
-        {/* Status Badge */}
-        <Box mb={2}>
-          <Chip
-            label={wp.status || 'Unknown'}
-            size="small"
-            icon={<FiberManualRecord sx={{ fontSize: '0.6rem !important' }} />}
-            sx={{
-              bgcolor: getStatusColor(wp.status || ''),
-              color: 'white',
-              fontWeight: 500,
-              '& .MuiChip-icon': {
-                color: 'white !important',
-              },
-            }}
-          />
-        </Box>
-
-        {/* Meta Information */}
-        <Stack spacing={1}>
-          {/* Type */}
-          {wp.type && (
-            <Box display="flex" alignItems="center" gap={1}>
-              <Assignment sx={{ fontSize: 18, color: 'text.secondary' }} />
-              <Typography variant="body2" color="text.secondary">
-                {wp.type}
-              </Typography>
-            </Box>
-          )}
-
-          {/* Assignee */}
-          {wp.assignee_name && (
-            <Box display="flex" alignItems="center" gap={1}>
-              <Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem', bgcolor: 'primary.main' }}>
-                {wp.assignee_name.charAt(0)}
-              </Avatar>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-                {wp.assignee_name}
-              </Typography>
-            </Box>
-          )}
-
-          {/* Due Date */}
-          {wp.due_date && (
-            <Box display="flex" alignItems="center" gap={1}>
-              <Event sx={{ fontSize: 18, color: 'text.secondary' }} />
-              <Typography variant="body2" color="text.secondary">
-                {format(new Date(wp.due_date), 'dd MMM yyyy', { locale: th })}
-              </Typography>
-            </Box>
-          )}
-
-          {/* Updated At */}
-          {wp.updated_at && (
-            <Box display="flex" alignItems="center" gap={1}>
-              <AccessTime sx={{ fontSize: 18, color: 'text.secondary' }} />
-              <Typography variant="caption" color="text.secondary">
-                {formatDistanceToNow(new Date(wp.updated_at), { addSuffix: true, locale: th })}
-              </Typography>
-            </Box>
-          )}
-        </Stack>
-      </CardContent>
-
-      <Divider />
-
-      <CardActions sx={{ p: 2, pt: 1.5 }}>
-        <Button
-          fullWidth
-          variant="outlined"
-          endIcon={<ArrowForward />}
-          onClick={() => navigate(`/workpackages/${wp.wp_id}`)}
-          sx={{ borderRadius: 1.5 }}
-        >
-          ดูรายละเอียด
-        </Button>
-      </CardActions>
-    </Card>
-  );
-
-  const renderWorkPackageList = (wp: WorkPackage) => (
-    <Card
-      key={wp.wp_id}
-      elevation={0}
-      sx={{
-        mb: 2,
-        border: '1px solid',
-        borderColor: 'divider',
-        borderRadius: 2,
-        transition: 'all 0.2s ease',
-        '&:hover': {
-          boxShadow: 3,
-          borderColor: 'primary.main',
-        },
-      }}
-    >
-      <CardContent>
-        <Grid container spacing={2} alignItems="center">
-          {/* ID & Priority */}
-          <Grid item xs={12} sm={2} md={1}>
-            <Box display="flex" flexDirection="column" gap={1}>
-              <Chip label={`#${wp.wp_id}`} size="small" variant="outlined" />
-              <Chip
-                label={wp.priority || 'Normal'}
-                size="small"
-                color={getPriorityColor(wp.priority || 'Normal').color}
-              />
-            </Box>
-          </Grid>
-
-          {/* Title & Meta */}
-          <Grid item xs={12} sm={6} md={5}>
-            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-              {wp.subject}
-            </Typography>
-            <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
-              <Chip
-                label={wp.status || 'Unknown'}
-                size="small"
-                sx={{
-                  bgcolor: getStatusColor(wp.status || ''),
-                  color: 'white',
-                  fontWeight: 500,
-                }}
-              />
-              {wp.type && <Chip label={wp.type} size="small" variant="outlined" />}
-            </Box>
-          </Grid>
-
-          {/* Assignee */}
-          <Grid item xs={12} sm={4} md={3}>
-            <Box display="flex" alignItems="center" gap={1}>
-              <Person sx={{ color: 'text.secondary' }} />
-              <Typography variant="body2" color="text.secondary">
-                {wp.assignee_name || 'ไม่ระบุ'}
-              </Typography>
-            </Box>
-            {wp.due_date && (
-              <Box display="flex" alignItems="center" gap={1} mt={0.5}>
-                <Event sx={{ fontSize: 18, color: 'text.secondary' }} />
-                <Typography variant="caption" color="text.secondary">
-                  {format(new Date(wp.due_date), 'dd MMM yyyy', { locale: th })}
-                </Typography>
-              </Box>
-            )}
-          </Grid>
-
-          {/* Actions */}
-          <Grid item xs={12} sm={12} md={3}>
-            <Box display="flex" justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
-              <Button
-                variant="outlined"
-                endIcon={<ArrowForward />}
-                onClick={() => navigate(`/workpackages/${wp.wp_id}`)}
-                size="small"
-              >
-                ดูรายละเอียด
-              </Button>
-            </Box>
-          </Grid>
-        </Grid>
-      </CardContent>
-    </Card>
-  );
-
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <CircularProgress size={60} />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box p={3}>
-        <Alert severity="error">เกิดข้อผิดพลาดในการโหลดข้อมูล Work Packages</Alert>
-      </Box>
-    );
-  }
-
-  const workPackages = data?.items || [];
-  const totalPages = data?.total_pages || 1;
 
   return (
-    <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
-      {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box>
-          <Typography variant="h4" fontWeight={700} gutterBottom>
-            📋 Work Packages
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            จัดการและติดตามงานทั้งหมด
-          </Typography>
-        </Box>
-        <Box display="flex" gap={1}>
-          <Tooltip title="Refresh">
-            <IconButton onClick={() => refetch()} color="primary">
-              <Refresh />
-            </IconButton>
-          </Tooltip>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      {/* Hero Header */}
+      <Box
+        sx={{
+          mb: 4,
+          p: 4,
+          borderRadius: 3,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          boxShadow: '0 8px 32px rgba(102, 126, 234, 0.37)',
+        }}
+      >
+        <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+          <Box>
+            <Typography variant="h3" fontWeight={700} gutterBottom>
+              📋 Work Packages
+            </Typography>
+            <Typography variant="h6" sx={{ opacity: 0.9 }}>
+              จัดการและติดตาม Work Packages ทั้งหมด
+            </Typography>
+          </Box>
+          <Box display="flex" gap={2}>
+            <Button
+              variant="contained"
+              sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.3)',
+                },
+              }}
+              startIcon={<GetApp />}
+            >
+              Export
+            </Button>
+            <Button
+              variant="contained"
+              sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.3)',
+                },
+              }}
+              startIcon={<Refresh />}
+              onClick={() => refetch()}
+            >
+              รีเฟรช
+            </Button>
+          </Box>
         </Box>
       </Box>
 
+      {/* Summary Cards */}
+      <Grid container spacing={3} mb={4}>
+        <Grid item xs={6} sm={3}>
+          <SummaryCard
+            title="ทั้งหมด"
+            value={data?.data?.total || 0}
+            color="primary"
+            icon={<Assignment />}
+          />
+        </Grid>
+        <Grid item xs={6} sm={3}>
+          <SummaryCard
+            title="งานใหม่"
+            value={data?.data?.items?.filter((wp: any) => wp.status === 'New').length || 0}
+            color="info"
+            icon={<NewReleases />}
+          />
+        </Grid>
+        <Grid item xs={6} sm={3}>
+          <SummaryCard
+            title="กำลังดำเนินการ"
+            value={data?.data?.items?.filter((wp: any) => wp.status === 'กำลังดำเนินการ').length || 0}
+            color="warning"
+            icon={<PlayArrow />}
+          />
+        </Grid>
+        <Grid item xs={6} sm={3}>
+          <SummaryCard
+            title="เสร็จสิ้น"
+            value={data?.data?.items?.filter((wp: any) => wp.status === 'ดำเนินการเสร็จ').length || 0}
+            color="success"
+            icon={<CheckCircle />}
+          />
+        </Grid>
+      </Grid>
+
       {/* Filters */}
-      <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
-        <Grid container spacing={2} alignItems="center">
+      <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+        <Grid container spacing={3} alignItems="center">
           {/* Search */}
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               size="small"
-              placeholder="ค้นหางาน..."
+              placeholder="ค้นหา Work Package..."
               value={filters.search || ''}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search />
+                startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
+                endAdornment: filters.search && (
+                  <InputAdornment position="end">
+                    <IconButton size="small" onClick={() => setFilters({ ...filters, search: '' })}>
+                      <Clear />
+                    </IconButton>
                   </InputAdornment>
                 ),
               }}
@@ -428,6 +406,15 @@ const WorkPackagesPage: React.FC = () => {
           {/* View Mode Toggle */}
           <Grid item xs={12} sm={6} md={2}>
             <Box display="flex" justifyContent="flex-end" gap={0.5}>
+              <Tooltip title="Table View">
+                <IconButton
+                  size="small"
+                  color={viewMode === 'table' ? 'primary' : 'default'}
+                  onClick={() => setViewMode('table')}
+                >
+                  <ViewList />
+                </IconButton>
+              </Tooltip>
               <Tooltip title="Grid View">
                 <IconButton
                   size="small"
@@ -437,92 +424,184 @@ const WorkPackagesPage: React.FC = () => {
                   <ViewModule />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="List View">
-                <IconButton
-                  size="small"
-                  color={viewMode === 'list' ? 'primary' : 'default'}
-                  onClick={() => setViewMode('list')}
-                >
-                  <ViewList />
-                </IconButton>
-              </Tooltip>
             </Box>
           </Grid>
         </Grid>
       </Paper>
 
-      {/* Stats Summary */}
-      <Grid container spacing={2} mb={3}>
-        <Grid item xs={6} sm={3}>
-          <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: 'primary.light', color: 'primary.contrastText' }}>
-            <Typography variant="h4" fontWeight={700}>
-              {data?.total || 0}
-            </Typography>
-            <Typography variant="body2">งานทั้งหมด</Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: 'warning.light', color: 'warning.contrastText' }}>
-            <Typography variant="h4" fontWeight={700}>
-              {workPackages.filter((wp: WorkPackage) => wp.status === 'กำลังดำเนินการ').length}
-            </Typography>
-            <Typography variant="body2">กำลังดำเนินการ</Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: 'success.light', color: 'success.contrastText' }}>
-            <Typography variant="h4" fontWeight={700}>
-              {workPackages.filter((wp: WorkPackage) => wp.status === 'ดำเนินการเสร็จ').length}
-            </Typography>
-            <Typography variant="body2">เสร็จสิ้น</Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: 'info.light', color: 'info.contrastText' }}>
-            <Typography variant="h4" fontWeight={700}>
-              {workPackages.filter((wp: WorkPackage) => wp.status === 'New').length}
-            </Typography>
-            <Typography variant="body2">งานใหม่</Typography>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Work Packages Display */}
-      {workPackages.length === 0 ? (
-        <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 2 }}>
-          <Assignment sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            ไม่พบ Work Package
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {applyAssigneeFilter
-              ? 'ไม่มีงานที่กรองตามผู้รับผิดชอบที่เลือก'
-              : 'ไม่มีงานในขณะนี้'}
-          </Typography>
+      {/* Data Display */}
+      {isLoading ? (
+        <LoadingState />
+      ) : data?.data?.items?.length === 0 ? (
+        <EmptyState
+          icon={<Assignment sx={{ fontSize: 64 }} />}
+          title="ไม่พบ Work Package"
+          message="ไม่มีข้อมูล Work Package ในขณะนี้"
+        />
+      ) : viewMode === 'table' ? (
+        <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'grey.50' }}>
+                  <TableCell sx={{ fontWeight: 700 }}>ID</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>เรื่อง</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>สถานะ</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>ผู้รับผิดชอบ</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>ลำดับความสำคัญ</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>อัปเดตล่าสุด</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }} align="right">การกระทำ</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data?.data?.items?.map((wp) => (
+                  <TableRow 
+                    key={wp.wp_id}
+                    hover
+                    sx={{ 
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: 'action.hover' }
+                    }}
+                    onClick={() => navigate(`/workpackages/${wp.wp_id}`)}
+                  >
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={600} color="primary">
+                        #{wp.wp_id}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        maxWidth: 300,
+                      }}>
+                        {wp.subject}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <StatusChip status={wp.status} />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {wp.assignee || 'ไม่ได้กำหนด'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={wp.priority || 'Normal'}
+                        size="small"
+                        color={getPriorityColor(wp.priority)}
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {wp.updated_at ? formatDateThai(wp.updated_at) : '-'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/workpackages/${wp.wp_id}`);
+                        }}
+                      >
+                        <ArrowForward />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          
+          <TablePagination
+            component="div"
+            count={data?.data?.total || 0}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={pageSize}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[10, 20, 50, 100]}
+            labelRowsPerPage="แสดงผลต่อหน้า:"
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} จาก ${count !== -1 ? count : `มากกว่า ${to}`}`}
+          />
         </Paper>
-      ) : viewMode === 'grid' ? (
+      ) : (
         <Grid container spacing={3}>
-          {workPackages.map((wp: WorkPackage) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={wp.wp_id}>
-              {renderWorkPackageCard(wp)}
+          {data?.data?.items?.map((wp) => (
+            <Grid item xs={12} sm={6} lg={4} key={wp.wp_id}>
+              <Card 
+                elevation={2}
+                sx={{ 
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    elevation: 6,
+                    transform: 'translateY(-2px)',
+                  }
+                }}
+                onClick={() => navigate(`/workpackages/${wp.wp_id}`)}
+              >
+                <CardContent>
+                  <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                    <Typography variant="h6" component="div" noWrap>
+                      #{wp.wp_id}
+                    </Typography>
+                    <StatusChip status={wp.status} />
+                  </Box>
+                  
+                  <Typography variant="body1" fontWeight="medium" mb={1} sx={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}>
+                    {wp.subject}
+                  </Typography>
+                  
+                  <Box display="flex" alignItems="center" gap={1} mb={1}>
+                    <Assignment fontSize="small" color="action" />
+                    <Typography variant="body2" color="text.secondary">
+                      {wp.assignee || 'ไม่ได้กำหนด'}
+                    </Typography>
+                  </Box>
+                  
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Chip
+                      label={wp.priority || 'Normal'}
+                      size="small"
+                      color={getPriorityColor(wp.priority)}
+                      variant="outlined"
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      {wp.updated_at ? formatDateThai(wp.updated_at) : '-'}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
             </Grid>
           ))}
         </Grid>
-      ) : (
-        <Box>{workPackages.map((wp: WorkPackage) => renderWorkPackageList(wp))}</Box>
       )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <Box display="flex" justifyContent="center" mt={4}>
-          <Pagination
-            count={totalPages}
+      
+      {/* Pagination for Grid View */}
+      {viewMode === 'grid' && data?.data?.items?.length > 0 && (
+        <Box display="flex" justifyContent="center" mt={3}>
+          <TablePagination
+            component="div"
+            count={data?.data?.total || 0}
             page={page}
-            onChange={(e, value) => setPage(value)}
-            color="primary"
-            size="large"
-            showFirstButton
-            showLastButton
+            onPageChange={handleChangePage}
+            rowsPerPage={pageSize}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[10, 20, 50, 100]}
+            labelRowsPerPage="แสดงผลต่อหน้า:"
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} จาก ${count !== -1 ? count : `มากกว่า ${to}`}`}
           />
         </Box>
       )}
