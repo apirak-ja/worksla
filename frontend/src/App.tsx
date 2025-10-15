@@ -3,7 +3,7 @@ import { ThemeProvider } from '@mui/material/styles'
 import { theme } from './theme'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
-import MainLayout from './layouts/MainLayout'
+import AppLayout from './layouts/AppLayout'
 import LoginPage from './pages/auth/LoginPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import WorkPackagesPageNew from './pages/workpackages/WorkPackagesPageNew'
@@ -21,21 +21,22 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/auth/login" element={<LoginPage />} />
-            
-            {/* Protected Routes */}
-            <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+
+            {/* Protected Routes with AppLayout */}
+            <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="workpackages" element={<WorkPackagesPageNew />} />
               <Route path="workpackages/:id" element={<WorkPackageDetailPageNew />} />
+              <Route path="reports" element={<Navigate to="/reports/sla" replace />} />
               <Route path="reports/sla" element={<SLAReportsPage />} />
-              
+
               {/* Admin Routes */}
               <Route path="admin/users" element={<ProtectedRoute requiredRole="admin"><UsersAdminPage /></ProtectedRoute>} />
               <Route path="admin/assignees" element={<ProtectedRoute requiredRole="admin"><AssigneesAdminPage /></ProtectedRoute>} />
               <Route path="admin/settings" element={<ProtectedRoute requiredRole="admin"><SettingsAdminPage /></ProtectedRoute>} />
             </Route>
-            
+
             {/* Catch all */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
