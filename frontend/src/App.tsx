@@ -15,6 +15,8 @@ import AdminRouteCheckerPage from './pages/admin/AdminRouteCheckerPage'
 import SLAReportsPage from './pages/reports/SLAReportsPage'
 import WorkPackagesPage from './pages/workpackages/WorkPackagesPageNew'
 import WorkPackageDetailPage from './pages/workpackages/WorkPackageDetailPageNew'
+import WorkPackagesListModern from './pages/workpackages/WorkPackagesListModern'
+import WorkPackageDetailModern from './pages/workpackages/WorkPackageDetailModern'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,8 +41,14 @@ function App() {
               <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<DashboardPage />} />
-                <Route path="workpackages" element={<WorkPackagesPage />} />
-                <Route path="workpackages/:id" element={<WorkPackageDetailPage />} />
+                
+                {/* Modern Work Packages Routes */}
+                <Route path="workpackages" element={<WorkPackagesListModern />} />
+                <Route path="workpackages/:id" element={<WorkPackageDetailModern />} />
+                
+                {/* Legacy Work Packages Routes (backup) */}
+                <Route path="workpackages-legacy" element={<WorkPackagesPage />} />
+                <Route path="workpackages-legacy/:id" element={<WorkPackageDetailPage />} />
                 
                 <Route path="reports" element={<Navigate to="/reports/sla" replace />} />
                 <Route path="reports/sla" element={<SLAReportsPage />} />
