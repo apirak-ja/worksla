@@ -38,6 +38,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { th } from 'date-fns/locale';
 import { api } from '../../api/client';
+import { normalizeAssignees, getArray, type Assignee } from '../../schemas/adminSettings';
 
 interface DefaultFilters {
   start_date: Date | null;
@@ -75,7 +76,7 @@ const DefaultFiltersPage: React.FC = () => {
     priority: [],
   });
 
-  const [availableAssignees, setAvailableAssignees] = useState<{ id: number; name: string }[]>([]);
+  const [availableAssignees, setAvailableAssignees] = useState<Assignee[]>([]);
   const [availableStatuses] = useState<string[]>([
     'New',
     'รับเรื่อง',
@@ -132,16 +133,16 @@ const DefaultFiltersPage: React.FC = () => {
   const loadAssignees = async () => {
     try {
       const response = await api.get('/assignees');
+      console.debug('[DefaultFiltersPage] loadAssignees response:', response.data);
+      
       if (response.data) {
-        setAvailableAssignees(
-          response.data.map((a: any) => ({
-            id: a.id,
-            name: a.display_name || a.name || `User ${a.id}`,
-          }))
-        );
+        const normalized = normalizeAssignees(response.data);
+        console.debug('[DefaultFiltersPage] normalized assignees:', normalized);
+        setAvailableAssignees(normalized);
       }
     } catch (error) {
       console.error('Failed to load assignees:', error);
+      setAvailableAssignees([]); // Safe fallback
     }
   };
 
@@ -305,12 +306,12 @@ const DefaultFiltersPage: React.FC = () => {
                   <Select
                     labelId="assignee-label"
                     multiple
-                    value={filters.assignee_ids}
+                    value={Array.isArray(filters.assignee_ids) ? filters.assignee_ids : []}
                     onChange={handleAssigneeChange}
                     input={<OutlinedInput label="เลือกผู้รับผิดชอบ" />}
                     renderValue={(selected) => (
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((id) => {
+                        {(Array.isArray(selected) ? selected : []).map((id) => {
                           const assignee = availableAssignees.find((a) => a.id === id);
                           return <Chip key={id} label={assignee?.name || `ID: ${id}`} size="small" />;
                         })}
@@ -318,11 +319,17 @@ const DefaultFiltersPage: React.FC = () => {
                     )}
                     MenuProps={MenuProps}
                   >
-                    {availableAssignees.map((assignee) => (
-                      <MenuItem key={assignee.id} value={assignee.id}>
-                        {assignee.name}
+                    {availableAssignees.length > 0 ? (
+                      availableAssignees.map((assignee) => (
+                        <MenuItem key={assignee.id} value={assignee.id}>
+                          {assignee.name}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled value="">
+                        ไม่มีข้อมูลผู้รับผิดชอบ
                       </MenuItem>
-                    ))}
+                    )}
                   </Select>
                 </FormControl>
               </Grid>
@@ -341,12 +348,12 @@ const DefaultFiltersPage: React.FC = () => {
                   <Select
                     labelId="status-label"
                     multiple
-                    value={filters.status}
+                    value={Array.isArray(filters.status) ? filters.status : []}
                     onChange={handleStatusChange}
                     input={<OutlinedInput label="เลือกสถานะ" />}
                     renderValue={(selected) => (
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((value) => (
+                        {(Array.isArray(selected) ? selected : []).map((value) => (
                           <Chip key={value} label={value} size="small" color="primary" />
                         ))}
                       </Box>
@@ -372,12 +379,12 @@ const DefaultFiltersPage: React.FC = () => {
                   <Select
                     labelId="priority-label"
                     multiple
-                    value={filters.priority}
+                    value={Array.isArray(filters.priority) ? filters.priority : []}
                     onChange={handlePriorityChange}
                     input={<OutlinedInput label="เลือกลำดับความสำคัญ" />}
                     renderValue={(selected) => (
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((value) => (
+                        {(Array.isArray(selected) ? selected : []).map((value) => (
                           <Chip key={value} label={value} size="small" color="secondary" />
                         ))}
                       </Box>
