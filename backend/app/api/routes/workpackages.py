@@ -201,10 +201,10 @@ async def get_work_package(
         if not work_package:
             raise HTTPException(status_code=404, detail="Work package not found")
         
-        return WPDetailResponse(
-            **work_package,
-            openproject_url=f"{openproject_client.base_url}/work_packages/{wp_id}"
-        )
+        if 'openproject_url' not in work_package or not work_package['openproject_url']:
+            work_package['openproject_url'] = f"{openproject_client.base_url}/work_packages/{wp_id}"
+
+        return WPDetailResponse(**work_package)
         
     except HTTPException:
         raise

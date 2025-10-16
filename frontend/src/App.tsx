@@ -9,7 +9,12 @@ import DashboardPage from './pages/dashboard/DashboardPage'
 import UsersAdminPage from './pages/admin/UsersAdminPage'
 import AssigneesAdminPage from './pages/admin/AssigneesAdminPage'
 import SettingsPage from './pages/admin/SettingsPage'
+import DefaultFiltersPage from './pages/admin/DefaultFiltersPage'
+import AdminSyncPage from './pages/admin/AdminSyncPage'
+import AdminRouteCheckerPage from './pages/admin/AdminRouteCheckerPage'
 import SLAReportsPage from './pages/reports/SLAReportsPage'
+import WorkPackagesPage from './pages/workpackages/WorkPackagesPageNew'
+import WorkPackageDetailPage from './pages/workpackages/WorkPackageDetailPageNew'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +39,8 @@ function App() {
               <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<DashboardPage />} />
+                <Route path="workpackages" element={<WorkPackagesPage />} />
+                <Route path="workpackages/:id" element={<WorkPackageDetailPage />} />
                 
                 <Route path="reports" element={<Navigate to="/reports/sla" replace />} />
                 <Route path="reports/sla" element={<SLAReportsPage />} />
@@ -41,6 +48,9 @@ function App() {
               {/* Admin Routes */}
               <Route path="admin/users" element={<ProtectedRoute requiredRole="admin"><UsersAdminPage /></ProtectedRoute>} />
               <Route path="admin/assignees" element={<ProtectedRoute requiredRole="admin"><AssigneesAdminPage /></ProtectedRoute>} />
+              <Route path="admin/filters" element={<ProtectedRoute requiredRole="admin"><DefaultFiltersPage /></ProtectedRoute>} />
+              <Route path="admin/sync" element={<ProtectedRoute requiredRole="admin"><AdminSyncPage /></ProtectedRoute>} />
+              <Route path="admin/routes" element={<ProtectedRoute requiredRole="admin"><AdminRouteCheckerPage /></ProtectedRoute>} />
               <Route path="admin/settings" element={<ProtectedRoute requiredRole="admin"><SettingsPage /></ProtectedRoute>} />
             </Route>
 
