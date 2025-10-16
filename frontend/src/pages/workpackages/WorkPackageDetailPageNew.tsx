@@ -205,6 +205,9 @@ const sanitizeHTML = (html: string) => {
 // ============================================================
 
 const WorkPackageDetailPage: React.FC = () => {
+  // ============================================================
+  // ALL HOOKS DECLARED AT TOP (BEFORE ANY EARLY RETURNS)
+  // ============================================================
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [tabValue, setTabValue] = useState(0)
@@ -223,40 +226,13 @@ const WorkPackageDetailPage: React.FC = () => {
     enabled: !!wpId,
   })
 
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue)
-  }
+  // Safely extract wp data with guard
+  const wp: any = wpDetail || {}
 
-  if (isLoading) {
-    return (
-      <Box sx={{ p: { xs: 2, md: 3 } }}>
-        <LoadingState />
-      </Box>
-    )
-  }
-
-  if (error || !wpDetail) {
-    return (
-      <Box sx={{ p: { xs: 2, md: 3 } }}>
-        <Button 
-          startIcon={<ArrowBack />} 
-          onClick={() => navigate('/workpackages')}
-          sx={{ mb: 3 }}
-        >
-          กลับ
-        </Button>
-        <ErrorState
-          message="ไม่สามารถโหลดข้อมูล Work Package ได้"
-          onRetry={() => refetch()}
-        />
-      </Box>
-    )
-  }
-
-  const wp: any = wpDetail
-
+  // PURE useMemo - activityList with guards
   const activityList = React.useMemo(() => {
-    const list = journals?.journals ? [...journals.journals] : []
+    if (!journals?.journals) return []
+    const list = [...journals.journals]
     const getTime = (entry: any) => {
       if (!entry?.created_at) return 0
       const date = new Date(entry.created_at)
@@ -265,20 +241,29 @@ const WorkPackageDetailPage: React.FC = () => {
     return list.sort((a, b) => getTime(b) - getTime(a))
   }, [journals])
 
-  const statusAccent = React.useMemo(() => getStatusAccent(wp.status), [wp.status])
+  // PURE useMemo - status accent with guards
+  const statusAccent = React.useMemo(() => {
+    if (!wpDetail) return statusAccentMap.new
+    return getStatusAccent(wpDetail.status)
+  }, [wpDetail])
+
+  // PURE useMemo - done ratio with guards
   const doneRatio = React.useMemo(() => {
-    if (typeof wp.done_ratio === 'number') return wp.done_ratio
-    const parsed = Number(wp.done_ratio)
+    if (!wpDetail) return 0
+    if (typeof wpDetail.done_ratio === 'number') return wpDetail.done_ratio
+    const parsed = Number(wpDetail.done_ratio)
     return Number.isFinite(parsed) ? parsed : 0
-  }, [wp.done_ratio])
+  }, [wpDetail])
 
-  const createdAt = wp.created_at ? new Date(wp.created_at) : null
-  const updatedAt = wp.updated_at ? new Date(wp.updated_at) : null
-  const dueDate = wp.due_date ? new Date(wp.due_date) : null
-  const startDate = wp.start_date ? new Date(wp.start_date) : createdAt
+  // Safe date extraction with guards
+  const createdAt = wpDetail?.created_at ? new Date(wpDetail.created_at) : null
+  const updatedAt = wpDetail?.updated_at ? new Date(wpDetail.updated_at) : null
+  const dueDate = wpDetail?.due_date ? new Date(wpDetail.due_date) : null
+  const startDate = wpDetail?.start_date ? new Date(wpDetail.start_date) : createdAt
 
+  // PURE useMemo - timeline summary with guards
   const timelineSummary = React.useMemo(() => {
-    if (!activityList.length) {
+    if (!activityList || activityList.length === 0) {
       return {
         totalActivities: 0,
         statusChanges: 0,
@@ -316,9 +301,13 @@ const WorkPackageDetailPage: React.FC = () => {
     }
   }, [activityList])
 
+  // Extract totalDuration
   const totalDuration = timelineSummary.totalDurationText
 
+  // PURE useMemo - timeline items with guards
   const timelineItems = React.useMemo(() => {
+    if (!activityList || activityList.length === 0) return []
+
     return activityList.map((activity: any, index: number) => {
       const currentDate = activity?.created_at ? new Date(activity.created_at) : null
       const previousActivity = index < activityList.length - 1 ? activityList[index + 1] : undefined
@@ -356,22 +345,31 @@ const WorkPackageDetailPage: React.FC = () => {
     })
   }, [activityList])
 
+  // PURE useMemo - last updated distance with guards
   const lastUpdatedDistance = React.useMemo(() => {
-    return updatedAt ? formatDistanceToNow(updatedAt, { addSuffix: true, locale: th }) : null
+    if (!updatedAt) return null
+    return formatDistanceToNow(updatedAt, { addSuffix: true, locale: th })
   }, [updatedAt])
 
+  // PURE useMemo - due date display with guards
   const dueDateDisplay = React.useMemo(() => {
-    return dueDate ? format(dueDate, 'dd MMM yyyy', { locale: th }) : null
+    if (!dueDate) return null
+    return format(dueDate, 'dd MMM yyyy', { locale: th })
   }, [dueDate])
 
+  // PURE useMemo - start date display with guards
   const startDateDisplay = React.useMemo(() => {
-    return startDate ? format(startDate, 'dd MMM yyyy', { locale: th }) : null
+    if (!startDate) return null
+    return format(startDate, 'dd MMM yyyy', { locale: th })
   }, [startDate])
 
+  // PURE useMemo - due distance with guards
   const dueDistance = React.useMemo(() => {
-    return dueDate ? formatDistanceToNow(dueDate, { addSuffix: true, locale: th }) : null
+    if (!dueDate) return null
+    return formatDistanceToNow(dueDate, { addSuffix: true, locale: th })
   }, [dueDate])
 
+  // PURE useMemo - overdue check with guards
   const isOverdue = React.useMemo(() => {
     if (!dueDate) return false
     const endOfDay = new Date(dueDate)
@@ -379,20 +377,24 @@ const WorkPackageDetailPage: React.FC = () => {
     return endOfDay.getTime() < Date.now()
   }, [dueDate])
 
+  // PURE useMemo - normalized done ratio with guards
   const normalizedDoneRatio = React.useMemo(() => {
     if (!Number.isFinite(doneRatio)) return 0
     return Math.min(100, Math.max(0, Math.round(doneRatio)))
   }, [doneRatio])
 
+  // PURE useMemo - openproject base with guards
   const openProjectBase = React.useMemo(() => {
-    if (!wp.openproject_url) return null
+    if (!wpDetail) return null
+    const openProjectUrl = (wpDetail as any).openproject_url || wpDetail.raw?._links?.self?.href
+    if (!openProjectUrl) return null
     try {
-      const url = new URL(wp.openproject_url)
+      const url = new URL(openProjectUrl)
       return url.origin
     } catch (error) {
       return null
     }
-  }, [wp.openproject_url])
+  }, [wpDetail])
 
   const resolveOpenProjectHref = React.useCallback(
     (href?: string | null) => {
@@ -421,11 +423,11 @@ const WorkPackageDetailPage: React.FC = () => {
     [resolveOpenProjectHref]
   )
 
+  // PURE useMemo - attachments with guards
   const attachments = React.useMemo(() => {
-    const rawAttachments = wp.raw?._embedded?.attachments
-    if (!Array.isArray(rawAttachments)) {
-      return []
-    }
+    if (!wpDetail?.raw?._embedded?.attachments) return []
+    const rawAttachments = wpDetail.raw._embedded.attachments
+    if (!Array.isArray(rawAttachments)) return []
 
     return rawAttachments
       .map((attachment: any) => {
@@ -445,14 +447,18 @@ const WorkPackageDetailPage: React.FC = () => {
         }
       })
       .filter((item: any) => Boolean(item.id))
-  }, [resolveOpenProjectHref, toOpenProjectUiUrl, wp.raw])
+  }, [resolveOpenProjectHref, toOpenProjectUiUrl, wpDetail])
 
+  // Extract attachments count
   const attachmentsCount = attachments.length
 
-  const selfApiHref = wp.raw?._links?.self?.href
+  // Extract self API href with guard
+  const selfApiHref = wpDetail?.raw?._links?.self?.href
 
+  // PURE useMemo - watchers with guards
   const watchers = React.useMemo(() => {
-    const embeddedWatchers = wp.raw?._embedded?.watchers
+    if (!wpDetail?.raw) return []
+    const embeddedWatchers = wpDetail.raw._embedded?.watchers
     const watcherArray: any[] = Array.isArray(embeddedWatchers) ? embeddedWatchers : []
 
     if (watcherArray.length) {
@@ -464,7 +470,7 @@ const WorkPackageDetailPage: React.FC = () => {
       }))
     }
 
-    const watcherLinks = wp.raw?._links?.watchers
+    const watcherLinks = wpDetail.raw._links?.watchers
     if (Array.isArray(watcherLinks)) {
       return watcherLinks.map((link: any) => ({
         id: link.href,
@@ -478,22 +484,24 @@ const WorkPackageDetailPage: React.FC = () => {
     }
 
     return []
-  }, [resolveOpenProjectHref, wp.raw])
+  }, [resolveOpenProjectHref, wpDetail])
 
+  // PURE useMemo - watchers count with guards
   const watchersCount = React.useMemo(() => {
+    if (!wpDetail?.raw) return 0
     const countFromArray = watchers.length
     if (countFromArray > 0) return countFromArray
-    const watchersLink = wp.raw?._links?.watchers
+    const watchersLink = wpDetail.raw._links?.watchers
     if (Array.isArray(watchersLink)) return watchersLink.length
     if (typeof watchersLink?.count === 'number') return watchersLink.count
     return 0
-  }, [watchers, wp.raw])
+  }, [watchers, wpDetail])
 
+  // PURE useMemo - relations with guards
   const relations = React.useMemo(() => {
-    const rawRelations = wp.raw?._embedded?.relations
-    if (!Array.isArray(rawRelations)) {
-      return []
-    }
+    if (!wpDetail?.raw?._embedded?.relations) return []
+    const rawRelations = wpDetail.raw._embedded.relations
+    if (!Array.isArray(rawRelations)) return []
 
     return rawRelations.map((relation: any) => {
       const relationType = relation.relationType || relation.type || relation.name || 'สัมพันธ์'
@@ -512,12 +520,14 @@ const WorkPackageDetailPage: React.FC = () => {
         raw: relation,
       }
     })
-  }, [selfApiHref, toOpenProjectUiUrl, wp.raw])
+  }, [selfApiHref, toOpenProjectUiUrl, wpDetail])
 
+  // Extract relations count
   const relationsCount = relations.length
 
+  // PURE useMemo - status duration summary with guards
   const statusDurationSummary = React.useMemo(() => {
-    if (!timelineItems.length) return []
+    if (!timelineItems || timelineItems.length === 0) return []
 
     const statusChanges = timelineItems.filter(item => item.activityType === 'status')
     if (statusChanges.length === 0) return []
@@ -539,7 +549,7 @@ const WorkPackageDetailPage: React.FC = () => {
     }
 
     // Add initial status if work package was created
-    if (createdAt && statusChanges.length > 0) {
+    if (createdAt && isValidDate(createdAt) && statusChanges.length > 0) {
       const firstStatusChange = statusChanges[statusChanges.length - 1]
       const initialStatus = firstStatusChange.statusChange?.old_value
       const initialEndRaw = firstStatusChange.createdAtRaw
@@ -617,6 +627,44 @@ const WorkPackageDetailPage: React.FC = () => {
       .filter(d => Number.isFinite(d.duration))
       .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
   }, [timelineItems, createdAt])
+
+  // ============================================================
+  // EVENT HANDLERS (after all hooks)
+  // ============================================================
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue)
+  }
+
+  // ============================================================
+  // EARLY RETURNS (after all hooks and handlers)
+  // ============================================================
+
+  if (isLoading) {
+    return (
+      <Box sx={{ p: { xs: 2, md: 3 } }}>
+        <LoadingState />
+      </Box>
+    )
+  }
+
+  if (error || !wpDetail) {
+    return (
+      <Box sx={{ p: { xs: 2, md: 3 } }}>
+        <Button 
+          startIcon={<ArrowBack />} 
+          onClick={() => navigate('/workpackages')}
+          sx={{ mb: 3 }}
+        >
+          กลับ
+        </Button>
+        <ErrorState
+          message="ไม่สามารถโหลดข้อมูล Work Package ได้"
+          onRetry={() => refetch()}
+        />
+      </Box>
+    )
+  }
 
   // ============================================================
   // Render Functions for Tabs
