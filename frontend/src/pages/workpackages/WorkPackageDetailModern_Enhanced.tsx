@@ -76,6 +76,7 @@ import {
   ExpandMore,
   ChevronRight,
   Circle,
+  Settings,
 } from '@mui/icons-material';
 import { format, formatDistanceToNow } from 'date-fns';
 import { th } from 'date-fns/locale';
@@ -183,13 +184,31 @@ export const WorkPackageDetailModernEnhanced: React.FC = () => {
   const totalComments = activities.filter((a: any) => a.notes?.trim()).length;
 
   const customFieldsDisplay = useMemo(() => {
-    if (!(wpDetail as any)?.custom_fields) return [];
-    return Object.entries((wpDetail as any)?.custom_fields).map(([key, value]: any) => ({
+    if (!(wpDetail as any)?.custom_fields_detail) return [];
+    const fields = (wpDetail as any)?.custom_fields_detail || {};
+    
+    return Object.entries(fields).map(([key, fieldData]: [string, any]) => ({
       key,
-      value,
-      display: typeof value === 'object' ? JSON.stringify(value) : String(value),
-    }));
-  }, [(wpDetail as any)?.custom_fields]);
+      label: fieldData?.label || key.replace('customField', 'Custom Field '),
+      value: fieldData?.value,
+      option_value: fieldData?.option_value,
+      option_id: fieldData?.option_id,
+      has_option: !!(fieldData?.option_value || fieldData?.option_id),
+    })).filter(field => field.value || field.option_value);
+  }, [(wpDetail as any)?.custom_fields_detail]);
+
+  const customOptionsDisplay = useMemo(() => {
+    if (!(wpDetail as any)?.custom_fields_detail) return [];
+    const fields = (wpDetail as any)?.custom_fields_detail || {};
+    
+    return Object.entries(fields).map(([key, fieldData]: [string, any]) => ({
+      key,
+      label: fieldData?.label || key.replace('customField', 'Custom Field '),
+      value: fieldData?.value,
+      option_value: fieldData?.option_value,
+      option_id: fieldData?.option_id,
+    })).filter(field => field.option_value && field.option_value !== field.value);
+  }, [(wpDetail as any)?.custom_fields_detail]);
 
   if (error) {
     return (
@@ -748,11 +767,102 @@ export const WorkPackageDetailModernEnhanced: React.FC = () => {
                                     }}
                                   >
                                     <Typography variant="caption" className="text-gray-500 font-bold block mb-1">
-                                      {field.key}
+                                      {field.label}
                                     </Typography>
                                     <Typography variant="body2" className="font-semibold">
-                                      {field.display}
+                                      {field.has_option ? (
+                                        <Stack spacing={0.5}>
+                                          {field.value && (
+                                            <Box>
+                                              <Typography variant="body2" className="font-semibold text-blue-600">
+                                                {field.value}
+                                              </Typography>
+                                            </Box>
+                                          )}
+                                          {field.option_value && field.option_value !== field.value && (
+                                            <Box>
+                                              <Typography variant="caption" className="text-gray-500">
+                                                ตัวเลือก: {field.option_value}
+                                              </Typography>
+                                            </Box>
+                                          )}
+                                        </Stack>
+                                      ) : (
+                                        field.value || 'ไม่ระบุ'
+                                      )}
                                     </Typography>
+                                  </Paper>
+                                </Grid>
+                              ))}
+                            </Grid>
+                          </AccordionDetails>
+                        </Accordion>
+                      </Grid>
+                    )}
+
+                    {customOptionsDisplay.length > 0 && (
+                      <Grid item xs={12}>
+                        <Accordion 
+                          defaultExpanded
+                          sx={{
+                            background: alpha(theme.palette.secondary.main, 0.04),
+                            border: `2px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
+                            borderRadius: '16px',
+                            '&.Mui-expanded': { borderRadius: '16px' },
+                          }}
+                        >
+                          <AccordionSummary expandIcon={<ExpandMore />}>
+                            <Stack direction="row" alignItems="center" spacing={1.5}>
+                              <Box sx={{ p: 1, background: alpha(theme.palette.secondary.main, 0.15), borderRadius: '8px' }}>
+                                <Settings sx={{ color: theme.palette.secondary.main }} />
+                              </Box>
+                              <Typography variant="subtitle1" className="font-bold">ตัวเลือกเพิ่มเติม</Typography>
+                              <Chip label={customOptionsDisplay.length} size="small" color="secondary" variant="outlined" />
+                            </Stack>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ pt: 3 }}>
+                            <Grid container spacing={2}>
+                              {customOptionsDisplay.map((option, idx) => (
+                                <Grid item xs={12} sm={6} key={idx}>
+                                  <Paper 
+                                    variant="outlined"
+                                    sx={{
+                                      p: 3,
+                                      background: alpha(theme.palette.secondary.main, 0.05),
+                                      borderRadius: '12px',
+                                      borderLeft: `4px solid ${theme.palette.secondary.main}`,
+                                    }}
+                                  >
+                                    <Typography variant="caption" className="text-gray-500 font-bold block mb-2">
+                                      {option.label}
+                                    </Typography>
+                                    <Stack spacing={1}>
+                                      {option.value && (
+                                        <Box>
+                                          <Typography variant="caption" className="text-gray-600 font-medium">
+                                            ค่า:
+                                          </Typography>
+                                          <Typography variant="body2" className="font-semibold ml-2">
+                                            {option.value}
+                                          </Typography>
+                                        </Box>
+                                      )}
+                                      <Box>
+                                        <Typography variant="caption" className="text-gray-600 font-medium">
+                                          ตัวเลือก:
+                                        </Typography>
+                                        <Typography variant="body2" className="font-semibold ml-2 text-purple-600">
+                                          {option.option_value}
+                                        </Typography>
+                                      </Box>
+                                      {option.option_id && (
+                                        <Box>
+                                          <Typography variant="caption" className="text-gray-500">
+                                            ID: {option.option_id}
+                                          </Typography>
+                                        </Box>
+                                      )}
+                                    </Stack>
                                   </Paper>
                                 </Grid>
                               ))}
