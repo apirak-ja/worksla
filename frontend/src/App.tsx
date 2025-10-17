@@ -15,6 +15,7 @@ import AdminRouteCheckerPage from './pages/admin/AdminRouteCheckerPage'
 import SLAReportsPage from './pages/reports/SLAReportsPage'
 import WorkPackagesPage from './pages/workpackages/WorkPackagesPageNew'
 import WorkPackageDetailPage from './pages/workpackages/WorkPackageDetailPageNew'
+import WorkPackagesListRedesigned from './pages/workpackages/WorkPackagesListRedesigned'
 import WorkPackagesListModern from './pages/workpackages/WorkPackagesListModern'
 import WorkPackageDetailModern from './pages/workpackages/WorkPackageDetailModern'
 import WorkPackageDetailModernEnhanced from './pages/workpackages/WorkPackageDetailModern_Enhanced'
@@ -43,13 +44,14 @@ function App() {
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<DashboardPage />} />
                 
-                {/* Modern Work Packages Routes */}
-                <Route path="workpackages" element={<WorkPackagesListModern />} />
+                {/* NEW REDESIGNED Work Packages Routes */}
+                <Route path="workpackages" element={<WorkPackagesListRedesigned />} />
                 <Route path="workpackages/:id" element={<WorkPackageDetailModern />} />
                 <Route path="workpackages-enhanced/:id" element={<WorkPackageDetailModernEnhanced />} />
                 
-                {/* Legacy Work Packages Routes (backup) */}
-                <Route path="workpackages-legacy" element={<WorkPackagesPage />} />
+                {/* Legacy Routes (backup) */}
+                <Route path="workpackages-legacy" element={<WorkPackagesListModern />} />
+                <Route path="workpackages-legacy2" element={<WorkPackagesPage />} />
                 <Route path="workpackages-legacy/:id" element={<WorkPackageDetailPage />} />
                 
                 <Route path="reports" element={<Navigate to="/reports/sla" replace />} />
