@@ -78,42 +78,135 @@ export const Sidebar: React.FC = () => {
         bgcolor: 'background.paper',
       }}
     >
-      {/* Logo & Branding Section */}
+      {/* Logo & Branding Section - Modern Design */}
       <Box
         sx={{
           px: 3,
-          py: 4,
+          py: 5,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 2,
-          background: 'linear-gradient(135deg, #7B5BA4 0%, #9F7DC1 100%)',
+          gap: 2.5,
+          background: 'linear-gradient(180deg, #7B5BA4 0%, #6B4A94 50%, #5A3D7F 100%)',
           color: 'common.white',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
+          position: 'relative',
+          overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: -50,
+            right: -50,
+            width: 150,
+            height: 150,
+            background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+            borderRadius: '50%',
+          },
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: -30,
+            left: -30,
+            width: 100,
+            height: 100,
+            background: 'radial-gradient(circle, rgba(241,116,34,0.15) 0%, transparent 70%)',
+            borderRadius: '50%',
+          },
         }}
       >
+        {/* Logo Container with Animation */}
         <Box
-          component="img"
-          src={wuhLogo}
-          alt="Walailak University Hospital"
           sx={{
-            width: 70,
-            height: 70,
-            borderRadius: '50%',
-            objectFit: 'contain',
-            backgroundColor: 'rgba(255,255,255,0.15)',
-            p: 1,
-            border: '2px solid rgba(255,255,255,0.25)',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+            position: 'relative',
+            zIndex: 1,
           }}
-        />
-        <Box textAlign="center">
-          <Typography variant="h6" fontWeight={700} noWrap>
-            WorkSLA Portal
+        >
+          <Box
+            component="img"
+            src={wuhLogo}
+            alt="Walailak University Hospital"
+            sx={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              objectFit: 'contain',
+              backgroundColor: 'rgba(255,255,255,0.95)',
+              p: 1.5,
+              border: '3px solid rgba(255,255,255,0.3)',
+              boxShadow: '0 12px 32px rgba(0,0,0,0.3), 0 0 0 0 rgba(255,255,255,0.4)',
+              transition: 'all 0.3s ease',
+              animation: 'pulse 2s ease-in-out infinite',
+              '@keyframes pulse': {
+                '0%, 100%': {
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.3), 0 0 0 0 rgba(255,255,255,0.4)',
+                },
+                '50%': {
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.3), 0 0 0 10px rgba(255,255,255,0)',
+                },
+              },
+              '&:hover': {
+                transform: 'scale(1.05) rotate(5deg)',
+                boxShadow: '0 16px 40px rgba(0,0,0,0.4)',
+              },
+            }}
+          />
+        </Box>
+
+        {/* Text Content */}
+        <Box textAlign="center" sx={{ position: 'relative', zIndex: 1 }}>
+          <Typography 
+            variant="h5" 
+            fontWeight={800} 
+            noWrap
+            sx={{
+              background: 'linear-gradient(135deg, #FFFFFF 0%, #F0E5FF 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              mb: 0.5,
+              textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            }}
+          >
+            WorkSLA
           </Typography>
-          <Typography variant="caption" sx={{ opacity: 0.85 }}>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              opacity: 0.95,
+              fontWeight: 500,
+              letterSpacing: 0.5,
+              display: 'block',
+              mb: 0.5,
+            }}
+          >
             ระบบรายงานตัวชี้วัด
+          </Typography>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              opacity: 0.75,
+              fontSize: '0.7rem',
+              display: 'block',
+            }}
+          >
+            SLA Monitoring System
+          </Typography>
+        </Box>
+
+        {/* Decorative Badge */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            bgcolor: 'rgba(241, 116, 34, 0.2)',
+            border: '1px solid rgba(241, 116, 34, 0.3)',
+            borderRadius: '12px',
+            px: 1.5,
+            py: 0.5,
+            zIndex: 1,
+          }}
+        >
+          <Typography variant="caption" sx={{ fontSize: '0.65rem', fontWeight: 600 }}>
+            v2.0
           </Typography>
         </Box>
       </Box>

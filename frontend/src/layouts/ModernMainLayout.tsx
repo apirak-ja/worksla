@@ -72,6 +72,8 @@ const ModernMainLayout: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           bgcolor: 'background.default',
+          width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
+          ml: { xs: 0, md: `${drawerWidth}px` },
           mt: `${appBarHeight}px`,
           minHeight: `calc(100vh - ${appBarHeight}px)`,
         }}
