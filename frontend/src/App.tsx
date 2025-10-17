@@ -17,6 +17,7 @@ import WorkPackagesPage from './pages/workpackages/WorkPackagesPageNew'
 import WorkPackageDetailPage from './pages/workpackages/WorkPackageDetailPageNew'
 import WorkPackagesListRedesigned from './pages/workpackages/WorkPackagesListRedesigned'
 import WorkPackagesListModern from './pages/workpackages/WorkPackagesListModern'
+import WorkPackagesListUltraModern from './pages/workpackages/WorkPackagesListUltraModern'
 import WorkPackageDetailModern from './pages/workpackages/WorkPackageDetailModern'
 import WorkPackageDetailModernEnhanced from './pages/workpackages/WorkPackageDetailModern_Enhanced'
 
@@ -45,7 +46,7 @@ function App() {
                 <Route path="dashboard" element={<DashboardPage />} />
                 
                 {/* NEW REDESIGNED Work Packages Routes */}
-                <Route path="workpackages" element={<WorkPackagesListRedesigned />} />
+                <Route path="workpackages" element={<WorkPackagesListUltraModern />} />
                 <Route path="workpackages/:id" element={<WorkPackageDetailModern />} />
                 <Route path="workpackages-enhanced/:id" element={<WorkPackageDetailModernEnhanced />} />
                 
