@@ -1,17 +1,17 @@
 import { createTheme, ThemeOptions, alpha } from '@mui/material/styles';
 
-// Enhanced Brand Colors - WUH Medical System
+// Enhanced Brand Colors - WUH Medical System (ศูนย์การแพทย์ มหาวิทยาลัยวลัยลักษณ์)
 const brandColors = {
   primary: {
-    main: '#6B4FA5',
-    light: '#9B7BC4',
-    lighter: '#E7E0F0',
-    dark: '#4A2F7F',
-    darker: '#2D1B4D',
+    main: '#7B5BA4',      // Purple - สีหลักของโรงพยาบาล
+    light: '#9F7DC1',
+    lighter: '#E9E1F0',
+    dark: '#5A3D7F',
+    darker: '#3A2455',
     contrastText: '#FFFFFF',
   },
   secondary: {
-    main: '#F17422',
+    main: '#F17422',      // Orange - สีเสริม
     light: '#FF9452',
     lighter: '#FFE0CC',
     dark: '#C15412',
@@ -87,9 +87,9 @@ const commonComponentStyles = {
         },
       },
       containedPrimary: {
-        background: 'linear-gradient(135deg, #6B4FA5 0%, #8B6FB8 100%)',
+        background: 'linear-gradient(135deg, #7B5BA4 0%, #9F7DC1 100%)',
         '&:hover': {
-          background: 'linear-gradient(135deg, #5A3B8F 0%, #7A5DA2 100%)',
+          background: 'linear-gradient(135deg, #5A3D7F 0%, #7B5BA4 100%)',
         },
       },
       containedSecondary: {
@@ -212,8 +212,8 @@ const lightThemeOptions: ThemeOptions = {
     },
     divider: '#E2E8F0',
     action: {
-      hover: alpha('#6B4FA5', 0.04),
-      selected: alpha('#6B4FA5', 0.08),
+      hover: alpha('#7B5BA4', 0.04),
+      selected: alpha('#7B5BA4', 0.08),
     },
   },
   typography,
@@ -236,8 +236,8 @@ const darkThemeOptions: ThemeOptions = {
     },
     divider: '#334155',
     action: {
-      hover: alpha('#9B7BC4', 0.08),
-      selected: alpha('#9B7BC4', 0.12),
+      hover: alpha('#9F7DC1', 0.08),
+      selected: alpha('#9F7DC1', 0.12),
     },
   },
   typography,
