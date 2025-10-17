@@ -220,9 +220,57 @@ const WorkPackageDetailPage: React.FC = () => {
     enabled: !!wpId,
   })
 
+  const fetchAllActivities = React.useCallback(async () => {
+    if (!wpId) {
+      return {
+        wp_id: wpId,
+        journals: [],
+        total: 0,
+        offset: 0,
+        page_size: 0,
+        has_more: false,
+      }
+    }
+
+    const PAGE_SIZE = 50
+    const MAX_ITERATIONS = 20
+
+    let offset = 0
+    let allActivities: any[] = []
+    let hasMore = true
+    let iterations = 0
+    let latestMeta: Record<string, any> | null = null
+
+    while (hasMore && iterations < MAX_ITERATIONS) {
+      const response = await wpApi.getJournals(wpId, { offset, page_size: PAGE_SIZE })
+      const data = response?.data ?? {}
+      const pageActivities = Array.isArray(data.journals) ? data.journals : []
+
+      allActivities = allActivities.concat(pageActivities)
+      hasMore = Boolean(data.has_more)
+      offset += PAGE_SIZE
+      iterations += 1
+      latestMeta = data
+
+      if (!hasMore) {
+        break
+      }
+    }
+
+    return {
+      ...(latestMeta ?? {}),
+      wp_id: latestMeta?.wp_id ?? wpId,
+      journals: allActivities,
+      total: allActivities.length,
+      offset: 0,
+      page_size: PAGE_SIZE,
+      has_more: hasMore,
+    }
+  }, [wpId])
+
   const { data: journals, isLoading: isJournalsLoading } = useQuery({
     queryKey: ['workpackage-journals', wpId],
-    queryFn: () => wpApi.getJournals(wpId).then((res) => res.data),
+    queryFn: fetchAllActivities,
     enabled: !!wpId,
   })
 

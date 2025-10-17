@@ -21,8 +21,44 @@ from app.schemas import (
     DashboardResponse,
     StatsResponse
 )
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
+
+@router.get("/test")
+async def test_route():
+    """Test route without authentication"""
+    return {"status": "ok", "message": "Router is working"}
+
+@router.get("/test/{wp_id}")
+async def test_work_package(wp_id: int):
+    """Test work package fetch without authentication"""
+    try:
+        work_package = openproject_client.get_work_package(wp_id)
+        
+        if not work_package:
+            return {"error": "Work package not found"}
+        
+        # Return raw data
+        return JSONResponse(content={
+            "status": "ok",
+            "wp_id": wp_id,
+            "keys_count": len(work_package.keys()),
+            "has_custom_fields": any(k.startswith('customField') for k in work_package.keys()),
+            "custom_field_keys": [k for k in work_package.keys() if k.startswith('customField')][:20],
+            "sample_data": {
+                "subject": work_package.get("subject"),
+                "status": work_package.get("status"),
+                "customField3": work_package.get("customField3"),
+                "customField3_option_value": work_package.get("customField3_option_value"),
+                "customField9": work_package.get("customField9"),
+                "customField9_option_value": work_package.get("customField9_option_value"),
+            }
+        })
+        
+    except Exception as e:
+        logging.error(f"Test error: {e}", exc_info=True)
+        return {"error": str(e)}
 
 @router.get("/dashboard", response_model=DashboardResponse)
 async def get_dashboard(
@@ -186,6 +222,30 @@ async def list_work_packages(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch work packages: {str(e)}")
 
+@router.get("/{wp_id}/raw")
+async def get_work_package_raw(
+    wp_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get raw work package data for debugging (without schema validation)
+    """
+    try:
+        work_package = openproject_client.get_work_package(wp_id)
+        
+        if not work_package:
+            raise HTTPException(status_code=404, detail="Work package not found")
+        
+        # Return raw JSON without schema validation
+        return JSONResponse(content=work_package)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error fetching raw work package {wp_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch work package: {str(e)}")
+
 @router.get("/{wp_id}", response_model=WPDetailResponse)
 async def get_work_package(
     wp_id: int,
@@ -204,6 +264,7 @@ async def get_work_package(
         if 'openproject_url' not in work_package or not work_package['openproject_url']:
             work_package['openproject_url'] = f"{openproject_client.base_url}/work_packages/{wp_id}"
 
+        logging.info(f"Work package keys: {list(work_package.keys())[:20]}")  # Debug log
         return WPDetailResponse(**work_package)
         
     except HTTPException:
