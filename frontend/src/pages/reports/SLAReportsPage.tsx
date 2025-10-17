@@ -13,7 +13,9 @@ import {
   TextField,
   Paper,
   Chip,
-  CircularProgress
+  CircularProgress,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Download as DownloadIcon,
@@ -21,7 +23,8 @@ import {
   TrendingUp as TrendingUpIcon,
   Warning as WarningIcon,
   CheckCircle as CheckCircleIcon,
-  Schedule as ScheduleIcon
+  Schedule as ScheduleIcon,
+  FileDownload,
 } from '@mui/icons-material';
 import {
   BarChart,
@@ -39,6 +42,7 @@ import {
 } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../api/client';
+import { StatCard } from '../../components/ui/ModernCards';
 
 interface SLAMetrics {
   total_work_packages: number;
@@ -53,6 +57,9 @@ interface SLAMetrics {
 }
 
 const SLAReportsPage: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  
   const [dateRange, setDateRange] = useState({
     start_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     end_date: new Date().toISOString().split('T')[0]
@@ -102,37 +109,6 @@ const SLAReportsPage: React.FC = () => {
     // TODO: Implement export functionality
     console.log(`Exporting as ${format}`);
   };
-
-  const KPICard: React.FC<{
-    title: string;
-    value: number | string;
-    icon: React.ReactNode;
-    color: string;
-    subtitle?: string;
-  }> = ({ title, value, icon, color, subtitle }) => (
-    <Card sx={{ height: '100%' }}>
-      <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box>
-            <Typography variant="h4" component="div" sx={{ color, fontWeight: 'bold' }}>
-              {value}
-            </Typography>
-            <Typography variant="h6" color="textSecondary">
-              {title}
-            </Typography>
-            {subtitle && (
-              <Typography variant="body2" color="textSecondary">
-                {subtitle}
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ color, fontSize: 48 }}>
-            {icon}
-          </Box>
-        </Box>
-      </CardContent>
-    </Card>
-  );
 
   if (slaLoading) {
     return (
@@ -228,36 +204,35 @@ const SLAReportsPage: React.FC = () => {
       {/* KPI Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Total Work Packages"
+          <StatCard
+            title="รวมงานทั้งหมด"
             value={metrics.total_work_packages}
             icon={<AssessmentIcon />}
-            color="#2196f3"
+            color="primary"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Completed"
+          <StatCard
+            title="เสร็จสมบูรณ์"
             value={metrics.completed}
             icon={<CheckCircleIcon />}
-            color="#4caf50"
-            subtitle={`${metrics.completion_rate.toFixed(1)}% completion rate`}
+            color="success"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Overdue"
+          <StatCard
+            title="เกินกำหนด"
             value={metrics.overdue}
             icon={<WarningIcon />}
-            color="#f44336"
+            color="error"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Due Soon"
+          <StatCard
+            title="ใกล้ครบกำหนด"
             value={metrics.due_soon}
             icon={<ScheduleIcon />}
-            color="#ff9800"
+            color="warning"
           />
         </Grid>
       </Grid>

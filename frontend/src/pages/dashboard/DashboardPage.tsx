@@ -6,10 +6,13 @@ import {
   Grid,
   Paper,
   Typography,
-  Card,
-  CardContent,
   Button,
   Chip,
+  Card,
+  CardContent,
+  LinearProgress,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Assessment,
@@ -21,15 +24,21 @@ import {
   TrendingUp,
   Person,
   Sync,
+  ShowChart,
+  PieChart as PieChartIcon,
 } from '@mui/icons-material';
 import { wpApi } from '../../api/client'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { th } from 'date-fns/locale'
 import { LoadingState, ErrorState, StatusChip } from '../../components/ui'
+import { StatCard, InfoCard } from '../../components/ui/ModernCards'
+import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts'
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['dashboard'],
@@ -45,6 +54,19 @@ const DashboardPage: React.FC = () => {
   }
 
   const stats = data?.stats
+  
+  // Prepare chart data
+  const chartData = stats?.by_status ? Object.entries(stats.by_status).map(([status, count]) => ({
+    name: status,
+    value: count as number
+  })) : []
+
+  const priorityData = stats?.by_priority ? Object.entries(stats.by_priority).map(([priority, count]) => ({
+    name: priority,
+    value: count as number
+  })) : []
+
+  const COLORS = ['#6B4FA5', '#F17422', '#4CAF50', '#FF9800', '#F44336', '#2196F3']
 
   return (
     <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
@@ -96,240 +118,107 @@ const DashboardPage: React.FC = () => {
       {/* KPI Cards */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card 
-            elevation={0} 
-            sx={{ 
-              borderRadius: 3, 
-              border: '2px solid', 
-              borderColor: 'primary.light',
-              background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
-              transition: 'all 0.3s',
-              '&:hover': {
-                transform: 'translateY(-8px)',
-                boxShadow: '0 12px 24px rgba(102, 126, 234, 0.3)',
-              }
-            }}
-          >
-            <CardContent sx={{ p: 3 }}>
-              <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-                <Assignment sx={{ fontSize: 56, color: 'primary.main' }} />
-                <Box 
-                  sx={{ 
-                    bgcolor: 'primary.main', 
-                    color: 'white', 
-                    borderRadius: 2, 
-                    px: 2, 
-                    py: 0.5,
-                    fontWeight: 700,
-                    fontSize: '0.75rem'
-                  }}
-                >
-                  TOTAL
-                </Box>
-              </Box>
-              <Typography color="text.secondary" variant="body2" gutterBottom fontWeight={600}>
-                งานทั้งหมด
-              </Typography>
-              <Typography variant="h3" fontWeight={700} color="primary.main">
-                {stats?.total || 0}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Work Packages
-              </Typography>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="งานทั้งหมด"
+            value={stats?.total || 0}
+            icon={<Assignment />}
+            color="primary"
+            onClick={() => navigate('/workpackages')}
+          />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card 
-            elevation={0} 
-            sx={{ 
-              borderRadius: 3, 
-              border: '2px solid', 
-              borderColor: 'error.light',
-              background: 'linear-gradient(135deg, #ef535015 0%, #d3232315 100%)',
-              transition: 'all 0.3s',
-              '&:hover': {
-                transform: 'translateY(-8px)',
-                boxShadow: '0 12px 24px rgba(239, 83, 80, 0.3)',
-              }
-            }}
-          >
-            <CardContent sx={{ p: 3 }}>
-              <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-                <Warning sx={{ fontSize: 56, color: 'error.main' }} />
-                <Box 
-                  sx={{ 
-                    bgcolor: 'error.main', 
-                    color: 'white', 
-                    borderRadius: 2, 
-                    px: 2, 
-                    py: 0.5,
-                    fontWeight: 700,
-                    fontSize: '0.75rem'
-                  }}
-                >
-                  URGENT
-                </Box>
-              </Box>
-              <Typography color="text.secondary" variant="body2" gutterBottom fontWeight={600}>
-                เกินกำหนด
-              </Typography>
-              <Typography variant="h3" fontWeight={700} color="error.main">
-                {stats?.overdue_count || 0}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Overdue Items
-              </Typography>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="เกินกำหนด"
+            value={stats?.overdue_count || 0}
+            icon={<Warning />}
+            color="error"
+            onClick={() => navigate('/workpackages')}
+          />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card 
-            elevation={0} 
-            sx={{ 
-              borderRadius: 3, 
-              border: '2px solid', 
-              borderColor: 'warning.light',
-              background: 'linear-gradient(135deg, #ff980015 0%, #ff572215 100%)',
-              transition: 'all 0.3s',
-              '&:hover': {
-                transform: 'translateY(-8px)',
-                boxShadow: '0 12px 24px rgba(255, 152, 0, 0.3)',
-              }
-            }}
-          >
-            <CardContent sx={{ p: 3 }}>
-              <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-                <Schedule sx={{ fontSize: 56, color: 'warning.main' }} />
-                <Box 
-                  sx={{ 
-                    bgcolor: 'warning.main', 
-                    color: 'white', 
-                    borderRadius: 2, 
-                    px: 2, 
-                    py: 0.5,
-                    fontWeight: 700,
-                    fontSize: '0.75rem'
-                  }}
-                >
-                  SOON
-                </Box>
-              </Box>
-              <Typography color="text.secondary" variant="body2" gutterBottom fontWeight={600}>
-                ใกล้ครบกำหนด
-              </Typography>
-              <Typography variant="h3" fontWeight={700} color="warning.main">
-                {stats?.due_soon_count || 0}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Due in 7 Days
-              </Typography>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="ใกล้ครบกำหนด"
+            value={stats?.due_soon_count || 0}
+            icon={<Schedule />}
+            color="warning"
+            onClick={() => navigate('/workpackages')}
+          />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card 
-            elevation={0} 
-            sx={{ 
-              borderRadius: 3, 
-              border: '2px solid', 
-              borderColor: 'success.light',
-              background: 'linear-gradient(135deg, #4caf5015 0%, #2e7d3215 100%)',
-              transition: 'all 0.3s',
-              '&:hover': {
-                transform: 'translateY(-8px)',
-                boxShadow: '0 12px 24px rgba(76, 175, 80, 0.3)',
-              }
-            }}
-          >
-            <CardContent sx={{ p: 3 }}>
-              <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-                <CheckCircle sx={{ fontSize: 56, color: 'success.main' }} />
-                <Box 
-                  sx={{ 
-                    bgcolor: 'success.main', 
-                    color: 'white', 
-                    borderRadius: 2, 
-                    px: 2, 
-                    py: 0.5,
-                    fontWeight: 700,
-                    fontSize: '0.75rem'
-                  }}
-                >
-                  DONE
-                </Box>
-              </Box>
-              <Typography color="text.secondary" variant="body2" gutterBottom fontWeight={600}>
-                เสร็จสมบูรณ์
-              </Typography>
-              <Typography variant="h3" fontWeight={700} color="success.main">
-                {stats?.by_status?.['ดำเนินการเสร็จ'] || stats?.by_status?.['Closed'] || 0}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Completed
-              </Typography>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="เสร็จสมบูรณ์"
+            value={stats?.by_status?.['ดำเนินการเสร็จ'] || stats?.by_status?.['Closed'] || 0}
+            icon={<CheckCircle />}
+            color="success"
+            onClick={() => navigate('/workpackages')}
+          />
         </Grid>
       </Grid>
 
-      {/* Quick Stats */}
+      {/* Charts Section */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3 }}>
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <TrendingUp color="primary" sx={{ fontSize: 28 }} />
+            <Box display="flex" alignItems="center" gap={1} mb={3}>
+              <PieChartIcon color="primary" sx={{ fontSize: 28 }} />
               <Typography variant="h6" fontWeight={700}>
                 สถานะงาน (By Status)
               </Typography>
             </Box>
-            <Box display="flex" flexWrap="wrap" gap={1.5} mt={2}>
-              {stats?.by_status &&
-                Object.entries(stats.by_status).map(([status, count]) => (
-                  <StatusChip key={status} status={status} sx={{ px: 2, py: 2.5, fontSize: '0.875rem' }} />
-                ))}
-            </Box>
-            <Box mt={2} p={2} bgcolor="grey.100" borderRadius={2}>
-              <Typography variant="body2" color="text.secondary">
-                รวมทั้งหมด: <strong>{String(Object.values(stats?.by_status || {}).reduce((a: number, b: any) => a + Number(b), 0))}</strong> งาน
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }) => `${name}: ${value}`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <Typography variant="body2" color="text.secondary" textAlign="center" py={5}>
+                ไม่มีข้อมูล
               </Typography>
-            </Box>
+            )}
           </Paper>
         </Grid>
 
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3 }}>
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <Warning color="error" sx={{ fontSize: 28 }} />
+            <Box display="flex" alignItems="center" gap={1} mb={3}>
+              <ShowChart color="error" sx={{ fontSize: 28 }} />
               <Typography variant="h6" fontWeight={700}>
                 ลำดับความสำคัญ (By Priority)
               </Typography>
             </Box>
-            <Box display="flex" flexWrap="wrap" gap={1.5} mt={2}>
-              {stats?.by_priority &&
-                Object.entries(stats.by_priority).map(([priority, count]) => (
-                  <Chip
-                    key={priority}
-                    label={`${priority}: ${count}`}
-                    color={priority === 'High' ? 'error' : priority === 'Normal' ? 'warning' : 'success'}
-                    sx={{ 
-                      px: 2, 
-                      py: 2.5, 
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                      boxShadow: 2
-                    }}
-                  />
-                ))}
-            </Box>
-            <Box mt={2} p={2} bgcolor="grey.100" borderRadius={2}>
-              <Typography variant="body2" color="text.secondary">
-                รวมทั้งหมด: <strong>{String(Object.values(stats?.by_priority || {}).reduce((a: number, b: any) => a + Number(b), 0))}</strong> งาน
+            {priorityData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={priorityData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#F17422" radius={8} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <Typography variant="body2" color="text.secondary" textAlign="center" py={5}>
+                ไม่มีข้อมูล
               </Typography>
-            </Box>
+            )}
           </Paper>
         </Grid>
       </Grid>

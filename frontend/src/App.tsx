@@ -3,7 +3,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
-import MainLayout from './layouts/MainLayout'
+import ModernMainLayout from './layouts/ModernMainLayout'
 import LoginPage from './pages/auth/LoginPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import UsersAdminPage from './pages/admin/UsersAdminPage'
@@ -39,7 +39,7 @@ function App() {
               <Route path="/auth/login" element={<LoginPage />} />
 
               {/* Protected Routes with MainLayout */}
-              <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+              <Route path="/" element={<ProtectedRoute><ModernMainLayout /></ProtectedRoute>}>
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<DashboardPage />} />
                 
