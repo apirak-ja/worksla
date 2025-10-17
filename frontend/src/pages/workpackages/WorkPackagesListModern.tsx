@@ -29,6 +29,14 @@ import {
   Select,
   ListItemIcon,
   ListItemText,
+  ToggleButtonGroup,
+  ToggleButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import {
   Search,
@@ -45,6 +53,8 @@ import {
   Speed,
   Check,
   Clear,
+  ViewModule,
+  ViewList,
 } from '@mui/icons-material';
 import { format, formatDistanceToNow } from 'date-fns';
 import { th } from 'date-fns/locale';
@@ -61,6 +71,7 @@ const WorkPackagesListModern: React.FC = () => {
   const [itemsPerPage] = useState(12);
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['workpackages'],
@@ -377,6 +388,25 @@ const WorkPackagesListModern: React.FC = () => {
               sx={{ flex: 1 }}
             />
 
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={(e, newView) => newView && setViewMode(newView)}
+              size="small"
+              sx={{ height: 56 }}
+            >
+              <ToggleButton value="card">
+                <Tooltip title="มุมมองการ์ด">
+                  <ViewModule />
+                </Tooltip>
+              </ToggleButton>
+              <ToggleButton value="table">
+                <Tooltip title="มุมมองตาราง">
+                  <ViewList />
+                </Tooltip>
+              </ToggleButton>
+            </ToggleButtonGroup>
+
             <Button
               variant={statusFilter !== 'all' || priorityFilter !== 'all' || typeFilter !== 'all' ? 'contained' : 'outlined'}
               startIcon={<FilterList />}
@@ -553,136 +583,245 @@ const WorkPackagesListModern: React.FC = () => {
           </Typography>
         </Box>
 
-        {/* Work Packages Grid */}
-        <Grid container spacing={3}>
-          {paginatedWorkPackages.map((wp: any) => {
-            const statusConfig = statusColors[wp.status] || statusColors['New'];
-            const createdDate = wp.created_at ? new Date(wp.created_at) : null;
+        {/* Work Packages - Card or Table View */}
+        {viewMode === 'card' ? (
+          // Card Grid View
+          <Grid container spacing={3}>
+            {paginatedWorkPackages.map((wp: any) => {
+              const statusConfig = statusColors[wp.status] || statusColors['New'];
+              const createdDate = wp.created_at ? new Date(wp.created_at) : null;
+              const wpId = wp.id || wp.wp_id; // Support both id and wp_id
 
-            return (
-              <Grid item xs={12} md={6} lg={4} key={wp.id}>
-                <Card
-                  elevation={2}
-                  sx={{
-                    borderRadius: 3,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    transition: 'all 0.3s',
-                    cursor: 'pointer',
-                    height: '100%',
-                    '&:hover': {
-                      borderColor: statusConfig.color,
-                      boxShadow: 6,
-                      transform: 'translateY(-4px)',
-                    },
-                  }}
-                  onClick={() => navigate(`/workpackages/${wp.id}`)}
-                >
-                  <CardContent sx={{ p: 3 }}>
-                    {/* Header */}
-                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                      <Chip
-                        label={`#${wp.id}`}
-                        size="small"
+              return (
+                <Grid item xs={12} md={6} lg={4} key={wpId}>
+                  <Card
+                    elevation={2}
+                    sx={{
+                      borderRadius: 3,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      transition: 'all 0.3s',
+                      cursor: 'pointer',
+                      height: '100%',
+                      '&:hover': {
+                        borderColor: statusConfig.color,
+                        boxShadow: 6,
+                        transform: 'translateY(-4px)',
+                      },
+                    }}
+                    onClick={() => wpId && navigate(`/workpackages/${wpId}`)}
+                  >
+                    <CardContent sx={{ p: 3 }}>
+                      {/* Header */}
+                      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                        <Chip
+                          label={`#${wpId}`}
+                          size="small"
+                          sx={{
+                            bgcolor: statusConfig.bg,
+                            color: statusConfig.color,
+                            fontWeight: 700,
+                          }}
+                        />
+                        <IconButton size="small">
+                          <MoreVert />
+                        </IconButton>
+                      </Stack>
+
+                      {/* Title */}
+                      <Typography
+                        variant="h6"
+                        fontWeight={700}
+                        mb={2}
                         sx={{
-                          bgcolor: statusConfig.bg,
-                          color: statusConfig.color,
-                          fontWeight: 700,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          minHeight: 64,
                         }}
-                      />
-                      <IconButton size="small">
-                        <MoreVert />
-                      </IconButton>
-                    </Stack>
+                      >
+                        {wp.subject}
+                      </Typography>
 
-                    {/* Title */}
-                    <Typography
-                      variant="h6"
-                      fontWeight={700}
-                      mb={2}
-                      sx={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        minHeight: 64,
-                      }}
-                    >
-                      {wp.subject}
-                    </Typography>
+                      {/* Status & Priority */}
+                      <Stack direction="row" spacing={1} mb={3}>
+                        <Chip
+                          label={wp.status}
+                          size="small"
+                          sx={{
+                            bgcolor: statusConfig.color,
+                            color: 'white',
+                            fontWeight: 600,
+                          }}
+                        />
+                        <Chip
+                          label={wp.priority || 'Normal'}
+                          size="small"
+                          color={getPriorityColor(wp.priority)}
+                          icon={<TrendingUp />}
+                        />
+                        {wp.type && (
+                          <Chip
+                            label={wp.type}
+                            size="small"
+                            variant="outlined"
+                            icon={<Category />}
+                          />
+                        )}
+                      </Stack>
 
-                    {/* Status & Priority */}
-                    <Stack direction="row" spacing={1} mb={3}>
-                      <Chip
-                        label={wp.status}
-                        size="small"
+                      <Divider sx={{ my: 2 }} />
+
+                      {/* Meta Info */}
+                      <Stack spacing={1.5}>
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <Person fontSize="small" color="action" />
+                          <Typography variant="body2" color="text.secondary">
+                            {wp.assignee_name || 'ยังไม่ได้มอบหมาย'}
+                          </Typography>
+                        </Stack>
+
+                        {createdDate && (
+                          <Stack direction="row" alignItems="center" spacing={1}>
+                            <Schedule fontSize="small" color="action" />
+                            <Typography variant="body2" color="text.secondary">
+                              {formatDistanceToNow(createdDate, { addSuffix: true, locale: th })}
+                            </Typography>
+                          </Stack>
+                        )}
+                      </Stack>
+
+                      {/* Action Button */}
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        startIcon={<Visibility />}
                         sx={{
-                          bgcolor: statusConfig.color,
-                          color: 'white',
+                          mt: 3,
+                          borderRadius: 2,
+                          textTransform: 'none',
                           fontWeight: 600,
                         }}
-                      />
-                      <Chip
-                        label={wp.priority || 'Normal'}
-                        size="small"
-                        color={getPriorityColor(wp.priority)}
-                        icon={<TrendingUp />}
-                      />
-                      {wp.type && (
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          wpId && navigate(`/workpackages/${wpId}`);
+                        }}
+                      >
+                        ดูรายละเอียด
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
+        ) : (
+          // Table View
+          <TableContainer component={Paper} elevation={3} sx={{ borderRadius: 3 }}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'primary.main' }}>
+                  <TableCell sx={{ color: 'white', fontWeight: 700 }}>หมายเลข</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 700 }}>หัวข้อ</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 700 }}>สถานะ</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 700 }}>ความสำคัญ</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 700 }}>ประเภท</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 700 }}>ผู้รับผิดชอบ</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 700 }}>สร้างเมื่อ</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 700 }} align="center">
+                    การกระทำ
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paginatedWorkPackages.map((wp: any) => {
+                  const statusConfig = statusColors[wp.status] || statusColors['New'];
+                  const createdDate = wp.created_at ? new Date(wp.created_at) : null;
+                  const wpId = wp.id || wp.wp_id;
+
+                  return (
+                    <TableRow
+                      key={wpId}
+                      hover
+                      sx={{
+                        cursor: 'pointer',
+                        '&:hover': {
+                          bgcolor: 'action.hover',
+                        },
+                      }}
+                      onClick={() => wpId && navigate(`/workpackages/${wpId}`)}
+                    >
+                      <TableCell>
                         <Chip
-                          label={wp.type}
+                          label={`#${wpId}`}
                           size="small"
-                          variant="outlined"
-                          icon={<Category />}
+                          sx={{
+                            bgcolor: statusConfig.bg,
+                            color: statusConfig.color,
+                            fontWeight: 700,
+                          }}
                         />
-                      )}
-                    </Stack>
-
-                    <Divider sx={{ my: 2 }} />
-
-                    {/* Meta Info */}
-                    <Stack spacing={1.5}>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Person fontSize="small" color="action" />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: 300 }}>
+                          {wp.subject}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={wp.status}
+                          size="small"
+                          sx={{
+                            bgcolor: statusConfig.color,
+                            color: 'white',
+                            fontWeight: 600,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={wp.priority || 'Normal'}
+                          size="small"
+                          color={getPriorityColor(wp.priority)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip label={wp.type || '-'} size="small" variant="outlined" />
+                      </TableCell>
+                      <TableCell>
                         <Typography variant="body2" color="text.secondary">
                           {wp.assignee_name || 'ยังไม่ได้มอบหมาย'}
                         </Typography>
-                      </Stack>
-
-                      {createdDate && (
-                        <Stack direction="row" alignItems="center" spacing={1}>
-                          <Schedule fontSize="small" color="action" />
-                          <Typography variant="body2" color="text.secondary">
-                            {formatDistanceToNow(createdDate, { addSuffix: true, locale: th })}
+                      </TableCell>
+                      <TableCell>
+                        {createdDate && (
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {format(createdDate, 'dd/MM/yyyy HH:mm', { locale: th })}
                           </Typography>
-                        </Stack>
-                      )}
-                    </Stack>
-
-                    {/* Action Button */}
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      startIcon={<Visibility />}
-                      sx={{
-                        mt: 3,
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        fontWeight: 600,
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/workpackages/${wp.id}`);
-                      }}
-                    >
-                      ดูรายละเอียด
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Grid>
-            );
-          })}
-        </Grid>
+                        )}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Tooltip title="ดูรายละเอียด">
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              wpId && navigate(`/workpackages/${wpId}`);
+                            }}
+                          >
+                            <Visibility />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
 
         {/* Pagination */}
         {filteredWorkPackages.length > 0 && totalPages > 1 && (

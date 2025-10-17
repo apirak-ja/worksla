@@ -17,6 +17,7 @@ import WorkPackagesPage from './pages/workpackages/WorkPackagesPageNew'
 import WorkPackageDetailPage from './pages/workpackages/WorkPackageDetailPageNew'
 import WorkPackagesListModern from './pages/workpackages/WorkPackagesListModern'
 import WorkPackageDetailModern from './pages/workpackages/WorkPackageDetailModern'
+import WorkPackageDetailModernEnhanced from './pages/workpackages/WorkPackageDetailModern_Enhanced'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,6 +46,7 @@ function App() {
                 {/* Modern Work Packages Routes */}
                 <Route path="workpackages" element={<WorkPackagesListModern />} />
                 <Route path="workpackages/:id" element={<WorkPackageDetailModern />} />
+                <Route path="workpackages-enhanced/:id" element={<WorkPackageDetailModernEnhanced />} />
                 
                 {/* Legacy Work Packages Routes (backup) */}
                 <Route path="workpackages-legacy" element={<WorkPackagesPage />} />

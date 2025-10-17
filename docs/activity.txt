@@ -1,0 +1,183 @@
+ภาพรวมและจุดประสงค์
+
+สคริปต์นี้เป็น CLI เล็กๆ สำหรับ “ดึงและแสดงข้อมูล Work Package” จาก OpenProject API โดยครอบคลุม 4 ส่วนหลัก: 1) ดึงรายละเอียดของ work package, 2) ดึง กิจกรรม (activities) ของ work package นั้น, 3) ดึง/แม็ป Custom Fields & Custom Options, และ 4) แสดงผลแบบอ่านง่ายใน terminal (มีสี/หัวข้อ) 
+GitHub
+
+โครงสร้างคลาส/ฟังก์ชัน (สรุปทีละส่วนสำคัญ)
+1) ตั้งค่าพื้นฐาน, สี, และ Logging
+
+ใช้ requests, urllib3, logging, dotenv และกำหนด ANSI color class (Colors) เพื่อจัดรูปแบบ output ใน terminal
+
+ปิดคำเตือน SSL และตั้ง session.verify = False (มีการเตือนว่าไม่ปลอดภัย เหมาะแค่ dev) 
+GitHub
+
+2) OpenProjectClient
+
+คลาสนี้เป็นตัวห่อการเรียก API หลัก มี session + header แบบ Basic (คาดว่า API key base64 ตามที่ตั้งไว้ใน .env) และมี cache สำหรับชื่อผู้ใช้
+เมธอดสำคัญ:
+
+get_work_package(work_package_id) : ดึงรายละเอียด work package (เช็ค id, log สถานะ/ชนิด content, คืน JSON) 
+GitHub
+
+get_activities(work_package_id) : หัวใจของงานด้านกิจกรรม
+
+เรียก GET /api/v3/work_packages/{id}/activities
+
+แปลงผล → data["_embedded"]["elements"] แล้วคืนเป็นลิสต์ของกิจกรรม
+
+ล็อกจำนวนกิจกรรมที่ดึงได้ และจัดการ error กรณี request ล้มเหลว (คืน None) 
+GitHub
+
+get_user_details(user_url) และ get_user_name(user_link) :
+
+หากลิงก์ขึ้นต้นด้วย "/cmms/api/v3" จะ prefix host https://hosp.wu.ac.th ก่อนยิง (รองรับกรณีลิงก์ภายใน)
+
+ดึงรายละเอียดผู้ใช้ แล้ว cache ชื่อไว้ตาม href เพื่อประหยัดรอบยิง API; ถ้ามี title มาในลิงก์ก็ใช้ได้เลยโดยไม่ยิงเพิ่ม 
+GitHub
+
+get_custom_option_details(option_url) : pattern เดียวกับผู้ใช้ แต่สำหรับ custom options (ณ /custom_options/…) เพื่อนำ title/value มาแม็ปแสดงผล 
+GitHub
+
+3) Utilities (ความทนทานของข้อมูล + รูปแบบการแสดงผล)
+
+safe_get(data, *keys, default="N/A") : เดินคีย์ซ้อนๆ แบบปลอดภัย ถ้าไม่เจอคืน default (ช่วยลด try/except กระจาย) 
+GitHub
+
+format_date(date_str) : แปลง ISO → timezone ไทย (+7) แล้ว format เป็น "MM/DD/YYYY hh:mm AM/PM" (รองรับกรณี Z และ non-Z) 
+GitHub
+
+clean_html(text) : ลอกแท็ก HTML ออกด้วย regex และ normalize ช่องว่าง/เอนทิตี ก่อนพ่นลง terminal 
+GitHub
+
+ชุดฟังก์ชัน print_* : สร้างหัวข้อ/หัวข้อย่อย/คู่ key-value/section header เพื่อให้อ่านง่ายในคอนโซล 
+GitHub
+
+4) ส่วนแสดงผล Work Package
+
+print_overview(work_package) : Subject/Status/Priority/Assignee + วันสร้าง/อัปเดต (แปลงเวลาเป็นเขตไทยแล้ว) 
+GitHub
+
+print_work_package_details(work_package) : ข้อมูลพื้นฐาน, Description (ตัดความยาวและทำความสะอาด HTML), Assignment & Category, Timeline (Created/Updated) 
+GitHub
+
+print_custom_fields_and_options(client, work_package) :
+
+ลูปทุกคีย์ที่ขึ้นต้นด้วย customField… ใน body และใน _links
+
+ถ้าลิงก์เป็น /custom_options/… จะยิง get_custom_option_details() เพอดึง title/value มาแสดง; มีแม็ปชื่อ field ไทย/อังกฤษบางตัว เช่น “หน่วยงานที่ตั้ง”, “แจ้งโดย”, “ผู้แจ้ง (เบอร์โทร)”, “สถานที่”, “ความเร่งด่วน” ฯลฯ 
+GitHub
+
+5) การแสดงผล Activities (จุดโฟกัส)
+
+print_activities(client, work_package_id) :
+
+พิมพ์หัวข้อ “ACTIVITY HISTORY”
+
+เรียก client.get_activities(id) เพื่อดึงลิสต์กิจกรรม; ถ้าไม่มี/ดึงไม่ได้ จะขึ้นข้อความเตือนและคืนลิสต์ว่าง 
+GitHub
+
+แสดงจำนวนกิจกรรมทั้งหมด
+
+ลูปทีละ activity:
+
+ดึง _links.user แล้วเรียก client.get_user_name() เพื่อได้ชื่อผู้ใช้ (รองรับทั้งกรณีมี title ในลิงก์ และกรณีต้องยิง href เพิ่่ม) 
+GitHub
+
+แปลง createdAt ด้วย format_date() ให้เป็นเวลาไทย
+
+แสดง คอมเมนต์: ให้ความสำคัญกับ comment.raw ก่อน ถ้าไม่มีจึง fallback เป็น comment.html และใช้ clean_html() เพื่อพ่นข้อความสะอาดลง terminal 
+GitHub
+
+แสดง รายละเอียดการเปลี่ยนแปลง (Changes): ดูใน details[].html แล้วทำความสะอาด HTML ก่อนพิมพ์เป็น bullet • (ใช้สีน้ำเงิน) 
+GitHub
+
+คืนลิสต์กิจกรรมที่ดึงได้ (เพื่อให้ฟังก์ชันอื่นสรุปต่อ) 
+GitHub
+
+6) Orchestrator + CLI
+
+display_complete_work_package_data(client, id) : ดึง work package → แสดง overview → details → custom fields/options → activities → สรุปท้าย “Summary Complete” พร้อมนับจำนวนกิจกรรมที่แสดง 
+GitHub
+
+ส่วน if __name__ == "__main__": :
+
+รองรับ argument --quiet/-q (โหมดพิมพ์สั้นไม่ใส่สี) และ --work-package-id (override จาก .env)
+
+load_dotenv() เพื่ออ่าน OPENPROJECT_URL, OPENPROJECT_API_KEY, WORK_PACKAGE_ID (บังคับว่าต้องมีครบ)
+
+สร้าง OpenProjectClient แล้วเลือกโหมด quiet หรือแสดงเต็ม (display_complete_work_package_data) พร้อมจับ exception แบบรวม 
+GitHub
+
+“Activity” ทำงานอย่างไร (End-to-End)
+
+รับค่า WORK_PACKAGE_ID (จาก args หรือ .env) → สร้าง OpenProjectClient ด้วย OPENPROJECT_URL + OPENPROJECT_API_KEY 
+GitHub
+
+display_complete_work_package_data() เรียก get_work_package() เพื่อโหลดข้อมูลหลักก่อน แล้วตามด้วย print_activities() 
+GitHub
+
+ภายใน print_activities() → get_activities() ยิง GET /api/v3/work_packages/{id}/activities แล้วแตก _embedded.elements เป็นลิสต์กิจกรรม 
+GitHub
+
+สำหรับแต่ละกิจกรรม:
+
+ระบุ “ผู้ทำกิจกรรม” ผ่าน _links.user → get_user_name() (มี cache และรองรับลิงก์ภายใน /cmms/api/v3) 
+GitHub
+
+เวลาที่เกิด (createdAt) → แปลงเป็นเวลาไทย
+
+เนื้อหาคอมเมนต์ → ใช้ comment.raw ก่อน หากไม่มีจึงใช้ comment.html + clean_html()
+
+รายการเปลี่ยนแปลง → อ่านจาก details[].html + clean_html() แล้วพิมพ์เป็นข้อย่อย 
+GitHub
+
+จุดแข็งที่เกี่ยวกับ Activity
+
+มีการแยก concerns ชัด: ดึงกิจกรรม (get_activities) แยกจากการแสดงผล (print_activities) ช่วยให้เปลี่ยน UI/รูปแบบการพิมพ์ได้ง่ายในอนาคต 
+GitHub
+
+รองรับทั้งคอมเมนต์ดิบ/HTML + ทำความสะอาด HTML ก่อนแสดง เพื่อให้ข้อความอ่านง่ายและปลอดภัยกว่า (ในบริบท terminal) 
+GitHub
+
+แปลง timezone ไทย ทำให้เวลาใน activity ตรงกับบริบทการใช้งานจริงของทีมคุณ (Asia/Bangkok) 
+GitHub
+
+ดึงชื่อผู้ใช้แบบมี cache ลดรอบเรียก API กรณีแอกทิวิตี้จำนวนมากที่อ้างถึงผู้ใช้ซ้ำๆ 
+GitHub
+
+ข้อควรระวัง/ข้อเสนอแนะ (โฟกัส activity)
+
+SSL verify=False: ปัจจุบันตั้ง verify=False และมีคำเตือนไว้แล้ว แต่ควรเปิด verify ใน production + ติดตั้ง CA หรือใช้ proxy ที่เชื่อถือได้ เพื่อความปลอดภัยของ token และข้อมูลกิจกรรม 
+GitHub
+
+ไม่มี pagination ของ activities: ถ้า work package มี activity จำนวนมาก ปัจจุบันเรียกครั้งเดียวและอ่าน _embedded.elements เท่าที่ API ส่งกลับมา หาก API รองรับ paging ควรเพิ่มพารามิเตอร์/ลูปดึงหน้าถัดไป หรืออย่างน้อยใส่ pageSize เพื่อควบคุมปริมาณข้อมูลต่อครั้ง 
+GitHub
+
+การจัดรูปแบบ HTML: clean_html() ใช้ regex ตัดแท็กอย่างง่าย—เพียงพอกับ terminal แต่ถ้าจะเอาไปใส่ UI web ควร sanitize ฝั่ง frontend ด้วย library ที่เหมาะสม (ป้องกัน XSS) และอาจคง markup บางอย่าง (เช่น list/bold) ให้สวยงามกว่า plain text 
+GitHub
+
+ความทนทานของ user_link: กรณี _links.user ไม่มี title และ href ก็จะตกไปเป็น "Unknown" เสมอ (โอเคแล้ว) แต่ถ้าต้องการติดตามผู้ใช้ให้ครบ ควร log เตือนหรือรวบรวมสถิติเพื่อปรับสิทธิ์/ข้อมูลฝั่ง OpenProject ให้สอดคล้อง 
+GitHub
+
+Error handling เชิงลึก: ตอนนี้จับ RequestException แบบรวม (ดีแล้ว) แต่ถ้าต้องการ UX ที่ชัดขึ้น อาจแตกกรณี 401/403/404, timeout, หรือ JSON schema ผิด เพื่อชี้ปัญหาได้แม่นยำกว่า (เช่น token หมดอายุ vs. สิทธิ์ไม่พอ vs. ไม่พบ work package) 
+GitHub
+
+โหมด Quiet: โหมดนี้ยังไม่พ่นกิจกรรม (พ่นเฉพาะข้อมูลหลัก) ถ้าต้องการตรวจสอบ activity แบบเร็วๆ ในสคริปต์ อาจเพิ่ม flag เช่น --with-activities ให้ quiet โชว์จำนวนและกิจกรรมล่าสุด n รายการได้ด้วย 
+GitHub
+
+สรุปสั้น (เฉพาะ Activity)
+
+ดึงกิจกรรมผ่าน GET /api/v3/work_packages/{id}/activities → _embedded.elements
+
+แสดง “ผู้ทำ, เวลา, คอมเมนต์, รายการปรับเปลี่ยน” โดย:
+
+ผู้ใช้: _links.user → get_user_name() (cache)
+
+เวลา: createdAt → format_date() (timezone ไทย)
+
+คอมเมนต์: comment.raw → fallback comment.html + clean_html()
+
+การเปลี่ยนแปลง: details[].html + clean_html()
+
+โค้ดส่วนนี้อยู่ใน print_activities() และ get_activities() ของ OpenProjectClient ตามที่อธิบายด้านบน 
+GitHub
