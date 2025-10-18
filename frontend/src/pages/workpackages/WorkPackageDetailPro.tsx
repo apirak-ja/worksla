@@ -650,232 +650,668 @@ const WorkPackageDetailPro: React.FC = () => {
         transition: 'background-color 0.4s ease',
       }}
     >
-      <Container maxWidth="xl" sx={{ py: { xs: 4, md: 6 } }}>
-        <Stack spacing={{ xs: 4, md: 6 }}>
-          <Stack
-            direction={{ xs: 'column', md: 'row' }}
-            spacing={{ xs: 2, md: 3 }}
-            alignItems={{ xs: 'flex-start', md: 'center' }}
-            justifyContent="space-between"
-          >
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={{ xs: 1.5, sm: 2 }}
-              alignItems={{ xs: 'flex-start', sm: 'center' }}
-            >
-              <Button
-                variant="outlined"
-                startIcon={<ArrowBack />}
-                onClick={() => navigate('/workpackages')}
-                sx={{
-                  borderRadius: 999,
-                  px: 2.5,
-                  fontWeight: 600,
-                }}
-              >
-                กลับรายการงาน
-              </Button>
-              <Chip
-                icon={<Assignment />}
-                label={`WP #${wp.id || wp.wp_id}`}
-                sx={{
-                  fontWeight: 700,
-                  height: 36,
-                  borderRadius: 999,
-                  bgcolor: alpha(theme.palette.primary.main, isDark ? 0.25 : 0.12),
-                  color: theme.palette.primary.main,
-                  '& .MuiChip-icon': {
-                    color: theme.palette.primary.main,
-                  },
-                }}
-              />
-            </Stack>
-
-            <Stack direction="row" spacing={1} alignItems="center">
-              {[{ icon: <Edit />, tooltip: 'แก้ไขงาน' }, { icon: <MoreVert />, tooltip: 'เพิ่มเติม' }].map(
-                (action, index) => (
-                  <Tooltip key={index} title={action.tooltip} arrow>
-                    <IconButton
-                      sx={{
-                        border: `1px solid ${borderColor}`,
-                        bgcolor: surfaceMuted,
-                        transition: 'all 0.25s ease',
-                        '&:hover': {
-                          bgcolor: alpha(theme.palette.primary.main, 0.12),
-                          color: theme.palette.primary.main,
-                        },
-                      }}
-                    >
-                      {action.icon}
-                    </IconButton>
-                  </Tooltip>
-                )
-              )}
-            </Stack>
-          </Stack>
-
-          <Grow in timeout={500}>
-            <Paper
-              elevation={0}
+      <Container maxWidth="xl" sx={{ py: { xs: 3, md: 5 } }}>
+        <Stack spacing={{ xs: 3, md: 4 }}>
+          {/* Hero Section - Ultra Premium Redesign */}
+          <Grow in timeout={700}>
+            <Box
               sx={{
-                borderRadius: 4,
                 position: 'relative',
+                borderRadius: 8,
                 overflow: 'hidden',
-                bgcolor: surfacePaper,
-                border: `1px solid ${borderColor}`,
-                boxShadow: subtleShadow,
-                p: { xs: 3, md: 4 },
+                boxShadow: isDark
+                  ? '0 50px 100px rgba(0, 0, 0, 0.8), 0 25px 50px rgba(99, 102, 241, 0.3)'
+                  : '0 50px 100px rgba(15, 23, 42, 0.25), 0 25px 50px rgba(99, 102, 241, 0.15)',
                 '&::before': {
                   content: '""',
                   position: 'absolute',
                   inset: 0,
-                  background: accentGradient,
-                  opacity: isDark ? 0.25 : 0.18,
-                  pointerEvents: 'none',
+                  background: isDark
+                    ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.98) 100%)'
+                    : 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%)',
+                  zIndex: 0,
+                },
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  inset: 0,
+                  background: isDark
+                    ? 'radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.25) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 40%)'
+                    : 'radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 40%)',
+                  zIndex: 0,
+                  animation: 'breathe 6s ease-in-out infinite',
+                },
+                '@keyframes breathe': {
+                  '0%, 100%': { opacity: 0.6 },
+                  '50%': { opacity: 1 },
                 },
               }}
             >
-              <Stack spacing={{ xs: 3, md: 4 }} sx={{ position: 'relative', zIndex: 1 }}>
-                <Stack
-                  direction={{ xs: 'column', md: 'row' }}
-                  spacing={{ xs: 2, md: 3 }}
-                  justifyContent="space-between"
-                  alignItems={{ xs: 'flex-start', md: 'center' }}
-                >
-                  <Stack direction="row" spacing={1.5} flexWrap="wrap" alignItems="center">
-                    <Chip
-                      icon={currentStatus.icon}
-                      label={currentStatus.label}
-                      sx={{
-                        bgcolor: alpha(currentStatus.color, 0.15),
-                        color: currentStatus.color,
-                        fontWeight: 700,
-                        borderRadius: 999,
-                        '& .MuiChip-icon': {
-                          color: currentStatus.color,
-                        },
-                      }}
-                    />
-                    <Chip
-                      icon={priorityConfig.icon}
-                      label={wp.priority || 'ไม่ระบุ'}
-                      sx={{
-                        bgcolor: alpha(priorityConfig.color, 0.15),
-                        color: priorityConfig.color,
-                        fontWeight: 700,
-                        borderRadius: 999,
-                        '& .MuiChip-icon': {
-                          color: priorityConfig.color,
-                        },
-                      }}
-                    />
-                    {wp.category && (
-                      <Chip
-                        icon={<Label />}
-                        label={wp.category}
+              <Box sx={{ position: 'relative', zIndex: 1 }}>
+                {/* Animated Top Border */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '5px',
+                    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 20%, #f093fb 40%, #4facfe 60%, #00f2fe 80%, #667eea 100%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'shimmer 3s ease-in-out infinite',
+                  }}
+                />
+
+                {/* Navigation Bar */}
+                <Box sx={{ px: { xs: 4, md: 6 }, pt: { xs: 4, md: 5 }, pb: 3 }}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    flexWrap="wrap"
+                    gap={3}
+                  >
+                    {/* Left: Back + ID Badge */}
+                    <Stack direction="row" alignItems="center" spacing={3}>
+                      <IconButton
+                        onClick={() => navigate('/workpackages')}
                         sx={{
-                          bgcolor: alpha(theme.palette.secondary.main, 0.12),
-                          color: theme.palette.secondary.dark,
-                          fontWeight: 700,
-                          borderRadius: 999,
-                          '& .MuiChip-icon': {
-                            color: theme.palette.secondary.dark,
+                          width: 56,
+                          height: 56,
+                          background: isDark
+                            ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%)'
+                            : 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.08) 100%)',
+                          border: `3px solid ${alpha('#667eea', isDark ? 0.5 : 0.25)}`,
+                          backdropFilter: 'blur(15px)',
+                          transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            transform: 'translateX(-12px) rotate(-15deg) scale(1.1)',
+                            boxShadow: '0 20px 40px rgba(102, 126, 234, 0.5)',
+                            '& .MuiSvgIcon-root': {
+                              color: 'white',
+                              transform: 'scale(1.2)',
+                            },
                           },
                         }}
-                      />
-                    )}
-                  </Stack>
+                      >
+                        <ArrowBack sx={{ fontSize: 28, color: '#667eea', transition: 'all 0.3s ease' }} />
+                      </IconButton>
 
-                  <Typography variant="body2" color={textMuted} fontWeight={500}>
-                    อัปเดตล่าสุด:{' '}
-                    {wp.updated_at
-                      ? format(new Date(wp.updated_at), 'dd MMM yyyy HH:mm', { locale: th })
-                      : 'ไม่ระบุ'}
-                  </Typography>
-                </Stack>
-
-                <Box>
-                  <Typography
-                    variant="h3"
-                    fontWeight={800}
-                    sx={{
-                      lineHeight: 1.25,
-                      fontSize: { xs: '2rem', md: '2.5rem' },
-                    }}
-                  >
-                    {wp.subject}
-                  </Typography>
-                  <Typography variant="body1" color={textMuted} sx={{ mt: 1.5 }}>
-                    โครงการ {wp.project_name || 'ไม่ระบุ'} • หมวดงาน {wp.type || 'ไม่ระบุ'}
-                  </Typography>
-                </Box>
-
-                <Grid container spacing={2}>
-                  {(
-                    [
-                      {
-                        icon: <Person fontSize="small" />,
-                        label: 'ผู้รับผิดชอบ',
-                        value: wp.assignee_name || 'ยังไม่ระบุ',
-                      },
-                      {
-                        icon: <CalendarMonth fontSize="small" />,
-                        label: 'สร้างเมื่อ',
-                        value: wp.created_at
-                          ? format(new Date(wp.created_at), 'dd MMM yyyy HH:mm', { locale: th })
-                          : '-',
-                      },
-                      {
-                        icon: <Update fontSize="small" />,
-                        label: 'กิจกรรมทั้งหมด',
-                        value: `${activitiesAsc.length.toLocaleString()} รายการ`,
-                      },
-                      {
-                        icon: <Comment fontSize="small" />,
-                        label: 'ความคิดเห็น',
-                        value: `${totalComments} รายการ`,
-                      },
-                    ] as const
-                  ).map((metric, index) => (
-                    <Grid item xs={12} sm={6} md={3} key={index}>
-                      <Paper
-                        variant="outlined"
+                      <Box
                         sx={{
-                          p: 2.5,
-                          height: '100%',
-                          borderRadius: 3,
-                          borderColor,
-                          bgcolor: surfaceMuted,
+                          position: 'relative',
+                          px: 4,
+                          py: 2,
+                          borderRadius: 999,
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+                          backgroundSize: '200% 100%',
+                          boxShadow: '0 15px 35px rgba(102, 126, 234, 0.5)',
                           display: 'flex',
-                          flexDirection: 'column',
-                          gap: 1,
+                          alignItems: 'center',
+                          gap: 1.5,
+                          transition: 'all 0.4s ease',
+                          animation: 'float 4s ease-in-out infinite',
+                          '&:hover': {
+                            transform: 'scale(1.08) translateY(-4px)',
+                            boxShadow: '0 20px 45px rgba(102, 126, 234, 0.6)',
+                            backgroundPosition: '100% 0',
+                          },
+                          '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            inset: -2,
+                            borderRadius: 999,
+                            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                            backgroundSize: '200% 100%',
+                            animation: 'shine 2s ease-in-out infinite',
+                            opacity: 0.6,
+                          },
                         }}
                       >
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Avatar
+                        <Box
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            bgcolor: 'white',
+                            boxShadow: '0 0 12px rgba(255, 255, 255, 0.8)',
+                            animation: 'pulse 2s ease-in-out infinite',
+                          }}
+                        />
+                        <Typography
+                          variant="h4"
+                          fontWeight={900}
+                          sx={{
+                            color: 'white',
+                            letterSpacing: '0.05em',
+                            textShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                            fontFamily: 'monospace',
+                          }}
+                        >
+                          #{wp.id || wp.wp_id}
+                        </Typography>
+                      </Box>
+                    </Stack>
+
+                    {/* Right: Update Chip */}
+                    <Chip
+                      icon={<AccessTime sx={{ fontSize: 20 }} />}
+                      label={
+                        wp.updated_at
+                          ? `อัปเดต ${format(new Date(wp.updated_at), 'dd MMM yyyy HH:mm', { locale: th })}`
+                          : 'ไม่ระบุ'
+                      }
+                      sx={{
+                        height: 44,
+                        px: 3,
+                        fontWeight: 800,
+                        fontSize: '0.95rem',
+                        bgcolor: isDark
+                          ? alpha('#6b7280', 0.25)
+                          : alpha('#6b7280', 0.1),
+                        color: isDark ? '#e5e7eb' : '#4b5563',
+                        border: `2px solid ${alpha('#6b7280', isDark ? 0.4 : 0.2)}`,
+                        backdropFilter: 'blur(15px)',
+                        transition: 'all 0.3s ease',
+                        '& .MuiChip-icon': {
+                          color: isDark ? '#e5e7eb' : '#4b5563',
+                        },
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 8px 20px rgba(107, 114, 128, 0.3)',
+                        },
+                      }}
+                    />
+                  </Stack>
+                </Box>
+
+                <Divider
+                  sx={{
+                    borderColor: alpha(borderColor, 0.6),
+                    mx: { xs: 4, md: 6 },
+                    borderWidth: 2,
+                    opacity: 0.5,
+                  }}
+                />
+
+                {/* Main Content Area */}
+                <Box sx={{ px: { xs: 4, md: 6 }, py: { xs: 4, md: 6 } }}>
+                  <Grid container spacing={{ xs: 4, md: 6 }}>
+                    {/* Left Column: Modern Timeline */}
+                    <Grid item xs={12} md={5}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 5,
+                          borderRadius: 6,
+                          background: isDark
+                            ? 'linear-gradient(145deg, rgba(99, 102, 241, 0.18) 0%, rgba(139, 92, 246, 0.12) 100%)'
+                            : 'linear-gradient(145deg, rgba(99, 102, 241, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%)',
+                          border: `3px solid ${alpha('#6366f1', isDark ? 0.5 : 0.25)}`,
+                          backdropFilter: 'blur(25px)',
+                          height: '100%',
+                          minHeight: 480,
+                          position: 'relative',
+                          overflow: 'hidden',
+                          boxShadow: isDark
+                            ? '0 25px 50px rgba(99, 102, 241, 0.3)'
+                            : '0 25px 50px rgba(99, 102, 241, 0.15)',
+                          transition: 'all 0.4s ease',
+                          '&:hover': {
+                            transform: 'translateY(-8px)',
+                            boxShadow: isDark
+                              ? '0 35px 70px rgba(99, 102, 241, 0.4)'
+                              : '0 35px 70px rgba(99, 102, 241, 0.2)',
+                          },
+                          '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            top: -150,
+                            right: -150,
+                            width: 300,
+                            height: 300,
+                            borderRadius: '50%',
+                            background: 'radial-gradient(circle, rgba(102, 126, 234, 0.4), transparent 70%)',
+                            animation: 'orbit 8s ease-in-out infinite',
+                          },
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            bottom: -100,
+                            left: -100,
+                            width: 200,
+                            height: 200,
+                            borderRadius: '50%',
+                            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 70%)',
+                            animation: 'orbit 10s ease-in-out infinite reverse',
+                          },
+                          '@keyframes orbit': {
+                            '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+                            '50%': { transform: 'translate(20px, 20px) scale(1.15)' },
+                          },
+                        }}
+                      >
+                        <Stack spacing={4} sx={{ position: 'relative', zIndex: 1 }}>
+                          {/* Timeline Header */}
+                          <Box>
+                            <Stack direction="row" alignItems="center" spacing={3} mb={2}>
+                              <Box
+                                sx={{
+                                  width: 64,
+                                  height: 64,
+                                  borderRadius: 4,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                  boxShadow: '0 15px 35px rgba(102, 126, 234, 0.5)',
+                                  animation: 'bounce 3s ease-in-out infinite',
+                                  transition: 'all 0.3s ease',
+                                  '&:hover': {
+                                    transform: 'rotate(360deg) scale(1.1)',
+                                  },
+                                }}
+                              >
+                                <HistoryToggleOff sx={{ fontSize: 32, color: 'white' }} />
+                              </Box>
+                              <Box flex={1}>
+                                <Typography
+                                  variant="h4"
+                                  fontWeight={900}
+                                  sx={{
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    backgroundClip: 'text',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    letterSpacing: '-0.02em',
+                                  }}
+                                >
+                                  Timeline
+                                </Typography>
+                                <Typography variant="body2" fontWeight={700} color="text.secondary" sx={{ mt: 0.5 }}>
+                                  📊 ประวัติการเปลี่ยนสถานะทั้งหมด
+                                </Typography>
+                              </Box>
+                            </Stack>
+                            <Box
+                              sx={{
+                                height: 4,
+                                borderRadius: 999,
+                                background: 'linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+                                backgroundSize: '200% 100%',
+                                animation: 'shimmer 3s ease-in-out infinite',
+                              }}
+                            />
+                          </Box>
+
+                          {/* Timeline Items - Scrollable */}
+                          <Box
                             sx={{
-                              bgcolor: alpha(theme.palette.primary.main, 0.15),
-                              color: theme.palette.primary.main,
-                              width: 36,
-                              height: 36,
+                              flex: 1,
+                              overflowY: 'auto',
+                              maxHeight: 360,
+                              pr: 2,
+                              '&::-webkit-scrollbar': {
+                                width: 8,
+                              },
+                              '&::-webkit-scrollbar-track': {
+                                background: alpha('#6366f1', 0.1),
+                                borderRadius: 999,
+                              },
+                              '&::-webkit-scrollbar-thumb': {
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                borderRadius: 999,
+                                '&:hover': {
+                                  background: 'linear-gradient(135deg, #764ba2 0%, #f093fb 100%)',
+                                },
+                              },
                             }}
                           >
-                            {metric.icon}
-                          </Avatar>
-                          <Typography variant="subtitle2" color={textMuted} fontWeight={700}>
-                            {metric.label}
-                          </Typography>
+                            <Stack spacing={3}>
+                              {/* Created Status */}
+                              {createdTs > 0 && (
+                                <Fade in timeout={500}>
+                                  <Paper
+                                    elevation={0}
+                                    sx={{
+                                      p: 3,
+                                      borderRadius: 5,
+                                      background: alpha('#6366f1', isDark ? 0.2 : 0.1),
+                                      border: `3px solid ${alpha('#6366f1', isDark ? 0.4 : 0.3)}`,
+                                      transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                      '&:hover': {
+                                        transform: 'translateX(12px) scale(1.03)',
+                                        borderColor: '#6366f1',
+                                        boxShadow: `0 12px 30px ${alpha('#6366f1', 0.4)}`,
+                                      },
+                                    }}
+                                  >
+                                    <Stack direction="row" alignItems="center" spacing={2.5}>
+                                      <Avatar
+                                        sx={{
+                                          bgcolor: '#6366f1',
+                                          width: 52,
+                                          height: 52,
+                                          boxShadow: `0 8px 20px ${alpha('#6366f1', 0.4)}`,
+                                          animation: 'pulse 2s ease-in-out infinite',
+                                        }}
+                                      >
+                                        <PlayArrow sx={{ fontSize: 28 }} />
+                                      </Avatar>
+                                      <Box flex={1}>
+                                        <Typography variant="h6" fontWeight={900} color="#6366f1" sx={{ mb: 0.5 }}>
+                                          New
+                                        </Typography>
+                                        <Typography variant="caption" fontWeight={700} color="text.secondary">
+                                          {format(new Date(createdTs), 'dd/MM/yy HH:mm', { locale: th })}
+                                        </Typography>
+                                      </Box>
+                                    </Stack>
+                                  </Paper>
+                                </Fade>
+                              )}
+
+                              {/* Status Transitions */}
+                              {statusSpans.map((span, index) => {
+                                const durationText = formatDuration(span.durationMs);
+                                const normalizedToStatus = (span.toStatus || '').toLowerCase();
+
+                                let bgColor = '#6366f1';
+                                let StatusIcon = TrendingFlat;
+
+                                if (normalizedToStatus.includes('รับเรื่อง')) {
+                                  bgColor = '#06b6d4';
+                                  StatusIcon = CheckCircleRounded;
+                                } else if (normalizedToStatus.includes('กำลังดำเนินการ')) {
+                                  bgColor = '#f59e0b';
+                                  StatusIcon = HourglassTop;
+                                } else if (normalizedToStatus.includes('เสร็จ')) {
+                                  bgColor = '#10b981';
+                                  StatusIcon = TaskAlt;
+                                }
+
+                                return (
+                                  <Fade in timeout={600 + index * 120} key={`timeline-${index}`}>
+                                    <Paper
+                                      elevation={0}
+                                      sx={{
+                                        p: 3,
+                                        borderRadius: 5,
+                                        background: alpha(bgColor, isDark ? 0.2 : 0.1),
+                                        border: `3px solid ${alpha(bgColor, isDark ? 0.4 : 0.3)}`,
+                                        transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                        '&:hover': {
+                                          transform: 'translateX(12px) scale(1.03)',
+                                          borderColor: bgColor,
+                                          boxShadow: `0 12px 30px ${alpha(bgColor, 0.4)}`,
+                                        },
+                                      }}
+                                    >
+                                      <Stack spacing={2}>
+                                        <Stack direction="row" alignItems="center" spacing={2.5}>
+                                          <Avatar
+                                            sx={{
+                                              bgcolor: bgColor,
+                                              width: 52,
+                                              height: 52,
+                                              boxShadow: `0 8px 20px ${alpha(bgColor, 0.4)}`,
+                                            }}
+                                          >
+                                            <StatusIcon sx={{ fontSize: 28 }} />
+                                          </Avatar>
+                                          <Box flex={1}>
+                                            <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
+                                              <Typography variant="caption" fontWeight={800} color={alpha(bgColor, 0.8)} sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                                {span.fromStatus}
+                                              </Typography>
+                                              <TrendingFlat sx={{ fontSize: 16, color: bgColor }} />
+                                              <Typography variant="h6" fontWeight={900} color={bgColor}>
+                                                {span.toStatus}
+                                              </Typography>
+                                            </Stack>
+                                            <Stack direction="row" alignItems="center" spacing={1}>
+                                              <AccessTime sx={{ fontSize: 14, color: 'text.secondary' }} />
+                                              <Typography variant="caption" fontWeight={700} color="text.secondary">
+                                                {durationText}
+                                              </Typography>
+                                            </Stack>
+                                          </Box>
+                                        </Stack>
+                                      </Stack>
+                                    </Paper>
+                                  </Fade>
+                                );
+                              })}
+                            </Stack>
+                          </Box>
                         </Stack>
-                        <Typography variant="h6" fontWeight={800} sx={{ mt: 0.5 }}>
-                          {metric.value}
-                        </Typography>
                       </Paper>
                     </Grid>
-                  ))}
-                </Grid>
-              </Stack>
-            </Paper>
+
+                    {/* Right Column: Subject & Status */}
+                    <Grid item xs={12} md={7}>
+                      <Stack spacing={5} height="100%">
+                        {/* Status & Priority Badges */}
+                        <Fade in timeout={700}>
+                          <Stack direction="row" spacing={3} flexWrap="wrap">
+                            <Chip
+                              icon={currentStatus.icon}
+                              label={currentStatus.label}
+                              sx={{
+                                height: 56,
+                                px: 4,
+                                bgcolor: alpha(currentStatus.color, isDark ? 0.35 : 0.18),
+                                color: currentStatus.color,
+                                fontWeight: 900,
+                                fontSize: '1.1rem',
+                                borderRadius: 5,
+                                border: `4px solid ${alpha(currentStatus.color, isDark ? 0.5 : 0.35)}`,
+                                boxShadow: `0 12px 30px ${alpha(currentStatus.color, 0.3)}`,
+                                transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                '& .MuiChip-icon': {
+                                  color: currentStatus.color,
+                                  fontSize: 28,
+                                },
+                                '&:hover': {
+                                  transform: 'translateY(-6px) scale(1.05)',
+                                  boxShadow: `0 18px 40px ${alpha(currentStatus.color, 0.45)}`,
+                                  borderColor: currentStatus.color,
+                                },
+                              }}
+                            />
+                            <Chip
+                              icon={priorityConfig.icon}
+                              label={wp.priority || 'ไม่ระบุ'}
+                              sx={{
+                                height: 56,
+                                px: 4,
+                                bgcolor: alpha(priorityConfig.color, isDark ? 0.35 : 0.18),
+                                color: priorityConfig.color,
+                                fontWeight: 900,
+                                fontSize: '1.1rem',
+                                borderRadius: 5,
+                                border: `4px solid ${alpha(priorityConfig.color, isDark ? 0.5 : 0.35)}`,
+                                boxShadow: `0 12px 30px ${alpha(priorityConfig.color, 0.3)}`,
+                                transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                '& .MuiChip-icon': {
+                                  color: priorityConfig.color,
+                                  fontSize: 28,
+                                },
+                                '&:hover': {
+                                  transform: 'translateY(-6px) scale(1.05)',
+                                  boxShadow: `0 18px 40px ${alpha(priorityConfig.color, 0.45)}`,
+                                  borderColor: priorityConfig.color,
+                                },
+                              }}
+                            />
+                          </Stack>
+                        </Fade>
+
+                        {/* Subject Title - Hero Typography */}
+                        <Fade in timeout={800}>
+                          <Box>
+                            <Typography
+                              variant="h2"
+                              fontWeight={900}
+                              sx={{
+                                lineHeight: 1.25,
+                                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem', lg: '3.5rem' },
+                                background: isDark
+                                  ? 'linear-gradient(135deg, #ffffff 0%, #e0e7ff 50%, #c7d2fe 100%)'
+                                  : 'linear-gradient(135deg, #0f172a 0%, #334155 50%, #475569 100%)',
+                                backgroundClip: 'text',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                letterSpacing: '-0.03em',
+                                wordBreak: 'break-word',
+                                animation: 'fadeInUp 0.8s ease-out, shimmer 3s ease-in-out infinite',
+                                textShadow: isDark
+                                  ? '0 4px 20px rgba(255, 255, 255, 0.1)'
+                                  : '0 4px 20px rgba(15, 23, 42, 0.08)',
+                                '&:hover': {
+                                  animation: 'none',
+                                  backgroundSize: '150% 150%',
+                                },
+                              }}
+                            >
+                              {wp.subject}
+                            </Typography>
+                          </Box>
+                        </Fade>
+
+                        {/* Additional Info Cards - Redesigned */}
+                        <Fade in timeout={900}>
+                          <Grid container spacing={3}>
+                            {wp.assignee_name && (
+                              <Grid item xs={12} sm={6}>
+                                <Paper
+                                  elevation={0}
+                                  sx={{
+                                    p: 3,
+                                    borderRadius: 4,
+                                    background: isDark
+                                      ? alpha('#0ea5e9', 0.15)
+                                      : alpha('#0ea5e9', 0.08),
+                                    border: `2px solid ${alpha('#0ea5e9', isDark ? 0.4 : 0.25)}`,
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                      transform: 'translateY(-4px)',
+                                      boxShadow: `0 12px 30px ${alpha('#0ea5e9', 0.25)}`,
+                                    },
+                                  }}
+                                >
+                                  <Stack direction="row" alignItems="center" spacing={2}>
+                                    <Avatar
+                                      sx={{
+                                        bgcolor: '#0ea5e9',
+                                        width: 48,
+                                        height: 48,
+                                        fontSize: '1.3rem',
+                                        fontWeight: 900,
+                                        boxShadow: `0 6px 16px ${alpha('#0ea5e9', 0.4)}`,
+                                      }}
+                                    >
+                                      {wp.assignee_name.charAt(0)}
+                                    </Avatar>
+                                    <Box>
+                                      <Typography variant="caption" fontWeight={700} color="#0369a1" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                        ผู้รับผิดชอบ
+                                      </Typography>
+                                      <Typography variant="body1" fontWeight={900} color="#0c4a6e">
+                                        {wp.assignee_name}
+                                      </Typography>
+                                    </Box>
+                                  </Stack>
+                                </Paper>
+                              </Grid>
+                            )}
+                            {wp.created_at && (
+                              <Grid item xs={12} sm={6}>
+                                <Paper
+                                  elevation={0}
+                                  sx={{
+                                    p: 3,
+                                    borderRadius: 4,
+                                    background: isDark
+                                      ? alpha('#8b5cf6', 0.15)
+                                      : alpha('#8b5cf6', 0.08),
+                                    border: `2px solid ${alpha('#8b5cf6', isDark ? 0.4 : 0.25)}`,
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                      transform: 'translateY(-4px)',
+                                      boxShadow: `0 12px 30px ${alpha('#8b5cf6', 0.25)}`,
+                                    },
+                                  }}
+                                >
+                                  <Stack direction="row" alignItems="center" spacing={2}>
+                                    <Avatar
+                                      sx={{
+                                        bgcolor: '#8b5cf6',
+                                        width: 48,
+                                        height: 48,
+                                        boxShadow: `0 6px 16px ${alpha('#8b5cf6', 0.4)}`,
+                                      }}
+                                    >
+                                      <CalendarMonth sx={{ fontSize: 24 }} />
+                                    </Avatar>
+                                    <Box>
+                                      <Typography variant="caption" fontWeight={700} color="#6d28d9" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                        สร้างเมื่อ
+                                      </Typography>
+                                      <Typography variant="body1" fontWeight={900} color="#5b21b6">
+                                        {format(new Date(wp.created_at), 'dd MMM yyyy', { locale: th })}
+                                      </Typography>
+                                    </Box>
+                                  </Stack>
+                                </Paper>
+                              </Grid>
+                            )}
+                          </Grid>
+                        </Fade>
+                      </Stack>
+                    </Grid>
+                  </Grid>
+                </Box>
+              </Box>
+            </Box>
           </Grow>
+
+          {/* CSS Animations */}
+          <style>
+            {`
+              @keyframes shimmer {
+                0%, 100% { background-position: 0% 0%; }
+                50% { background-position: 100% 0%; }
+              }
+              @keyframes float {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+              }
+              @keyframes bounce {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-8px); }
+              }
+              @keyframes pulse {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.1); opacity: 0.8; }
+              }
+              @keyframes shine {
+                0% { background-position: -200% 0; }
+                100% { background-position: 200% 0; }
+              }
+              @keyframes fadeInUp {
+                from {
+                  opacity: 0;
+                  transform: translateY(30px);
+                }
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+            `}
+          </style>
 
           <Fade in timeout={650}>
             <Card
@@ -985,426 +1421,7 @@ const WorkPackageDetailPro: React.FC = () => {
                     </Fade>
                   )}
 
-                  {/* Status Duration Cards - Premium Design */}
-                  {(createdTs > 0 || statusSpans.length > 0) && (
-                    <Fade in timeout={500}>
-                      <Box>
-                        <Stack direction="row" alignItems="center" spacing={3} mb={4}>
-                          <Box
-                            sx={{
-                              width: 64,
-                              height: 64,
-                              borderRadius: 4,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                              boxShadow: `0 12px 32px ${alpha('#f59e0b', 0.4)}`,
-                            }}
-                          >
-                            <HistoryToggleOff sx={{ fontSize: 32, color: 'white' }} />
-                          </Box>
-                          <Box>
-                            <Typography 
-                              variant="h3" 
-                              fontWeight={900}
-                              sx={{ 
-                                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                                backgroundClip: 'text',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                letterSpacing: '-0.02em',
-                                mb: 0.5,
-                              }}
-                            >
-                              Timeline
-                            </Typography>
-                            <Typography 
-                              variant="body1" 
-                              sx={{
-                                color: alpha(theme.palette.text.primary, 0.6),
-                                fontWeight: 500,
-                              }}
-                            >
-                              ระยะเวลาในแต่ละสถานะ
-                            </Typography>
-                          </Box>
-                        </Stack>
-
-                        {/* Timeline Summary - Minimal */}
-                        <Box 
-                          sx={{ 
-                            mb: 5,
-                            p: 3.5,
-                            background: isDark
-                              ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(217, 119, 6, 0.03) 100%)'
-                              : 'linear-gradient(135deg, rgba(245, 158, 11, 0.03) 0%, rgba(255, 255, 255, 0.5) 100%)',
-                            borderRadius: 4,
-                            border: `1px solid ${alpha('#f59e0b', 0.1)}`,
-                            backdropFilter: 'blur(10px)',
-                          }}
-                        >
-                          <Grid container spacing={3}>
-                            <Grid item xs={12} sm={6}>
-                              <Stack direction="row" alignItems="center" spacing={2}>
-                                <Box
-                                  sx={{
-                                    width: 40,
-                                    height: 40,
-                                    borderRadius: 2,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    bgcolor: alpha('#f59e0b', 0.1),
-                                  }}
-                                >
-                                  <Label sx={{ color: '#f59e0b', fontSize: 20 }} />
-                                </Box>
-                                <Box>
-                                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                                    ช่วงสถานะ
-                                  </Typography>
-                                  <Typography variant="h6" fontWeight={800} color="#f59e0b">
-                                    {statusSpans.length}
-                                  </Typography>
-                                </Box>
-                              </Stack>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <Stack direction="row" alignItems="center" spacing={2}>
-                                <Box
-                                  sx={{
-                                    width: 40,
-                                    height: 40,
-                                    borderRadius: 2,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    bgcolor: alpha('#10b981', 0.1),
-                                  }}
-                                >
-                                  <CheckCircle sx={{ color: '#10b981', fontSize: 20 }} />
-                                </Box>
-                                <Box>
-                                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                                    สถานะปัจจุบัน
-                                  </Typography>
-                                  <Typography variant="h6" fontWeight={800} color="#10b981">
-                                    {statusSpans.length > 0 ? statusSpans[statusSpans.length - 1].toStatus : wpDetail?.status || 'ไม่ระบุ'}
-                                  </Typography>
-                                </Box>
-                              </Stack>
-                            </Grid>
-                          </Grid>
-                        </Box>
-
-                        <Grid container spacing={3}>
-                          {/* First Card: New (Created) - Elegant & Professional */}
-                          {createdTs > 0 && (
-                            <Grid item xs={12} sm={6} lg={4}>
-                              <Zoom in timeout={400}>
-                                <Paper
-                                  elevation={0}
-                                  sx={{
-                                    p: 5,
-                                    borderRadius: 5,
-                                    background: isDark
-                                      ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(79, 70, 229, 0.05) 100%)'
-                                      : 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%)',
-                                    border: `1px solid ${alpha('#6366f1', 0.15)}`,
-                                    position: 'relative',
-                                    overflow: 'hidden',
-                                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    backdropFilter: 'blur(20px)',
-                                    '&::before': {
-                                      content: '""',
-                                      position: 'absolute',
-                                      top: 0,
-                                      left: 0,
-                                      right: 0,
-                                      height: '3px',
-                                      background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)',
-                                    },
-                                    '&:hover': {
-                                      borderColor: '#6366f1',
-                                      boxShadow: `0 25px 50px ${alpha('#6366f1', 0.2)}`,
-                                      transform: 'translateY(-8px)',
-                                    },
-                                  }}
-                                >
-                                  <Stack spacing={3.5} alignItems="center">
-                                    {/* Status Badge */}
-                                    <Chip
-                                      label="New"
-                                      icon={<PlayArrow sx={{ fontSize: 18 }} />}
-                                      sx={{
-                                        bgcolor: '#6366f1',
-                                        color: 'white',
-                                        fontWeight: 900,
-                                        fontSize: '0.95rem',
-                                        height: 38,
-                                        px: 2,
-                                        borderRadius: 3,
-                                        boxShadow: `0 8px 24px ${alpha('#6366f1', 0.35)}`,
-                                        '& .MuiChip-icon': { color: 'white' },
-                                      }}
-                                    />
-
-                                    {/* Time Display */}
-                                    <Box sx={{ textAlign: 'center', width: '100%' }}>
-                                      <Typography
-                                        variant="h3"
-                                        fontWeight={900}
-                                        sx={{
-                                          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                                          backgroundClip: 'text',
-                                          WebkitBackgroundClip: 'text',
-                                          WebkitTextFillColor: 'transparent',
-                                          letterSpacing: '-0.02em',
-                                          mb: 1,
-                                        }}
-                                      >
-                                        {format(new Date(createdTs), 'dd/MM/yyyy', { locale: th })}
-                                      </Typography>
-                                      <Typography
-                                        variant="h6"
-                                        fontWeight={600}
-                                        sx={{
-                                          color: alpha('#6366f1', 0.7),
-                                          letterSpacing: '0.05em',
-                                        }}
-                                      >
-                                        {format(new Date(createdTs), 'HH:mm:ss', { locale: th })}
-                                      </Typography>
-                                    </Box>
-                                  </Stack>
-                                </Paper>
-                              </Zoom>
-                            </Grid>
-                          )}
-
-                          {/* Subsequent Cards: Status Spans - Modern & Elegant */}
-                          {statusSpans.map((span, index) => {
-                            const fromStatus = span.fromStatus || 'ไม่ระบุ';
-                            const toStatus = span.toStatus || 'ไม่ระบุ';
-                            const durationText = formatDuration(span.durationMs);
-                            const normalizedToStatus = (toStatus || '').toLowerCase();
-
-                            // Premium color palette
-                            let bgColor = '#6366f1';
-                            let gradientStart = 'rgba(99, 102, 241, 0.08)';
-                            let gradientEnd = 'rgba(79, 70, 229, 0.05)';
-
-                            if (normalizedToStatus.includes('new') || normalizedToStatus.includes('ใหม่')) {
-                              bgColor = '#6366f1';
-                              gradientStart = 'rgba(99, 102, 241, 0.08)';
-                              gradientEnd = 'rgba(79, 70, 229, 0.05)';
-                            } else if (normalizedToStatus.includes('รับเรื่อง')) {
-                              bgColor = '#06b6d4';
-                              gradientStart = 'rgba(6, 182, 212, 0.08)';
-                              gradientEnd = 'rgba(8, 145, 178, 0.05)';
-                            } else if (normalizedToStatus.includes('กำลังดำเนินการ')) {
-                              bgColor = '#f59e0b';
-                              gradientStart = 'rgba(245, 158, 11, 0.08)';
-                              gradientEnd = 'rgba(217, 119, 6, 0.05)';
-                            } else if (normalizedToStatus.includes('เสร็จ') || normalizedToStatus.includes('ปิด')) {
-                              bgColor = '#10b981';
-                              gradientStart = 'rgba(16, 185, 129, 0.08)';
-                              gradientEnd = 'rgba(5, 150, 105, 0.05)';
-                            }
-
-                            return (
-                              <Grid item xs={12} sm={6} lg={4} key={`span-${index}`}>
-                                <Zoom in timeout={500 + index * 100}>
-                                  <Paper
-                                    elevation={0}
-                                    sx={{
-                                      p: 5,
-                                      borderRadius: 5,
-                                      background: isDark
-                                        ? `linear-gradient(135deg, ${gradientStart} 0%, ${gradientEnd} 100%)`
-                                        : `linear-gradient(135deg, ${gradientStart} 0%, rgba(255, 255, 255, 0.95) 100%)`,
-                                      border: `1px solid ${alpha(bgColor, 0.15)}`,
-                                      position: 'relative',
-                                      overflow: 'hidden',
-                                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                                      backdropFilter: 'blur(20px)',
-                                      '&::before': {
-                                        content: '""',
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        height: '3px',
-                                        background: `linear-gradient(90deg, ${bgColor} 0%, ${alpha(bgColor, 0.6)} 100%)`,
-                                      },
-                                      '&:hover': {
-                                        borderColor: bgColor,
-                                        boxShadow: `0 25px 50px ${alpha(bgColor, 0.2)}`,
-                                        transform: 'translateY(-8px)',
-                                      },
-                                    }}
-                                  >
-                                    <Stack spacing={3.5} alignItems="center">
-                                      {/* Status Badge */}
-                                      <Chip
-                                        label={toStatus}
-                                        sx={{
-                                          bgcolor: bgColor,
-                                          color: 'white',
-                                          fontWeight: 900,
-                                          fontSize: '0.95rem',
-                                          height: 38,
-                                          px: 2,
-                                          borderRadius: 3,
-                                          boxShadow: `0 8px 24px ${alpha(bgColor, 0.35)}`,
-                                        }}
-                                      />
-
-                                      {/* Duration Display - Hero Style */}
-                                      <Box sx={{ textAlign: 'center', width: '100%' }}>
-                                        <Typography
-                                          variant="h2"
-                                          fontWeight={900}
-                                          sx={{
-                                            background: `linear-gradient(135deg, ${bgColor} 0%, ${alpha(bgColor, 0.7)} 100%)`,
-                                            backgroundClip: 'text',
-                                            WebkitBackgroundClip: 'text',
-                                            WebkitTextFillColor: 'transparent',
-                                            letterSpacing: '-0.03em',
-                                            fontSize: { xs: '2.5rem', sm: '3rem' },
-                                            lineHeight: 1.2,
-                                          }}
-                                        >
-                                          {durationText}
-                                        </Typography>
-                                      </Box>
-
-                                      {/* From Status - Subtle */}
-                                      <Chip
-                                        label={`จาก ${fromStatus}`}
-                                        size="small"
-                                        sx={{
-                                          bgcolor: alpha(bgColor, 0.08),
-                                          color: bgColor,
-                                          fontWeight: 600,
-                                          fontSize: '0.75rem',
-                                          border: `1px solid ${alpha(bgColor, 0.15)}`,
-                                        }}
-                                      />
-                                    </Stack>
-                                  </Paper>
-                                </Zoom>
-                              </Grid>
-                            );
-                          })}
-
-                          {/* Tail Span: Live Status - Premium Design */}
-                          {tailSpan && (
-                            <Grid item xs={12} sm={6} lg={4}>
-                              <Zoom in timeout={500 + statusSpans.length * 100}>
-                                <Paper
-                                  elevation={0}
-                                  sx={{
-                                    p: 5,
-                                    borderRadius: 5,
-                                    background: isDark
-                                      ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.05) 100%)'
-                                      : 'linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%)',
-                                    border: `1px solid ${alpha('#ef4444', 0.15)}`,
-                                    position: 'relative',
-                                    overflow: 'hidden',
-                                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    backdropFilter: 'blur(20px)',
-                                    '&::before': {
-                                      content: '""',
-                                      position: 'absolute',
-                                      top: 0,
-                                      left: 0,
-                                      right: 0,
-                                      height: '3px',
-                                      background: 'linear-gradient(90deg, #ef4444 0%, #f97316 100%)',
-                                    },
-                                    '&::after': {
-                                      content: '"●"',
-                                      position: 'absolute',
-                                      top: 16,
-                                      right: 16,
-                                      fontSize: '1.2rem',
-                                      color: '#ef4444',
-                                      animation: 'pulse 2s infinite',
-                                    },
-                                    '&:hover': {
-                                      borderColor: '#ef4444',
-                                      boxShadow: `0 25px 50px ${alpha('#ef4444', 0.2)}`,
-                                      transform: 'translateY(-8px)',
-                                    },
-                                    '@keyframes pulse': {
-                                      '0%, 100%': { opacity: 1 },
-                                      '50%': { opacity: 0.5 },
-                                    },
-                                  }}
-                                >
-                                  <Stack spacing={3.5} alignItems="center">
-                                    {/* Status Badge with Live Indicator */}
-                                    <Chip
-                                      label={tailSpan.status}
-                                      icon={<FiberManualRecord sx={{ fontSize: 12, animation: 'pulse 2s infinite' }} />}
-                                      sx={{
-                                        bgcolor: '#ef4444',
-                                        color: 'white',
-                                        fontWeight: 900,
-                                        fontSize: '0.95rem',
-                                        height: 38,
-                                        px: 2,
-                                        borderRadius: 3,
-                                        boxShadow: `0 8px 24px ${alpha('#ef4444', 0.35)}`,
-                                        '& .MuiChip-icon': { color: 'white' },
-                                      }}
-                                    />
-
-                                    {/* Duration Display - Hero Style */}
-                                    <Box sx={{ textAlign: 'center', width: '100%' }}>
-                                      <Typography
-                                        variant="h2"
-                                        fontWeight={900}
-                                        sx={{
-                                          background: 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)',
-                                          backgroundClip: 'text',
-                                          WebkitBackgroundClip: 'text',
-                                          WebkitTextFillColor: 'transparent',
-                                          letterSpacing: '-0.03em',
-                                          fontSize: { xs: '2.5rem', sm: '3rem' },
-                                          lineHeight: 1.2,
-                                        }}
-                                      >
-                                        {formatDuration(tailSpan.durationMs)}
-                                      </Typography>
-                                    </Box>
-
-                                    {/* Live Badge */}
-                                    <Chip
-                                      label="LIVE"
-                                      size="small"
-                                      sx={{
-                                        bgcolor: alpha('#ef4444', 0.08),
-                                        color: '#ef4444',
-                                        fontWeight: 600,
-                                        fontSize: '0.75rem',
-                                        border: `1px solid ${alpha('#ef4444', 0.15)}`,
-                                      }}
-                                    />
-                                  </Stack>
-                                </Paper>
-                              </Zoom>
-                            </Grid>
-                          )}
-                        </Grid>
-                      </Box>
-                    </Fade>
-                  )}
-
-                  {/* Information Table - Ultra Modern */}
+                  {/* Information Table - Modern Redesign */}
                   <Fade in timeout={800}>
                     <Box>
                       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
@@ -1957,53 +1974,6 @@ const WorkPackageDetailPro: React.FC = () => {
                                 </Box>
                               )}
 
-                              {/* Status Change: Duration Display - Hero Style */}
-                              {isStatusChange && !isFirstActivity && activity.timeInPrevStatusText && (
-                                <Box
-                                  sx={{
-                                    p: 4,
-                                    mb: 3,
-                                    background: isDark
-                                      ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(79, 70, 229, 0.05) 100%)'
-                                      : 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(255, 255, 255, 0.5) 100%)',
-                                    borderLeft: '3px solid #6366f1',
-                                    borderRadius: 3,
-                                    backdropFilter: 'blur(10px)',
-                                  }}
-                                >
-                                  <Stack direction="row" alignItems="center" spacing={3}>
-                                    <Avatar
-                                      sx={{
-                                        bgcolor: '#6366f1',
-                                        width: 48,
-                                        height: 48,
-                                        boxShadow: `0 8px 24px ${alpha('#6366f1', 0.35)}`,
-                                      }}
-                                    >
-                                      <AccessTime sx={{ fontSize: 28 }} />
-                                    </Avatar>
-                                    <Box flex={1}>
-                                      <Typography variant="caption" fontWeight={600} color="#6366f1" sx={{ textTransform: 'uppercase', letterSpacing: 0.5, mb: 0.5 }}>
-                                        {activity.prevStatus}
-                                      </Typography>
-                                      <Typography
-                                        variant="h4"
-                                        fontWeight={900}
-                                        sx={{
-                                          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                                          backgroundClip: 'text',
-                                          WebkitBackgroundClip: 'text',
-                                          WebkitTextFillColor: 'transparent',
-                                          letterSpacing: '-0.02em',
-                                        }}
-                                      >
-                                        {activity.timeInPrevStatusText}
-                                      </Typography>
-                                    </Box>
-                                  </Stack>
-                                </Box>
-                              )}
-
                               {/* Comment */}
                               {hasComment && (
                                 <Box
@@ -2047,6 +2017,9 @@ const WorkPackageDetailPro: React.FC = () => {
                                   <Grid container spacing={2}>
                                     {activity.details.map((detail: any, i: number) => {
                                       const isDetailStatusChange = detail.property === 'status' || detail.property === 'Status';
+                                      
+                                      // Show time in status for status changes
+                                      const showDuration = isDetailStatusChange && !isFirstActivity && activity.timeInPrevStatusText;
 
                                       return (
                                         <Grid item xs={12} sm={isDetailStatusChange ? 12 : 6} key={i}>
@@ -2070,10 +2043,27 @@ const WorkPackageDetailPro: React.FC = () => {
                                             }}
                                           >
                                             <Stack spacing={1.5}>
-                                              <Typography variant="subtitle2" fontWeight={900} sx={{ color: isDetailStatusChange ? '#6366f1' : 'text.primary' }}>
-                                                {detail.property}
-                                                {isDetailStatusChange && ' 🎯'}
-                                              </Typography>
+                                              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                                                <Typography variant="subtitle2" fontWeight={900} sx={{ color: isDetailStatusChange ? '#6366f1' : 'text.primary' }}>
+                                                  {detail.property}
+                                                  {isDetailStatusChange && ' 🎯'}
+                                                </Typography>
+                                                {showDuration && (
+                                                  <Chip
+                                                    icon={<AccessTime sx={{ fontSize: 16 }} />}
+                                                    label={activity.timeInPrevStatusText}
+                                                    size="small"
+                                                    sx={{
+                                                      height: 32,
+                                                      fontWeight: 900,
+                                                      fontSize: '0.9rem',
+                                                      background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                                                      color: 'white',
+                                                      '& .MuiChip-icon': { color: 'white' },
+                                                    }}
+                                                  />
+                                                )}
+                                              </Stack>
                                               <Stack
                                                 direction="row"
                                                 alignItems="center"

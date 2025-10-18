@@ -12219,7 +12219,7 @@ const Autocomplete = /* @__PURE__ */ reactExports.forwardRef(function Autocomple
     })) : null]
   });
 });
-const Person$1 = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
+const Person = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
   d: "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
 }), "Person");
 function getAvatarUtilityClass(slot) {
@@ -12309,7 +12309,7 @@ const AvatarImg = styled("img", {
   // Hide the image broken icon, only works on Chrome.
   textIndent: 1e4
 });
-const AvatarFallback = styled(Person$1, {
+const AvatarFallback = styled(Person, {
   name: "MuiAvatar",
   slot: "Fallback",
   overridesResolver: (props, styles2) => styles2.fallback
@@ -24479,9 +24479,6 @@ const HourglassTop = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path",
 const InfoIcon = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
   d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-6h2zm0-8h-2V7h2z"
 }), "Info");
-const Label = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
-  d: "M17.63 5.84C17.27 5.33 16.67 5 16 5L5 5.01C3.9 5.01 3 5.9 3 7v10c0 1.1.9 1.99 2 1.99L16 19c.67 0 1.27-.33 1.63-.84L22 12z"
-}), "Label");
 const LightMode = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
   d: "M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5M2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1m18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1M11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1m0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1M5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0z"
 }), "LightMode");
@@ -24515,7 +24512,7 @@ const Palette = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
 const PeopleIcon = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
   d: "M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3m-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5m8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5"
 }), "People");
-const Person = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
+const PersonIcon = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
   d: "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4m0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4"
 }), "Person");
 const PersonOutline = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
@@ -24581,6 +24578,9 @@ const Timeline = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
 const TrendingDownIcon = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
   d: "m16 18 2.29-2.29-4.88-4.88-4 4L2 7.41 3.41 6l6 6 4-4 6.3 6.29L22 12v6z"
 }), "TrendingDown");
+const TrendingFlat = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
+  d: "m22 12-4-4v3H3v2h15v3z"
+}), "TrendingFlat");
 const TrendingUpIcon = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
   d: "m16 6 2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"
 }), "TrendingUp");
@@ -40931,16 +40931,16 @@ export {
   Skeleton as bD,
   ErrorOutline as bE,
   ArrowBack as bF,
-  Label as bG,
-  CalendarMonth as bH,
-  HistoryToggleOff as bI,
-  FiberManualRecord as bJ,
-  ContactPhone as bK,
-  Bolt as bL,
-  Groups as bM,
-  TaskAlt as bN,
-  HourglassTop as bO,
-  CheckCircleRounded as bP,
+  HistoryToggleOff as bG,
+  TrendingFlat as bH,
+  CalendarMonth as bI,
+  ContactPhone as bJ,
+  Bolt as bK,
+  Groups as bL,
+  TaskAlt as bM,
+  HourglassTop as bN,
+  CheckCircleRounded as bO,
+  FiberManualRecord as bP,
   PriorityHigh as bQ,
   Flag as bR,
   TableHead as ba,
@@ -40985,7 +40985,7 @@ export {
   Menu as p,
   MenuItem as q,
   SettingsIcon as r,
-  Person as s,
+  PersonIcon as s,
   LogoutIcon as t,
   useTheme$1 as u,
   DashboardIcon as v,
@@ -40994,4 +40994,4 @@ export {
   ListItemButton as y,
   ListItemIcon as z
 };
-//# sourceMappingURL=mui-vendor-Beg7OwUv.js.map
+//# sourceMappingURL=mui-vendor-DXEgYcLL.js.map

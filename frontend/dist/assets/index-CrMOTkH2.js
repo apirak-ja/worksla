@@ -18,9 +18,9 @@ var __privateWrapper = (obj, member, setter, getter) => ({
   }
 });
 var _provider, _providerCalled, _a, _focused, _cleanup, _setup, _b, _online, _cleanup2, _setup2, _c, _gcTimeout, _d, _initialState, _revertState, _cache, _client, _retryer, _defaultOptions, _abortSignalConsumed, _Query_instances, dispatch_fn, _e, _client2, _currentQuery, _currentQueryInitialState, _currentResult, _currentResultState, _currentResultOptions, _currentThenable, _selectError, _selectFn, _selectResult, _lastQueryWithDefinedData, _staleTimeoutId, _refetchIntervalId, _currentRefetchInterval, _trackedProps, _QueryObserver_instances, executeFetch_fn, updateStaleTimeout_fn, computeRefetchInterval_fn, updateRefetchInterval_fn, updateTimers_fn, clearStaleTimeout_fn, clearRefetchInterval_fn, updateQuery_fn, notify_fn, _f, _client3, _observers, _mutationCache, _retryer2, _Mutation_instances, dispatch_fn2, _g, _mutations, _scopes, _mutationId, _h, _client4, _currentResult2, _currentMutation, _mutateOptions, _MutationObserver_instances, updateResult_fn, notify_fn2, _i, _queries, _j, _queryCache, _mutationCache2, _defaultOptions2, _queryDefaults, _mutationDefaults, _mountCount, _unsubscribeFocus, _unsubscribeOnline, _k;
-import { j as jsxRuntimeExports, a as alpha, b as createTheme, T as ThemeProvider$1, C as CssBaseline, B as Box, d as CircularProgress, u as useTheme$1, A as AppBar, e as Toolbar, I as IconButton, M as MenuIcon, S as Search, f as InputBase, g as Chip, h as Stack, i as Tooltip, k as AddIcon, D as DarkMode, L as LightMode, l as Badge, N as NotificationsIcon, m as Divider, n as Avatar, o as Typography, p as Menu, q as MenuItem, r as SettingsIcon, s as Person, t as LogoutIcon, v as DashboardIcon, W as WorkIcon, w as AssessmentIcon, x as List, y as ListItemButton, z as ListItemIcon, E as ListItemText, F as Container, G as LocationOn, H as PhoneIcon, J as EmailIcon, K as GitHubIcon, O as FavoriteIcon, Q as useMediaQuery, R as Drawer, U as Fade, V as Card, Z as Zoom, X as Slide, Y as Alert, _ as TextField, $ as InputAdornment, a0 as VisibilityOff, a1 as Visibility, a2 as LockIcon, a3 as Button, a4 as LoginIcon, a5 as SecurityIcon, a6 as ErrorIcon, a7 as RefreshIcon, a8 as CardContent, a9 as TrendingUpIcon, aa as TrendingDownIcon, ab as Grid, ac as Assignment, ad as WarningIcon, ae as Schedule, af as CheckCircle, ag as Paper, ah as PieChartIcon, ai as ShowChart, aj as DataGrid, ak as Dialog, al as DialogTitle, am as DialogContent, an as FormControl, ao as InputLabel, ap as Select, aq as FormControlLabel, ar as Switch, as as DialogActions, at as Snackbar, au as GridActionsCellItem, av as Edit, aw as ResetPasswordIcon, ax as Autocomplete, ay as Checkbox, az as RadioButtonUncheckedIcon, aA as PeopleIcon, aB as Delete, aC as Tabs, aD as Tab, aE as FilterListIcon, aF as Sync, aG as Api, aH as Palette, aI as SaveIcon, aJ as ListItem, aK as ListItemSecondaryAction, P as PropTypes, aL as _objectWithoutPropertiesLoose, aM as _extends, aN as useThemeProps, aO as useRtl, aP as styled, c as clsx, aQ as shouldForwardProp_1, aR as Grow, aS as FocusTrap, aT as Popper, aU as createSvgIcon, aV as useFormControl, aW as shouldForwardProp, aX as FormHelperText, aY as major, aZ as TransitionGroup, a_ as ButtonBase, a$ as CSSTransition, b0 as dialogClasses, b1 as DateRangeIcon, b2 as OutlinedInput, b3 as CloudSyncIcon, b4 as LinearProgress, b5 as InfoIcon, b6 as NetworkCheckIcon, b7 as PlayArrow, b8 as TableContainer, b9 as Table, ba as TableHead, bb as TableRow, bc as TableCell, bd as TableBody, be as DownloadIcon, bf as FiberNew, bg as Block, bh as Clear, bi as ToggleButtonGroup, bj as ToggleButton, bk as GridView, bl as ViewWeek, bm as TuneRounded, bn as Sort, bo as Collapse, bp as ButtonGroup, bq as CardActionArea, br as MoreVert, bs as Category, bt as PersonOutline, bu as AccessTime, bv as Update, bw as AttachFile, bx as Comment, by as Check, bz as Share, bA as Timeline, bB as Pagination, bC as Description, bD as Skeleton, bE as ErrorOutline, bF as ArrowBack, bG as Label, bH as CalendarMonth, bI as HistoryToggleOff, bJ as FiberManualRecord, bK as ContactPhone, bL as Bolt, bM as Groups, bN as TaskAlt, bO as HourglassTop, bP as CheckCircleRounded, bQ as PriorityHigh, bR as Flag } from "./mui-vendor-Beg7OwUv.js";
+import { j as jsxRuntimeExports, a as alpha, b as createTheme, T as ThemeProvider$1, C as CssBaseline, B as Box, d as CircularProgress, u as useTheme$1, A as AppBar, e as Toolbar, I as IconButton, M as MenuIcon, S as Search, f as InputBase, g as Chip, h as Stack, i as Tooltip, k as AddIcon, D as DarkMode, L as LightMode, l as Badge, N as NotificationsIcon, m as Divider, n as Avatar, o as Typography, p as Menu, q as MenuItem, r as SettingsIcon, s as PersonIcon, t as LogoutIcon, v as DashboardIcon, W as WorkIcon, w as AssessmentIcon, x as List, y as ListItemButton, z as ListItemIcon, E as ListItemText, F as Container, G as LocationOn, H as PhoneIcon, J as EmailIcon, K as GitHubIcon, O as FavoriteIcon, Q as useMediaQuery, R as Drawer, U as Fade, V as Card, Z as Zoom, X as Slide, Y as Alert, _ as TextField, $ as InputAdornment, a0 as VisibilityOff, a1 as Visibility, a2 as LockIcon, a3 as Button, a4 as LoginIcon, a5 as SecurityIcon, a6 as ErrorIcon, a7 as RefreshIcon, a8 as CardContent, a9 as TrendingUpIcon, aa as TrendingDownIcon, ab as Grid, ac as Assignment, ad as WarningIcon, ae as Schedule, af as CheckCircle, ag as Paper, ah as PieChartIcon, ai as ShowChart, aj as DataGrid, ak as Dialog, al as DialogTitle, am as DialogContent, an as FormControl, ao as InputLabel, ap as Select, aq as FormControlLabel, ar as Switch, as as DialogActions, at as Snackbar, au as GridActionsCellItem, av as Edit, aw as ResetPasswordIcon, ax as Autocomplete, ay as Checkbox, az as RadioButtonUncheckedIcon, aA as PeopleIcon, aB as Delete, aC as Tabs, aD as Tab, aE as FilterListIcon, aF as Sync, aG as Api, aH as Palette, aI as SaveIcon, aJ as ListItem, aK as ListItemSecondaryAction, P as PropTypes, aL as _objectWithoutPropertiesLoose, aM as _extends, aN as useThemeProps, aO as useRtl, aP as styled, c as clsx, aQ as shouldForwardProp_1, aR as Grow, aS as FocusTrap, aT as Popper, aU as createSvgIcon, aV as useFormControl, aW as shouldForwardProp, aX as FormHelperText, aY as major, aZ as TransitionGroup, a_ as ButtonBase, a$ as CSSTransition, b0 as dialogClasses, b1 as DateRangeIcon, b2 as OutlinedInput, b3 as CloudSyncIcon, b4 as LinearProgress, b5 as InfoIcon, b6 as NetworkCheckIcon, b7 as PlayArrow, b8 as TableContainer, b9 as Table, ba as TableHead, bb as TableRow, bc as TableCell, bd as TableBody, be as DownloadIcon, bf as FiberNew, bg as Block, bh as Clear, bi as ToggleButtonGroup, bj as ToggleButton, bk as GridView, bl as ViewWeek, bm as TuneRounded, bn as Sort, bo as Collapse, bp as ButtonGroup, bq as CardActionArea, br as MoreVert, bs as Category, bt as PersonOutline, bu as AccessTime, bv as Update, bw as AttachFile, bx as Comment, by as Check, bz as Share, bA as Timeline, bB as Pagination, bC as Description, bD as Skeleton, bE as ErrorOutline, bF as ArrowBack, bG as HistoryToggleOff, bH as TrendingFlat, bI as CalendarMonth, bJ as ContactPhone, bK as Bolt, bL as Groups, bM as TaskAlt, bN as HourglassTop, bO as CheckCircleRounded, bP as FiberManualRecord, bQ as PriorityHigh, bR as Flag } from "./mui-vendor-DXEgYcLL.js";
 import { d as reactDomExports, r as reactExports, N as Navigate, u as useNavigate, f as useLocation, O as Outlet, b as React, R as React$1, h as useParams, B as BrowserRouter, i as Routes, j as Route } from "./react-vendor-Cq8tfVx5.js";
-import { R as ResponsiveContainer, P as PieChart, a as Pie, C as Cell, T as Tooltip$1, B as BarChart, b as CartesianGrid, X as XAxis, Y as YAxis, c as Bar, L as LineChart, d as Line } from "./chart-vendor-BeJ44AGP.js";
+import { R as ResponsiveContainer, P as PieChart, a as Pie, C as Cell, T as Tooltip$1, B as BarChart, b as CartesianGrid, X as XAxis, Y as YAxis, c as Bar, L as LineChart, d as Line } from "./chart-vendor-D4B8lWqU.js";
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -5932,7 +5932,7 @@ const ModernHeaderBar = ({ onMenuClick, drawerWidth: drawerWidth2 }) => {
                     }
                   },
                   children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Person, { sx: { mr: 2, fontSize: 20, color: "info.main" } }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(PersonIcon, { sx: { mr: 2, fontSize: 20, color: "info.main" } }),
                     /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body2", fontWeight: 600, children: "โปรไฟล์" })
                   ]
                 }
@@ -6867,7 +6867,7 @@ const ModernLoginPage = () => {
                       }
                     },
                     InputProps: {
-                      startAdornment: /* @__PURE__ */ jsxRuntimeExports.jsx(InputAdornment, { position: "start", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Person, { sx: { fontSize: 22, color: "primary.main" } }) })
+                      startAdornment: /* @__PURE__ */ jsxRuntimeExports.jsx(InputAdornment, { position: "start", children: /* @__PURE__ */ jsxRuntimeExports.jsx(PersonIcon, { sx: { fontSize: 22, color: "primary.main" } }) })
                     }
                   }
                 ),
@@ -11420,7 +11420,7 @@ const UsersAdminPage = () => {
       headerName: "ชื่อผู้ใช้",
       width: 150,
       renderCell: (params) => /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { sx: { display: "flex", alignItems: "center", gap: 1 }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Person, { fontSize: "small" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(PersonIcon, { fontSize: "small" }),
         params.value
       ] })
     },
@@ -23264,7 +23264,7 @@ const DefaultFiltersPage = () => {
         /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Divider, {}) }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs(Grid, { item: true, xs: 12, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { display: "flex", alignItems: "center", gap: 2, mb: 3, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Person, { color: "primary", sx: { fontSize: 32 } }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(PersonIcon, { color: "primary", sx: { fontSize: 32 } }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h6", fontWeight: 700, children: "ผู้รับผิดชอบ" })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs(FormControl, { fullWidth: true, children: [
@@ -26141,11 +26141,11 @@ const WorkPackageDetailPro = () => {
   const isDark = theme.palette.mode === "dark";
   const pageBackground = isDark ? alpha(theme.palette.background.default, 0.96) : alpha(theme.palette.grey[50], 0.96);
   const surfacePaper = isDark ? alpha(theme.palette.background.paper, 0.78) : theme.palette.background.paper;
-  const surfaceMuted = isDark ? alpha(theme.palette.background.paper, 0.6) : alpha(theme.palette.grey[100], 0.92);
+  isDark ? alpha(theme.palette.background.paper, 0.6) : alpha(theme.palette.grey[100], 0.92);
   const borderColor = isDark ? alpha(theme.palette.common.white, 0.12) : alpha(theme.palette.grey[900], 0.08);
   const subtleShadow = isDark ? "0 24px 60px rgba(0,0,0,0.55)" : "0 24px 60px rgba(15,23,42,0.14)";
-  const textMuted = isDark ? alpha(theme.palette.common.white, 0.7) : alpha(theme.palette.text.primary, 0.65);
-  const accentGradient = isDark ? `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.25)} 0%, ${alpha(
+  isDark ? alpha(theme.palette.common.white, 0.7) : alpha(theme.palette.text.primary, 0.65);
+  isDark ? `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.25)} 0%, ${alpha(
     theme.palette.primary.main,
     0.35
   )} 100%)` : `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.18)} 0%, ${alpha(
@@ -26222,7 +26222,7 @@ const WorkPackageDetailPro = () => {
   const statusSpans = React.useMemo(() => {
     return computeStatusSpansByNeighbor(activitiesAsc);
   }, [activitiesAsc]);
-  const tailSpan = React.useMemo(() => {
+  React.useMemo(() => {
     if (!wpDetail) return null;
     const endRefMs = wpDetail.updated_at ? Date.parse(wpDetail.updated_at) : Date.now();
     return computeTailSpan(activitiesAsc, endRefMs);
@@ -26343,7 +26343,7 @@ const WorkPackageDetailPro = () => {
     return { color: "#f59e0b", icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Flag, {}), label: priority };
   };
   const priorityConfig = getPriorityConfig(wp.priority);
-  const totalComments = activitiesAsc.filter(
+  activitiesAsc.filter(
     (a) => a.notes && a.notes.trim().length > 0
   ).length;
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -26354,242 +26354,615 @@ const WorkPackageDetailPro = () => {
         bgcolor: pageBackground,
         transition: "background-color 0.4s ease"
       },
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Container, { maxWidth: "xl", sx: { py: { xs: 4, md: 6 } }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: { xs: 4, md: 6 }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          Stack,
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Container, { maxWidth: "xl", sx: { py: { xs: 3, md: 5 } }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: { xs: 3, md: 4 }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Grow, { in: true, timeout: 700, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Box,
           {
-            direction: { xs: "column", md: "row" },
-            spacing: { xs: 2, md: 3 },
-            alignItems: { xs: "flex-start", md: "center" },
-            justifyContent: "space-between",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            sx: {
+              position: "relative",
+              borderRadius: 8,
+              overflow: "hidden",
+              boxShadow: isDark ? "0 50px 100px rgba(0, 0, 0, 0.8), 0 25px 50px rgba(99, 102, 241, 0.3)" : "0 50px 100px rgba(15, 23, 42, 0.25), 0 25px 50px rgba(99, 102, 241, 0.15)",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                inset: 0,
+                background: isDark ? "linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.98) 100%)" : "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%)",
+                zIndex: 0
+              },
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                inset: 0,
+                background: isDark ? "radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.25) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 40%)" : "radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 40%)",
+                zIndex: 0,
+                animation: "breathe 6s ease-in-out infinite"
+              },
+              "@keyframes breathe": {
+                "0%, 100%": { opacity: 0.6 },
+                "50%": { opacity: 1 }
+              }
+            },
+            children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { sx: { position: "relative", zIndex: 1 }, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                Box,
+                {
+                  sx: {
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: "5px",
+                    background: "linear-gradient(90deg, #667eea 0%, #764ba2 20%, #f093fb 40%, #4facfe 60%, #00f2fe 80%, #667eea 100%)",
+                    backgroundSize: "200% 100%",
+                    animation: "shimmer 3s ease-in-out infinite"
+                  }
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { sx: { px: { xs: 4, md: 6 }, pt: { xs: 4, md: 5 }, pb: 3 }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
                 Stack,
                 {
-                  direction: { xs: "column", sm: "row" },
-                  spacing: { xs: 1.5, sm: 2 },
-                  alignItems: { xs: "flex-start", sm: "center" },
+                  direction: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 3,
                   children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Button,
-                      {
-                        variant: "outlined",
-                        startIcon: /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowBack, {}),
-                        onClick: () => navigate("/workpackages"),
-                        sx: {
-                          borderRadius: 999,
-                          px: 2.5,
-                          fontWeight: 600
-                        },
-                        children: "กลับรายการงาน"
-                      }
-                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 3, children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        IconButton,
+                        {
+                          onClick: () => navigate("/workpackages"),
+                          sx: {
+                            width: 56,
+                            height: 56,
+                            background: isDark ? "linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%)" : "linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.08) 100%)",
+                            border: `3px solid ${alpha("#667eea", isDark ? 0.5 : 0.25)}`,
+                            backdropFilter: "blur(15px)",
+                            transition: "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                            "&:hover": {
+                              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                              transform: "translateX(-12px) rotate(-15deg) scale(1.1)",
+                              boxShadow: "0 20px 40px rgba(102, 126, 234, 0.5)",
+                              "& .MuiSvgIcon-root": {
+                                color: "white",
+                                transform: "scale(1.2)"
+                              }
+                            }
+                          },
+                          children: /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowBack, { sx: { fontSize: 28, color: "#667eea", transition: "all 0.3s ease" } })
+                        }
+                      ),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                        Box,
+                        {
+                          sx: {
+                            position: "relative",
+                            px: 4,
+                            py: 2,
+                            borderRadius: 999,
+                            background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+                            backgroundSize: "200% 100%",
+                            boxShadow: "0 15px 35px rgba(102, 126, 234, 0.5)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                            transition: "all 0.4s ease",
+                            animation: "float 4s ease-in-out infinite",
+                            "&:hover": {
+                              transform: "scale(1.08) translateY(-4px)",
+                              boxShadow: "0 20px 45px rgba(102, 126, 234, 0.6)",
+                              backgroundPosition: "100% 0"
+                            },
+                            "&::before": {
+                              content: '""',
+                              position: "absolute",
+                              inset: -2,
+                              borderRadius: 999,
+                              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+                              backgroundSize: "200% 100%",
+                              animation: "shine 2s ease-in-out infinite",
+                              opacity: 0.6
+                            }
+                          },
+                          children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              Box,
+                              {
+                                sx: {
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: "50%",
+                                  bgcolor: "white",
+                                  boxShadow: "0 0 12px rgba(255, 255, 255, 0.8)",
+                                  animation: "pulse 2s ease-in-out infinite"
+                                }
+                              }
+                            ),
+                            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                              Typography,
+                              {
+                                variant: "h4",
+                                fontWeight: 900,
+                                sx: {
+                                  color: "white",
+                                  letterSpacing: "0.05em",
+                                  textShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+                                  fontFamily: "monospace"
+                                },
+                                children: [
+                                  "#",
+                                  wp.id || wp.wp_id
+                                ]
+                              }
+                            )
+                          ]
+                        }
+                      )
+                    ] }),
                     /* @__PURE__ */ jsxRuntimeExports.jsx(
                       Chip,
                       {
-                        icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Assignment, {}),
-                        label: `WP #${wp.id || wp.wp_id}`,
+                        icon: /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { fontSize: 20 } }),
+                        label: wp.updated_at ? `อัปเดต ${format(new Date(wp.updated_at), "dd MMM yyyy HH:mm", { locale: th })}` : "ไม่ระบุ",
                         sx: {
-                          fontWeight: 700,
-                          height: 36,
-                          borderRadius: 999,
-                          bgcolor: alpha(theme.palette.primary.main, isDark ? 0.25 : 0.12),
-                          color: theme.palette.primary.main,
+                          height: 44,
+                          px: 3,
+                          fontWeight: 800,
+                          fontSize: "0.95rem",
+                          bgcolor: isDark ? alpha("#6b7280", 0.25) : alpha("#6b7280", 0.1),
+                          color: isDark ? "#e5e7eb" : "#4b5563",
+                          border: `2px solid ${alpha("#6b7280", isDark ? 0.4 : 0.2)}`,
+                          backdropFilter: "blur(15px)",
+                          transition: "all 0.3s ease",
                           "& .MuiChip-icon": {
-                            color: theme.palette.primary.main
+                            color: isDark ? "#e5e7eb" : "#4b5563"
+                          },
+                          "&:hover": {
+                            transform: "translateY(-2px)",
+                            boxShadow: "0 8px 20px rgba(107, 114, 128, 0.3)"
                           }
                         }
                       }
                     )
                   ]
                 }
+              ) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                Divider,
+                {
+                  sx: {
+                    borderColor: alpha(borderColor, 0.6),
+                    mx: { xs: 4, md: 6 },
+                    borderWidth: 2,
+                    opacity: 0.5
+                  }
+                }
               ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, { direction: "row", spacing: 1, alignItems: "center", children: [{ icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Edit, {}), tooltip: "แก้ไขงาน" }, { icon: /* @__PURE__ */ jsxRuntimeExports.jsx(MoreVert, {}), tooltip: "เพิ่มเติม" }].map(
-                (action, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, { title: action.tooltip, arrow: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  IconButton,
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { sx: { px: { xs: 4, md: 6 }, py: { xs: 4, md: 6 } }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Grid, { container: true, spacing: { xs: 4, md: 6 }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, md: 5, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Paper,
                   {
+                    elevation: 0,
                     sx: {
-                      border: `1px solid ${borderColor}`,
-                      bgcolor: surfaceMuted,
-                      transition: "all 0.25s ease",
+                      p: 5,
+                      borderRadius: 6,
+                      background: isDark ? "linear-gradient(145deg, rgba(99, 102, 241, 0.18) 0%, rgba(139, 92, 246, 0.12) 100%)" : "linear-gradient(145deg, rgba(99, 102, 241, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%)",
+                      border: `3px solid ${alpha("#6366f1", isDark ? 0.5 : 0.25)}`,
+                      backdropFilter: "blur(25px)",
+                      height: "100%",
+                      minHeight: 480,
+                      position: "relative",
+                      overflow: "hidden",
+                      boxShadow: isDark ? "0 25px 50px rgba(99, 102, 241, 0.3)" : "0 25px 50px rgba(99, 102, 241, 0.15)",
+                      transition: "all 0.4s ease",
                       "&:hover": {
-                        bgcolor: alpha(theme.palette.primary.main, 0.12),
-                        color: theme.palette.primary.main
+                        transform: "translateY(-8px)",
+                        boxShadow: isDark ? "0 35px 70px rgba(99, 102, 241, 0.4)" : "0 35px 70px rgba(99, 102, 241, 0.2)"
+                      },
+                      "&::before": {
+                        content: '""',
+                        position: "absolute",
+                        top: -150,
+                        right: -150,
+                        width: 300,
+                        height: 300,
+                        borderRadius: "50%",
+                        background: "radial-gradient(circle, rgba(102, 126, 234, 0.4), transparent 70%)",
+                        animation: "orbit 8s ease-in-out infinite"
+                      },
+                      "&::after": {
+                        content: '""',
+                        position: "absolute",
+                        bottom: -100,
+                        left: -100,
+                        width: 200,
+                        height: 200,
+                        borderRadius: "50%",
+                        background: "radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 70%)",
+                        animation: "orbit 10s ease-in-out infinite reverse"
+                      },
+                      "@keyframes orbit": {
+                        "0%, 100%": { transform: "translate(0, 0) scale(1)" },
+                        "50%": { transform: "translate(20px, 20px) scale(1.15)" }
                       }
                     },
-                    children: action.icon
-                  }
-                ) }, index)
-              ) })
-            ]
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Grow, { in: true, timeout: 500, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Paper,
-          {
-            elevation: 0,
-            sx: {
-              borderRadius: 4,
-              position: "relative",
-              overflow: "hidden",
-              bgcolor: surfacePaper,
-              border: `1px solid ${borderColor}`,
-              boxShadow: subtleShadow,
-              p: { xs: 3, md: 4 },
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                inset: 0,
-                background: accentGradient,
-                opacity: isDark ? 0.25 : 0.18,
-                pointerEvents: "none"
-              }
-            },
-            children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: { xs: 3, md: 4 }, sx: { position: "relative", zIndex: 1 }, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                Stack,
-                {
-                  direction: { xs: "column", md: "row" },
-                  spacing: { xs: 2, md: 3 },
-                  justifyContent: "space-between",
-                  alignItems: { xs: "flex-start", md: "center" },
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", spacing: 1.5, flexWrap: "wrap", alignItems: "center", children: [
+                    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 4, sx: { position: "relative", zIndex: 1 }, children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 3, mb: 2, children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Box,
+                            {
+                              sx: {
+                                width: 64,
+                                height: 64,
+                                borderRadius: 4,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                boxShadow: "0 15px 35px rgba(102, 126, 234, 0.5)",
+                                animation: "bounce 3s ease-in-out infinite",
+                                transition: "all 0.3s ease",
+                                "&:hover": {
+                                  transform: "rotate(360deg) scale(1.1)"
+                                }
+                              },
+                              children: /* @__PURE__ */ jsxRuntimeExports.jsx(HistoryToggleOff, { sx: { fontSize: 32, color: "white" } })
+                            }
+                          ),
+                          /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { flex: 1, children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              Typography,
+                              {
+                                variant: "h4",
+                                fontWeight: 900,
+                                sx: {
+                                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                  backgroundClip: "text",
+                                  WebkitBackgroundClip: "text",
+                                  WebkitTextFillColor: "transparent",
+                                  letterSpacing: "-0.02em"
+                                },
+                                children: "Timeline"
+                              }
+                            ),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body2", fontWeight: 700, color: "text.secondary", sx: { mt: 0.5 }, children: "📊 ประวัติการเปลี่ยนสถานะทั้งหมด" })
+                          ] })
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          Box,
+                          {
+                            sx: {
+                              height: 4,
+                              borderRadius: 999,
+                              background: "linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+                              backgroundSize: "200% 100%",
+                              animation: "shimmer 3s ease-in-out infinite"
+                            }
+                          }
+                        )
+                      ] }),
                       /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        Chip,
+                        Box,
                         {
-                          icon: currentStatus.icon,
-                          label: currentStatus.label,
                           sx: {
-                            bgcolor: alpha(currentStatus.color, 0.15),
-                            color: currentStatus.color,
-                            fontWeight: 700,
-                            borderRadius: 999,
-                            "& .MuiChip-icon": {
-                              color: currentStatus.color
+                            flex: 1,
+                            overflowY: "auto",
+                            maxHeight: 360,
+                            pr: 2,
+                            "&::-webkit-scrollbar": {
+                              width: 8
+                            },
+                            "&::-webkit-scrollbar-track": {
+                              background: alpha("#6366f1", 0.1),
+                              borderRadius: 999
+                            },
+                            "&::-webkit-scrollbar-thumb": {
+                              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                              borderRadius: 999,
+                              "&:hover": {
+                                background: "linear-gradient(135deg, #764ba2 0%, #f093fb 100%)"
+                              }
                             }
-                          }
-                        }
-                      ),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        Chip,
-                        {
-                          icon: priorityConfig.icon,
-                          label: wp.priority || "ไม่ระบุ",
-                          sx: {
-                            bgcolor: alpha(priorityConfig.color, 0.15),
-                            color: priorityConfig.color,
-                            fontWeight: 700,
-                            borderRadius: 999,
-                            "& .MuiChip-icon": {
-                              color: priorityConfig.color
-                            }
-                          }
-                        }
-                      ),
-                      wp.category && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        Chip,
-                        {
-                          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Label, {}),
-                          label: wp.category,
-                          sx: {
-                            bgcolor: alpha(theme.palette.secondary.main, 0.12),
-                            color: theme.palette.secondary.dark,
-                            fontWeight: 700,
-                            borderRadius: 999,
-                            "& .MuiChip-icon": {
-                              color: theme.palette.secondary.dark
-                            }
-                          }
+                          },
+                          children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 3, children: [
+                            createdTs > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, { in: true, timeout: 500, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              Paper,
+                              {
+                                elevation: 0,
+                                sx: {
+                                  p: 3,
+                                  borderRadius: 5,
+                                  background: alpha("#6366f1", isDark ? 0.2 : 0.1),
+                                  border: `3px solid ${alpha("#6366f1", isDark ? 0.4 : 0.3)}`,
+                                  transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                                  "&:hover": {
+                                    transform: "translateX(12px) scale(1.03)",
+                                    borderColor: "#6366f1",
+                                    boxShadow: `0 12px 30px ${alpha("#6366f1", 0.4)}`
+                                  }
+                                },
+                                children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 2.5, children: [
+                                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                    Avatar,
+                                    {
+                                      sx: {
+                                        bgcolor: "#6366f1",
+                                        width: 52,
+                                        height: 52,
+                                        boxShadow: `0 8px 20px ${alpha("#6366f1", 0.4)}`,
+                                        animation: "pulse 2s ease-in-out infinite"
+                                      },
+                                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(PlayArrow, { sx: { fontSize: 28 } })
+                                    }
+                                  ),
+                                  /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { flex: 1, children: [
+                                    /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h6", fontWeight: 900, color: "#6366f1", sx: { mb: 0.5 }, children: "New" }),
+                                    /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", fontWeight: 700, color: "text.secondary", children: format(new Date(createdTs), "dd/MM/yy HH:mm", { locale: th }) })
+                                  ] })
+                                ] })
+                              }
+                            ) }),
+                            statusSpans.map((span, index) => {
+                              const durationText = formatDuration(span.durationMs);
+                              const normalizedToStatus = (span.toStatus || "").toLowerCase();
+                              let bgColor = "#6366f1";
+                              let StatusIcon = TrendingFlat;
+                              if (normalizedToStatus.includes("รับเรื่อง")) {
+                                bgColor = "#06b6d4";
+                                StatusIcon = CheckCircleRounded;
+                              } else if (normalizedToStatus.includes("กำลังดำเนินการ")) {
+                                bgColor = "#f59e0b";
+                                StatusIcon = HourglassTop;
+                              } else if (normalizedToStatus.includes("เสร็จ")) {
+                                bgColor = "#10b981";
+                                StatusIcon = TaskAlt;
+                              }
+                              return /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, { in: true, timeout: 600 + index * 120, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                Paper,
+                                {
+                                  elevation: 0,
+                                  sx: {
+                                    p: 3,
+                                    borderRadius: 5,
+                                    background: alpha(bgColor, isDark ? 0.2 : 0.1),
+                                    border: `3px solid ${alpha(bgColor, isDark ? 0.4 : 0.3)}`,
+                                    transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                                    "&:hover": {
+                                      transform: "translateX(12px) scale(1.03)",
+                                      borderColor: bgColor,
+                                      boxShadow: `0 12px 30px ${alpha(bgColor, 0.4)}`
+                                    }
+                                  },
+                                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, { spacing: 2, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 2.5, children: [
+                                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                      Avatar,
+                                      {
+                                        sx: {
+                                          bgcolor: bgColor,
+                                          width: 52,
+                                          height: 52,
+                                          boxShadow: `0 8px 20px ${alpha(bgColor, 0.4)}`
+                                        },
+                                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(StatusIcon, { sx: { fontSize: 28 } })
+                                      }
+                                    ),
+                                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { flex: 1, children: [
+                                      /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1, mb: 0.5, children: [
+                                        /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", fontWeight: 800, color: alpha(bgColor, 0.8), sx: { textTransform: "uppercase", letterSpacing: 0.5 }, children: span.fromStatus }),
+                                        /* @__PURE__ */ jsxRuntimeExports.jsx(TrendingFlat, { sx: { fontSize: 16, color: bgColor } }),
+                                        /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h6", fontWeight: 900, color: bgColor, children: span.toStatus })
+                                      ] }),
+                                      /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1, children: [
+                                        /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { fontSize: 14, color: "text.secondary" } }),
+                                        /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", fontWeight: 700, color: "text.secondary", children: durationText })
+                                      ] })
+                                    ] })
+                                  ] }) })
+                                }
+                              ) }, `timeline-${index}`);
+                            })
+                          ] })
                         }
                       )
-                    ] }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "body2", color: textMuted, fontWeight: 500, children: [
-                      "อัปเดตล่าสุด:",
-                      " ",
-                      wp.updated_at ? format(new Date(wp.updated_at), "dd MMM yyyy HH:mm", { locale: th }) : "ไม่ระบุ"
                     ] })
-                  ]
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  Typography,
-                  {
-                    variant: "h3",
-                    fontWeight: 800,
-                    sx: {
-                      lineHeight: 1.25,
-                      fontSize: { xs: "2rem", md: "2.5rem" }
-                    },
-                    children: wp.subject
                   }
-                ),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "body1", color: textMuted, sx: { mt: 1.5 }, children: [
-                  "โครงการ ",
-                  wp.project_name || "ไม่ระบุ",
-                  " • หมวดงาน ",
-                  wp.type || "ไม่ระบุ"
-                ] })
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { container: true, spacing: 2, children: [
-                {
-                  icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Person, { fontSize: "small" }),
-                  label: "ผู้รับผิดชอบ",
-                  value: wp.assignee_name || "ยังไม่ระบุ"
-                },
-                {
-                  icon: /* @__PURE__ */ jsxRuntimeExports.jsx(CalendarMonth, { fontSize: "small" }),
-                  label: "สร้างเมื่อ",
-                  value: wp.created_at ? format(new Date(wp.created_at), "dd MMM yyyy HH:mm", { locale: th }) : "-"
-                },
-                {
-                  icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Update, { fontSize: "small" }),
-                  label: "กิจกรรมทั้งหมด",
-                  value: `${activitiesAsc.length.toLocaleString()} รายการ`
-                },
-                {
-                  icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Comment, { fontSize: "small" }),
-                  label: "ความคิดเห็น",
-                  value: `${totalComments} รายการ`
-                }
-              ].map((metric, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, md: 3, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                Paper,
-                {
-                  variant: "outlined",
-                  sx: {
-                    p: 2.5,
-                    height: "100%",
-                    borderRadius: 3,
-                    borderColor,
-                    bgcolor: surfaceMuted,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 1
-                  },
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", spacing: 1, alignItems: "center", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        Avatar,
-                        {
-                          sx: {
-                            bgcolor: alpha(theme.palette.primary.main, 0.15),
-                            color: theme.palette.primary.main,
-                            width: 36,
-                            height: 36
+                ) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, md: 7, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 5, height: "100%", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, { in: true, timeout: 700, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", spacing: 3, flexWrap: "wrap", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Chip,
+                      {
+                        icon: currentStatus.icon,
+                        label: currentStatus.label,
+                        sx: {
+                          height: 56,
+                          px: 4,
+                          bgcolor: alpha(currentStatus.color, isDark ? 0.35 : 0.18),
+                          color: currentStatus.color,
+                          fontWeight: 900,
+                          fontSize: "1.1rem",
+                          borderRadius: 5,
+                          border: `4px solid ${alpha(currentStatus.color, isDark ? 0.5 : 0.35)}`,
+                          boxShadow: `0 12px 30px ${alpha(currentStatus.color, 0.3)}`,
+                          transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                          "& .MuiChip-icon": {
+                            color: currentStatus.color,
+                            fontSize: 28
                           },
-                          children: metric.icon
+                          "&:hover": {
+                            transform: "translateY(-6px) scale(1.05)",
+                            boxShadow: `0 18px 40px ${alpha(currentStatus.color, 0.45)}`,
+                            borderColor: currentStatus.color
+                          }
                         }
-                      ),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "subtitle2", color: textMuted, fontWeight: 700, children: metric.label })
-                    ] }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h6", fontWeight: 800, sx: { mt: 0.5 }, children: metric.value })
-                  ]
-                }
-              ) }, index)) })
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Chip,
+                      {
+                        icon: priorityConfig.icon,
+                        label: wp.priority || "ไม่ระบุ",
+                        sx: {
+                          height: 56,
+                          px: 4,
+                          bgcolor: alpha(priorityConfig.color, isDark ? 0.35 : 0.18),
+                          color: priorityConfig.color,
+                          fontWeight: 900,
+                          fontSize: "1.1rem",
+                          borderRadius: 5,
+                          border: `4px solid ${alpha(priorityConfig.color, isDark ? 0.5 : 0.35)}`,
+                          boxShadow: `0 12px 30px ${alpha(priorityConfig.color, 0.3)}`,
+                          transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                          "& .MuiChip-icon": {
+                            color: priorityConfig.color,
+                            fontSize: 28
+                          },
+                          "&:hover": {
+                            transform: "translateY(-6px) scale(1.05)",
+                            boxShadow: `0 18px 40px ${alpha(priorityConfig.color, 0.45)}`,
+                            borderColor: priorityConfig.color
+                          }
+                        }
+                      }
+                    )
+                  ] }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, { in: true, timeout: 800, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Typography,
+                    {
+                      variant: "h2",
+                      fontWeight: 900,
+                      sx: {
+                        lineHeight: 1.25,
+                        fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem", lg: "3.5rem" },
+                        background: isDark ? "linear-gradient(135deg, #ffffff 0%, #e0e7ff 50%, #c7d2fe 100%)" : "linear-gradient(135deg, #0f172a 0%, #334155 50%, #475569 100%)",
+                        backgroundClip: "text",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        letterSpacing: "-0.03em",
+                        wordBreak: "break-word",
+                        animation: "fadeInUp 0.8s ease-out, shimmer 3s ease-in-out infinite",
+                        textShadow: isDark ? "0 4px 20px rgba(255, 255, 255, 0.1)" : "0 4px 20px rgba(15, 23, 42, 0.08)",
+                        "&:hover": {
+                          animation: "none",
+                          backgroundSize: "150% 150%"
+                        }
+                      },
+                      children: wp.subject
+                    }
+                  ) }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, { in: true, timeout: 900, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Grid, { container: true, spacing: 3, children: [
+                    wp.assignee_name && /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Paper,
+                      {
+                        elevation: 0,
+                        sx: {
+                          p: 3,
+                          borderRadius: 4,
+                          background: isDark ? alpha("#0ea5e9", 0.15) : alpha("#0ea5e9", 0.08),
+                          border: `2px solid ${alpha("#0ea5e9", isDark ? 0.4 : 0.25)}`,
+                          transition: "all 0.3s ease",
+                          "&:hover": {
+                            transform: "translateY(-4px)",
+                            boxShadow: `0 12px 30px ${alpha("#0ea5e9", 0.25)}`
+                          }
+                        },
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 2, children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Avatar,
+                            {
+                              sx: {
+                                bgcolor: "#0ea5e9",
+                                width: 48,
+                                height: 48,
+                                fontSize: "1.3rem",
+                                fontWeight: 900,
+                                boxShadow: `0 6px 16px ${alpha("#0ea5e9", 0.4)}`
+                              },
+                              children: wp.assignee_name.charAt(0)
+                            }
+                          ),
+                          /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", fontWeight: 700, color: "#0369a1", sx: { textTransform: "uppercase", letterSpacing: 0.5 }, children: "ผู้รับผิดชอบ" }),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body1", fontWeight: 900, color: "#0c4a6e", children: wp.assignee_name })
+                          ] })
+                        ] })
+                      }
+                    ) }),
+                    wp.created_at && /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Paper,
+                      {
+                        elevation: 0,
+                        sx: {
+                          p: 3,
+                          borderRadius: 4,
+                          background: isDark ? alpha("#8b5cf6", 0.15) : alpha("#8b5cf6", 0.08),
+                          border: `2px solid ${alpha("#8b5cf6", isDark ? 0.4 : 0.25)}`,
+                          transition: "all 0.3s ease",
+                          "&:hover": {
+                            transform: "translateY(-4px)",
+                            boxShadow: `0 12px 30px ${alpha("#8b5cf6", 0.25)}`
+                          }
+                        },
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 2, children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Avatar,
+                            {
+                              sx: {
+                                bgcolor: "#8b5cf6",
+                                width: 48,
+                                height: 48,
+                                boxShadow: `0 6px 16px ${alpha("#8b5cf6", 0.4)}`
+                              },
+                              children: /* @__PURE__ */ jsxRuntimeExports.jsx(CalendarMonth, { sx: { fontSize: 24 } })
+                            }
+                          ),
+                          /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", fontWeight: 700, color: "#6d28d9", sx: { textTransform: "uppercase", letterSpacing: 0.5 }, children: "สร้างเมื่อ" }),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body1", fontWeight: 900, color: "#5b21b6", children: format(new Date(wp.created_at), "dd MMM yyyy", { locale: th }) })
+                          ] })
+                        ] })
+                      }
+                    ) })
+                  ] }) })
+                ] }) })
+              ] }) })
             ] })
           }
         ) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("style", { children: `
+              @keyframes shimmer {
+                0%, 100% { background-position: 0% 0%; }
+                50% { background-position: 100% 0%; }
+              }
+              @keyframes float {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+              }
+              @keyframes bounce {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-8px); }
+              }
+              @keyframes pulse {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.1); opacity: 0.8; }
+              }
+              @keyframes shine {
+                0% { background-position: -200% 0; }
+                100% { background-position: 200% 0; }
+              }
+              @keyframes fadeInUp {
+                from {
+                  opacity: 0;
+                  transform: translateY(30px);
+                }
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+            ` }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, { in: true, timeout: 650, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
           Card,
           {
@@ -26701,393 +27074,6 @@ const WorkPackageDetailPro = () => {
                     ]
                   }
                 ) }),
-                (createdTs > 0 || statusSpans.length > 0) && /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, { in: true, timeout: 500, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 3, mb: 4, children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Box,
-                      {
-                        sx: {
-                          width: 64,
-                          height: 64,
-                          borderRadius: 4,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                          boxShadow: `0 12px 32px ${alpha("#f59e0b", 0.4)}`
-                        },
-                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(HistoryToggleOff, { sx: { fontSize: 32, color: "white" } })
-                      }
-                    ),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        Typography,
-                        {
-                          variant: "h3",
-                          fontWeight: 900,
-                          sx: {
-                            background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                            backgroundClip: "text",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                            letterSpacing: "-0.02em",
-                            mb: 0.5
-                          },
-                          children: "Timeline"
-                        }
-                      ),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        Typography,
-                        {
-                          variant: "body1",
-                          sx: {
-                            color: alpha(theme.palette.text.primary, 0.6),
-                            fontWeight: 500
-                          },
-                          children: "ระยะเวลาในแต่ละสถานะ"
-                        }
-                      )
-                    ] })
-                  ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Box,
-                    {
-                      sx: {
-                        mb: 5,
-                        p: 3.5,
-                        background: isDark ? "linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(217, 119, 6, 0.03) 100%)" : "linear-gradient(135deg, rgba(245, 158, 11, 0.03) 0%, rgba(255, 255, 255, 0.5) 100%)",
-                        borderRadius: 4,
-                        border: `1px solid ${alpha("#f59e0b", 0.1)}`,
-                        backdropFilter: "blur(10px)"
-                      },
-                      children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Grid, { container: true, spacing: 3, children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 2, children: [
-                          /* @__PURE__ */ jsxRuntimeExports.jsx(
-                            Box,
-                            {
-                              sx: {
-                                width: 40,
-                                height: 40,
-                                borderRadius: 2,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                bgcolor: alpha("#f59e0b", 0.1)
-                              },
-                              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { sx: { color: "#f59e0b", fontSize: 20 } })
-                            }
-                          ),
-                          /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", color: "text.secondary", fontWeight: 600, children: "ช่วงสถานะ" }),
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h6", fontWeight: 800, color: "#f59e0b", children: statusSpans.length })
-                          ] })
-                        ] }) }),
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 2, children: [
-                          /* @__PURE__ */ jsxRuntimeExports.jsx(
-                            Box,
-                            {
-                              sx: {
-                                width: 40,
-                                height: 40,
-                                borderRadius: 2,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                bgcolor: alpha("#10b981", 0.1)
-                              },
-                              children: /* @__PURE__ */ jsxRuntimeExports.jsx(CheckCircle, { sx: { color: "#10b981", fontSize: 20 } })
-                            }
-                          ),
-                          /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", color: "text.secondary", fontWeight: 600, children: "สถานะปัจจุบัน" }),
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h6", fontWeight: 800, color: "#10b981", children: statusSpans.length > 0 ? statusSpans[statusSpans.length - 1].toStatus : (wpDetail == null ? void 0 : wpDetail.status) || "ไม่ระบุ" })
-                          ] })
-                        ] }) })
-                      ] })
-                    }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs(Grid, { container: true, spacing: 3, children: [
-                    createdTs > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, lg: 4, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Zoom, { in: true, timeout: 400, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Paper,
-                      {
-                        elevation: 0,
-                        sx: {
-                          p: 5,
-                          borderRadius: 5,
-                          background: isDark ? "linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(79, 70, 229, 0.05) 100%)" : "linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%)",
-                          border: `1px solid ${alpha("#6366f1", 0.15)}`,
-                          position: "relative",
-                          overflow: "hidden",
-                          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                          backdropFilter: "blur(20px)",
-                          "&::before": {
-                            content: '""',
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: "3px",
-                            background: "linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)"
-                          },
-                          "&:hover": {
-                            borderColor: "#6366f1",
-                            boxShadow: `0 25px 50px ${alpha("#6366f1", 0.2)}`,
-                            transform: "translateY(-8px)"
-                          }
-                        },
-                        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 3.5, alignItems: "center", children: [
-                          /* @__PURE__ */ jsxRuntimeExports.jsx(
-                            Chip,
-                            {
-                              label: "New",
-                              icon: /* @__PURE__ */ jsxRuntimeExports.jsx(PlayArrow, { sx: { fontSize: 18 } }),
-                              sx: {
-                                bgcolor: "#6366f1",
-                                color: "white",
-                                fontWeight: 900,
-                                fontSize: "0.95rem",
-                                height: 38,
-                                px: 2,
-                                borderRadius: 3,
-                                boxShadow: `0 8px 24px ${alpha("#6366f1", 0.35)}`,
-                                "& .MuiChip-icon": { color: "white" }
-                              }
-                            }
-                          ),
-                          /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { sx: { textAlign: "center", width: "100%" }, children: [
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(
-                              Typography,
-                              {
-                                variant: "h3",
-                                fontWeight: 900,
-                                sx: {
-                                  background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                                  backgroundClip: "text",
-                                  WebkitBackgroundClip: "text",
-                                  WebkitTextFillColor: "transparent",
-                                  letterSpacing: "-0.02em",
-                                  mb: 1
-                                },
-                                children: format(new Date(createdTs), "dd/MM/yyyy", { locale: th })
-                              }
-                            ),
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(
-                              Typography,
-                              {
-                                variant: "h6",
-                                fontWeight: 600,
-                                sx: {
-                                  color: alpha("#6366f1", 0.7),
-                                  letterSpacing: "0.05em"
-                                },
-                                children: format(new Date(createdTs), "HH:mm:ss", { locale: th })
-                              }
-                            )
-                          ] })
-                        ] })
-                      }
-                    ) }) }),
-                    statusSpans.map((span, index) => {
-                      const fromStatus = span.fromStatus || "ไม่ระบุ";
-                      const toStatus = span.toStatus || "ไม่ระบุ";
-                      const durationText = formatDuration(span.durationMs);
-                      const normalizedToStatus = toStatus.toLowerCase();
-                      let bgColor = "#6366f1";
-                      let gradientStart = "rgba(99, 102, 241, 0.08)";
-                      let gradientEnd = "rgba(79, 70, 229, 0.05)";
-                      if (normalizedToStatus.includes("new") || normalizedToStatus.includes("ใหม่")) {
-                        bgColor = "#6366f1";
-                        gradientStart = "rgba(99, 102, 241, 0.08)";
-                        gradientEnd = "rgba(79, 70, 229, 0.05)";
-                      } else if (normalizedToStatus.includes("รับเรื่อง")) {
-                        bgColor = "#06b6d4";
-                        gradientStart = "rgba(6, 182, 212, 0.08)";
-                        gradientEnd = "rgba(8, 145, 178, 0.05)";
-                      } else if (normalizedToStatus.includes("กำลังดำเนินการ")) {
-                        bgColor = "#f59e0b";
-                        gradientStart = "rgba(245, 158, 11, 0.08)";
-                        gradientEnd = "rgba(217, 119, 6, 0.05)";
-                      } else if (normalizedToStatus.includes("เสร็จ") || normalizedToStatus.includes("ปิด")) {
-                        bgColor = "#10b981";
-                        gradientStart = "rgba(16, 185, 129, 0.08)";
-                        gradientEnd = "rgba(5, 150, 105, 0.05)";
-                      }
-                      return /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, lg: 4, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Zoom, { in: true, timeout: 500 + index * 100, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        Paper,
-                        {
-                          elevation: 0,
-                          sx: {
-                            p: 5,
-                            borderRadius: 5,
-                            background: isDark ? `linear-gradient(135deg, ${gradientStart} 0%, ${gradientEnd} 100%)` : `linear-gradient(135deg, ${gradientStart} 0%, rgba(255, 255, 255, 0.95) 100%)`,
-                            border: `1px solid ${alpha(bgColor, 0.15)}`,
-                            position: "relative",
-                            overflow: "hidden",
-                            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                            backdropFilter: "blur(20px)",
-                            "&::before": {
-                              content: '""',
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              height: "3px",
-                              background: `linear-gradient(90deg, ${bgColor} 0%, ${alpha(bgColor, 0.6)} 100%)`
-                            },
-                            "&:hover": {
-                              borderColor: bgColor,
-                              boxShadow: `0 25px 50px ${alpha(bgColor, 0.2)}`,
-                              transform: "translateY(-8px)"
-                            }
-                          },
-                          children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 3.5, alignItems: "center", children: [
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(
-                              Chip,
-                              {
-                                label: toStatus,
-                                sx: {
-                                  bgcolor: bgColor,
-                                  color: "white",
-                                  fontWeight: 900,
-                                  fontSize: "0.95rem",
-                                  height: 38,
-                                  px: 2,
-                                  borderRadius: 3,
-                                  boxShadow: `0 8px 24px ${alpha(bgColor, 0.35)}`
-                                }
-                              }
-                            ),
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { sx: { textAlign: "center", width: "100%" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                              Typography,
-                              {
-                                variant: "h2",
-                                fontWeight: 900,
-                                sx: {
-                                  background: `linear-gradient(135deg, ${bgColor} 0%, ${alpha(bgColor, 0.7)} 100%)`,
-                                  backgroundClip: "text",
-                                  WebkitBackgroundClip: "text",
-                                  WebkitTextFillColor: "transparent",
-                                  letterSpacing: "-0.03em",
-                                  fontSize: { xs: "2.5rem", sm: "3rem" },
-                                  lineHeight: 1.2
-                                },
-                                children: durationText
-                              }
-                            ) }),
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(
-                              Chip,
-                              {
-                                label: `จาก ${fromStatus}`,
-                                size: "small",
-                                sx: {
-                                  bgcolor: alpha(bgColor, 0.08),
-                                  color: bgColor,
-                                  fontWeight: 600,
-                                  fontSize: "0.75rem",
-                                  border: `1px solid ${alpha(bgColor, 0.15)}`
-                                }
-                              }
-                            )
-                          ] })
-                        }
-                      ) }) }, `span-${index}`);
-                    }),
-                    tailSpan && /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, lg: 4, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Zoom, { in: true, timeout: 500 + statusSpans.length * 100, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Paper,
-                      {
-                        elevation: 0,
-                        sx: {
-                          p: 5,
-                          borderRadius: 5,
-                          background: isDark ? "linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.05) 100%)" : "linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%)",
-                          border: `1px solid ${alpha("#ef4444", 0.15)}`,
-                          position: "relative",
-                          overflow: "hidden",
-                          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                          backdropFilter: "blur(20px)",
-                          "&::before": {
-                            content: '""',
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: "3px",
-                            background: "linear-gradient(90deg, #ef4444 0%, #f97316 100%)"
-                          },
-                          "&::after": {
-                            content: '"●"',
-                            position: "absolute",
-                            top: 16,
-                            right: 16,
-                            fontSize: "1.2rem",
-                            color: "#ef4444",
-                            animation: "pulse 2s infinite"
-                          },
-                          "&:hover": {
-                            borderColor: "#ef4444",
-                            boxShadow: `0 25px 50px ${alpha("#ef4444", 0.2)}`,
-                            transform: "translateY(-8px)"
-                          },
-                          "@keyframes pulse": {
-                            "0%, 100%": { opacity: 1 },
-                            "50%": { opacity: 0.5 }
-                          }
-                        },
-                        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 3.5, alignItems: "center", children: [
-                          /* @__PURE__ */ jsxRuntimeExports.jsx(
-                            Chip,
-                            {
-                              label: tailSpan.status,
-                              icon: /* @__PURE__ */ jsxRuntimeExports.jsx(FiberManualRecord, { sx: { fontSize: 12, animation: "pulse 2s infinite" } }),
-                              sx: {
-                                bgcolor: "#ef4444",
-                                color: "white",
-                                fontWeight: 900,
-                                fontSize: "0.95rem",
-                                height: 38,
-                                px: 2,
-                                borderRadius: 3,
-                                boxShadow: `0 8px 24px ${alpha("#ef4444", 0.35)}`,
-                                "& .MuiChip-icon": { color: "white" }
-                              }
-                            }
-                          ),
-                          /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { sx: { textAlign: "center", width: "100%" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                            Typography,
-                            {
-                              variant: "h2",
-                              fontWeight: 900,
-                              sx: {
-                                background: "linear-gradient(135deg, #ef4444 0%, #f97316 100%)",
-                                backgroundClip: "text",
-                                WebkitBackgroundClip: "text",
-                                WebkitTextFillColor: "transparent",
-                                letterSpacing: "-0.03em",
-                                fontSize: { xs: "2.5rem", sm: "3rem" },
-                                lineHeight: 1.2
-                              },
-                              children: formatDuration(tailSpan.durationMs)
-                            }
-                          ) }),
-                          /* @__PURE__ */ jsxRuntimeExports.jsx(
-                            Chip,
-                            {
-                              label: "LIVE",
-                              size: "small",
-                              sx: {
-                                bgcolor: alpha("#ef4444", 0.08),
-                                color: "#ef4444",
-                                fontWeight: 600,
-                                fontSize: "0.75rem",
-                                border: `1px solid ${alpha("#ef4444", 0.15)}`
-                              }
-                            }
-                          )
-                        ] })
-                      }
-                    ) }) })
-                  ] })
-                ] }) }),
                 /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, { in: true, timeout: 800, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, { direction: "row", alignItems: "center", justifyContent: "space-between", mb: 3, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 2, children: [
                     /* @__PURE__ */ jsxRuntimeExports.jsx(Avatar, { sx: {
@@ -27467,51 +27453,6 @@ const WorkPackageDetailPro = () => {
                               ] })
                             }
                           ),
-                          isStatusChange && !isFirstActivity && activity.timeInPrevStatusText && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                            Box,
-                            {
-                              sx: {
-                                p: 4,
-                                mb: 3,
-                                background: isDark ? "linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(79, 70, 229, 0.05) 100%)" : "linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(255, 255, 255, 0.5) 100%)",
-                                borderLeft: "3px solid #6366f1",
-                                borderRadius: 3,
-                                backdropFilter: "blur(10px)"
-                              },
-                              children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 3, children: [
-                                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                                  Avatar,
-                                  {
-                                    sx: {
-                                      bgcolor: "#6366f1",
-                                      width: 48,
-                                      height: 48,
-                                      boxShadow: `0 8px 24px ${alpha("#6366f1", 0.35)}`
-                                    },
-                                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { fontSize: 28 } })
-                                  }
-                                ),
-                                /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { flex: 1, children: [
-                                  /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", fontWeight: 600, color: "#6366f1", sx: { textTransform: "uppercase", letterSpacing: 0.5, mb: 0.5 }, children: activity.prevStatus }),
-                                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                                    Typography,
-                                    {
-                                      variant: "h4",
-                                      fontWeight: 900,
-                                      sx: {
-                                        background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                                        backgroundClip: "text",
-                                        WebkitBackgroundClip: "text",
-                                        WebkitTextFillColor: "transparent",
-                                        letterSpacing: "-0.02em"
-                                      },
-                                      children: activity.timeInPrevStatusText
-                                    }
-                                  )
-                                ] })
-                              ] })
-                            }
-                          ),
                           hasComment && /* @__PURE__ */ jsxRuntimeExports.jsxs(
                             Box,
                             {
@@ -27554,6 +27495,7 @@ const WorkPackageDetailPro = () => {
                             ] }),
                             /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { container: true, spacing: 2, children: activity.details.map((detail, i) => {
                               const isDetailStatusChange = detail.property === "status" || detail.property === "Status";
+                              const showDuration = isDetailStatusChange && !isFirstActivity && activity.timeInPrevStatusText;
                               return /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: isDetailStatusChange ? 12 : 6, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
                                 Paper,
                                 {
@@ -27571,9 +27513,27 @@ const WorkPackageDetailPro = () => {
                                     }
                                   },
                                   children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 1.5, children: [
-                                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "subtitle2", fontWeight: 900, sx: { color: isDetailStatusChange ? "#6366f1" : "text.primary" }, children: [
-                                      detail.property,
-                                      isDetailStatusChange && " 🎯"
+                                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", justifyContent: "space-between", children: [
+                                      /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "subtitle2", fontWeight: 900, sx: { color: isDetailStatusChange ? "#6366f1" : "text.primary" }, children: [
+                                        detail.property,
+                                        isDetailStatusChange && " 🎯"
+                                      ] }),
+                                      showDuration && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                        Chip,
+                                        {
+                                          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { fontSize: 16 } }),
+                                          label: activity.timeInPrevStatusText,
+                                          size: "small",
+                                          sx: {
+                                            height: 32,
+                                            fontWeight: 900,
+                                            fontSize: "0.9rem",
+                                            background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                                            color: "white",
+                                            "& .MuiChip-icon": { color: "white" }
+                                          }
+                                        }
+                                      )
                                     ] }),
                                     /* @__PURE__ */ jsxRuntimeExports.jsxs(
                                       Stack,
@@ -27682,4 +27642,4 @@ client.createRoot(document.getElementById("root")).render(
     /* @__PURE__ */ jsxRuntimeExports.jsx(App, {})
   ] }) })
 );
-//# sourceMappingURL=index-CVm5tZ1o.js.map
+//# sourceMappingURL=index-CrMOTkH2.js.map
