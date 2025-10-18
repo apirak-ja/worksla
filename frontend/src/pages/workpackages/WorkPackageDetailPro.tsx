@@ -530,43 +530,8 @@ const WorkPackageDetailPro: React.FC = () => {
     setTabValue(newValue);
   };
 
-  if (isLoading) {
-    return (
-      <Box sx={{ bgcolor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', minHeight: '100vh' }}>
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Stack spacing={3}>
-            <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 4 }} />
-            <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 4 }} />
-          </Stack>
-        </Container>
-      </Box>
-    );
-  }
-
-  if (error || !wpDetail) {
-    return (
-      <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pt: 8 }}>
-        <Container maxWidth="lg">
-          <Alert severity="error" icon={<ErrorOutline />} sx={{ borderRadius: 3, p: 3 }}>
-            <Typography variant="h6" fontWeight={700} mb={1}>
-              ไม่สามารถโหลดข้อมูลได้
-            </Typography>
-            <Typography>Work Package ID: {wpId} ไม่พบในระบบ</Typography>
-          </Alert>
-          <Button
-            startIcon={<ArrowBack />}
-            onClick={() => navigate('/workpackages')}
-            variant="contained"
-            sx={{ mt: 3, borderRadius: 3 }}
-          >
-            กลับไปยังรายการงาน
-          </Button>
-        </Container>
-      </Box>
-    );
-  }
-
-  const wp: any = wpDetail;
+  // Avoid early returns (hooks must not be conditional). We'll render loading/error states inside the main return.
+  const wp: any = wpDetail || {};
 
 
   // Status Configuration with modern colors
@@ -800,6 +765,37 @@ const WorkPackageDetailPro: React.FC = () => {
         transition: 'background-color 0.4s ease',
       }}
     >
+      {/* Loading State */}
+      {isLoading && (
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Stack spacing={3}>
+            <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 4 }} />
+            <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 4 }} />
+          </Stack>
+        </Container>
+      )}
+      {/* Error State */}
+      {!isLoading && (error || !wpDetail) && (
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Alert severity="error" icon={<ErrorOutline />} sx={{ borderRadius: 3, p: 3 }}>
+            <Typography variant="h6" fontWeight={700} mb={1}>
+              ไม่สามารถโหลดข้อมูลได้
+            </Typography>
+            <Typography>Work Package ID: {wpId} ไม่พบในระบบ</Typography>
+          </Alert>
+          <Button
+            startIcon={<ArrowBack />}
+            onClick={() => navigate('/workpackages')}
+            variant="contained"
+            sx={{ mt: 3, borderRadius: 3 }}
+          >
+            กลับไปยังรายการงาน
+          </Button>
+        </Container>
+      )}
+
+      {/* Main Content */}
+      {!isLoading && wpDetail && (
       <Container maxWidth="xl" sx={{ py: { xs: 3, md: 5 } }}>
         <Stack spacing={{ xs: 3, md: 4 }}>
           {/* Hero Section - Professional Variant */}
@@ -1973,6 +1969,7 @@ const WorkPackageDetailPro: React.FC = () => {
         </Fade>
       </Stack>
       </Container>
+      )}
     </Box>
   );
 };
