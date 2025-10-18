@@ -13,13 +13,8 @@ import DefaultFiltersPage from './pages/admin/DefaultFiltersPage'
 import AdminSyncPage from './pages/admin/AdminSyncPage'
 import AdminRouteCheckerPage from './pages/admin/AdminRouteCheckerPage'
 import SLAReportsPage from './pages/reports/SLAReportsPage'
-import WorkPackagesPage from './pages/workpackages/WorkPackagesPageNew'
-import WorkPackageDetailPage from './pages/workpackages/WorkPackageDetailPageNew'
-import WorkPackagesListRedesigned from './pages/workpackages/WorkPackagesListRedesigned'
-import WorkPackagesListModern from './pages/workpackages/WorkPackagesListModern'
 import WorkPackagesListUltraModern from './pages/workpackages/WorkPackagesListUltraModern'
-import WorkPackageDetailModern from './pages/workpackages/WorkPackageDetailModern'
-import WorkPackageDetailModernEnhanced from './pages/workpackages/WorkPackageDetailModern_Enhanced'
+import WorkPackageDetailPro from './pages/workpackages/WorkPackageDetailPro'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,13 +42,7 @@ function App() {
                 
                 {/* NEW REDESIGNED Work Packages Routes */}
                 <Route path="workpackages" element={<WorkPackagesListUltraModern />} />
-                <Route path="workpackages/:id" element={<WorkPackageDetailModern />} />
-                <Route path="workpackages-enhanced/:id" element={<WorkPackageDetailModernEnhanced />} />
-                
-                {/* Legacy Routes (backup) */}
-                <Route path="workpackages-legacy" element={<WorkPackagesListModern />} />
-                <Route path="workpackages-legacy2" element={<WorkPackagesPage />} />
-                <Route path="workpackages-legacy/:id" element={<WorkPackageDetailPage />} />
+                <Route path="workpackages/:id" element={<WorkPackageDetailPro />} />
                 
                 <Route path="reports" element={<Navigate to="/reports/sla" replace />} />
                 <Route path="reports/sla" element={<SLAReportsPage />} />

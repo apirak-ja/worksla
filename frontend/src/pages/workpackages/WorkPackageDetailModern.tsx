@@ -255,6 +255,13 @@ const WorkPackageDetailModern: React.FC = () => {
 
   const wp: any = wpDetail;
   const activities = journals?.journals || [];
+  const displayedActivities = Array.isArray(activities)
+    ? [...activities].sort((a, b) => {
+        const aTime = a?.created_at ? new Date(a.created_at).getTime() : 0;
+        const bTime = b?.created_at ? new Date(b.created_at).getTime() : 0;
+        return bTime - aTime;
+      })
+    : [];
 
   // Enhanced Status Configuration
   const statusConfig: Record<string, { 
@@ -747,7 +754,7 @@ const WorkPackageDetailModern: React.FC = () => {
                 />
                 <Tab 
                   icon={
-                    <Badge badgeContent={activities.length} color="error" max={99}>
+                    <Badge badgeContent={displayedActivities.length} color="error" max={99}>
                       <Timeline />
                     </Badge>
                   } 
@@ -935,9 +942,9 @@ const WorkPackageDetailModern: React.FC = () => {
               {/* Tab 2: Activities */}
               <TabPanel value={tabValue} index={1}>
                 <Box sx={{ p: 4 }}>
-                  {activities.length > 0 ? (
+                  {displayedActivities.length > 0 ? (
                     <List sx={{ width: '100%' }}>
-                      {activities.map((activity: any, index: number) => {
+                      {displayedActivities.map((activity: any, index: number) => {
                         const activityDate = activity.created_at ? new Date(activity.created_at) : null;
                         const hasComment = activity.notes && activity.notes.trim().length > 0;
                         const hasChanges = activity.details && activity.details.length > 0;
@@ -1009,7 +1016,7 @@ const WorkPackageDetailModern: React.FC = () => {
                                     {index > 0 && (
                                       <Chip
                                         icon={<AccessTime fontSize="small" />}
-                                        label={calculateDuration(activity.created_at, activities[index - 1].created_at)}
+                                        label={calculateDuration(activity.created_at, displayedActivities[index - 1].created_at)}
                                         size="small"
                                         sx={{
                                           height: 28,

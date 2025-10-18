@@ -2,11 +2,10 @@
  * Shared UI Components
  * - StatusChip: แสดงสถานะแบบ Chip พร้อมสี
  * - LoadingState: แสดงหน้า Loading
- * - EmptyState: แสดงหน้าว่าง
  */
 
 import React from 'react';
-import { Box, Chip, CircularProgress, Typography, Button, Paper } from '@mui/material';
+import { Box, Chip, CircularProgress, Typography } from '@mui/material';
 import { getStatusColor } from '../../utils/workpackageUtils';
 
 // ============================================================
@@ -60,54 +59,5 @@ export const LoadingState: React.FC<LoadingStateProps> = ({ message = 'กำล
         {message}
       </Typography>
     </Box>
-  );
-};
-
-// ============================================================
-// Empty State Component
-// ============================================================
-
-interface EmptyStateProps {
-  icon?: React.ReactNode;
-  title: string;
-  message?: string;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
-}
-
-export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, message, action }) => {
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 6,
-        textAlign: 'center',
-        border: '2px dashed',
-        borderColor: 'divider',
-        borderRadius: 3,
-        bgcolor: 'action.hover',
-      }}
-    >
-      {icon && (
-        <Box sx={{ color: 'text.disabled', mb: 2 }}>
-          {icon}
-        </Box>
-      )}
-      <Typography variant="h5" fontWeight={700} gutterBottom>
-        {title}
-      </Typography>
-      {message && (
-        <Typography variant="body2" color="text.secondary" mb={3}>
-          {message}
-        </Typography>
-      )}
-      {action && (
-        <Button variant="contained" onClick={action.onClick}>
-          {action.label}
-        </Button>
-      )}
-    </Paper>
   );
 };

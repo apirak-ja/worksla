@@ -1,6 +1,6 @@
 /**
- * Modern Main Layout
- * Layout หลักของระบบที่ใช้ HeaderBar, Sidebar และ Footer
+ * Modern Main Layout - REDESIGNED
+ * Layout หลักของระบบ - สวยงาม ทันสมัย มีสีสัน
  */
 
 import React, { useState } from 'react'
@@ -9,14 +9,15 @@ import {
   Box,
   Drawer,
   useMediaQuery,
+  Container,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { HeaderBar } from '../components/layout/HeaderBar'
-import { Sidebar } from '../components/layout/Sidebar'
-import { Footer } from '../components/layout/Footer'
+import { ModernHeaderBar } from '../components/layout/ModernHeaderBar'
+import { ModernSidebar } from '../components/layout/ModernSidebar'
+import { ModernFooter } from '../components/layout/ModernFooter'
 
 const drawerWidth = 280
-const appBarHeight = 64
+const appBarHeight = 72
 
 const ModernMainLayout: React.FC = () => {
   const theme = useTheme()
@@ -29,8 +30,8 @@ const ModernMainLayout: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      {/* Header Bar */}
-      <HeaderBar onMenuClick={handleDrawerToggle} drawerWidth={drawerWidth} />
+      {/* Modern Header Bar */}
+      <ModernHeaderBar onMenuClick={handleDrawerToggle} drawerWidth={drawerWidth} />
 
       {/* Side Drawer - Desktop */}
       <Drawer
@@ -40,12 +41,12 @@ const ModernMainLayout: React.FC = () => {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
-            borderRight: '1px solid',
-            borderColor: 'divider',
+            borderRight: 'none',
+            boxShadow: '4px 0 24px rgba(0,0,0,0.08)',
           },
         }}
       >
-        <Sidebar />
+        <ModernSidebar />
       </Drawer>
 
       {/* Side Drawer - Mobile */}
@@ -61,7 +62,7 @@ const ModernMainLayout: React.FC = () => {
           },
         }}
       >
-        <Sidebar />
+        <ModernSidebar />
       </Drawer>
 
       {/* Main Content */}
@@ -78,19 +79,26 @@ const ModernMainLayout: React.FC = () => {
           minHeight: `calc(100vh - ${appBarHeight}px)`,
         }}
       >
-        {/* Content Area */}
+        {/* Content Area - Narrower and More Aesthetic */}
         <Box
           sx={{
             flex: 1,
             overflow: 'auto',
-            p: { xs: 2, sm: 3, md: 4 },
           }}
         >
-          <Outlet />
+          <Container 
+            maxWidth="xl"
+            sx={{
+              py: { xs: 3, md: 4 },
+              px: { xs: 2, sm: 3, md: 4 },
+            }}
+          >
+            <Outlet />
+          </Container>
         </Box>
 
-        {/* Footer */}
-        <Footer />
+        {/* Modern Footer */}
+        <ModernFooter />
       </Box>
     </Box>
   )

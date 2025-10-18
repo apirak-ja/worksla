@@ -449,7 +449,16 @@ class OpenProjectClient:
             activities.append(activity_data)
         
         # Sort by created_at ascending (oldest first) for timeline display
-        return sorted(activities, key=lambda x: x["created_at"], reverse=False)
+        # Use version as fallback if created_at is None
+        def get_sort_key(activity):
+            created_at = activity.get("created_at")
+            if created_at:
+                return (0, created_at)
+            # Fallback to version if created_at is missing
+            version = activity.get("version", 0)
+            return (1, version)
+        
+        return sorted(activities, key=get_sort_key, reverse=False)
     
     def list_assignees(self) -> List[Dict[str, Any]]:
         """
