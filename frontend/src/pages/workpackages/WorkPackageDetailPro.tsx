@@ -985,156 +985,197 @@ const WorkPackageDetailPro: React.FC = () => {
                     </Fade>
                   )}
 
-                  {/* Status Duration Cards - Calculated by Neighbor Activities */}
+                  {/* Status Duration Cards - Premium Design */}
                   {(createdTs > 0 || statusSpans.length > 0) && (
                     <Fade in timeout={500}>
                       <Box>
-                        <Stack direction="row" alignItems="center" spacing={2} mb={3}>
-                          <Avatar
+                        <Stack direction="row" alignItems="center" spacing={3} mb={4}>
+                          <Box
                             sx={{
-                              bgcolor: '#f59e0b',
-                              width: 52,
-                              height: 52,
-                              boxShadow: '0 8px 24px rgba(245, 158, 11, 0.3)',
+                              width: 64,
+                              height: 64,
+                              borderRadius: 4,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                              boxShadow: `0 12px 32px ${alpha('#f59e0b', 0.4)}`,
                             }}
                           >
-                            <HistoryToggleOff sx={{ fontSize: 28 }} />
-                          </Avatar>
+                            <HistoryToggleOff sx={{ fontSize: 32, color: 'white' }} />
+                          </Box>
                           <Box>
-                            <Typography variant="h4" fontWeight={900} sx={{ 
-                              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                              backgroundClip: 'text',
-                              WebkitBackgroundClip: 'text',
-                              WebkitTextFillColor: 'transparent',
-                            }}>
-                              ⏱️ สรุปเวลาแต่ละสถานะ
+                            <Typography 
+                              variant="h3" 
+                              fontWeight={900}
+                              sx={{ 
+                                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                backgroundClip: 'text',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                letterSpacing: '-0.02em',
+                                mb: 0.5,
+                              }}
+                            >
+                              Timeline
                             </Typography>
-                            <Typography variant="body2" color="text.secondary" fontWeight={600}>
-                              คำนวณจากกิจกรรมถัดไป − กิจกรรมก่อนหน้า
+                            <Typography 
+                              variant="body1" 
+                              sx={{
+                                color: alpha(theme.palette.text.primary, 0.6),
+                                fontWeight: 500,
+                              }}
+                            >
+                              ระยะเวลาในแต่ละสถานะ
                             </Typography>
                           </Box>
                         </Stack>
 
-                        {/* Timeline Summary */}
-                        <Box sx={{ mb: 4, p: 3, bgcolor: alpha('#f59e0b', 0.1), borderRadius: 3, border: `1px solid ${alpha('#f59e0b', 0.2)}` }}>
-                          <Stack direction="row" alignItems="center" spacing={2} mb={2}>
-                            <AccessTime sx={{ color: '#f59e0b' }} />
-                            <Typography variant="h6" fontWeight={700} color="#92400e">
-                              สรุปไทม์ไลน์
-                            </Typography>
-                          </Stack>
-                          <Grid container spacing={2}>
+                        {/* Timeline Summary - Minimal */}
+                        <Box 
+                          sx={{ 
+                            mb: 5,
+                            p: 3.5,
+                            background: isDark
+                              ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(217, 119, 6, 0.03) 100%)'
+                              : 'linear-gradient(135deg, rgba(245, 158, 11, 0.03) 0%, rgba(255, 255, 255, 0.5) 100%)',
+                            borderRadius: 4,
+                            border: `1px solid ${alpha('#f59e0b', 0.1)}`,
+                            backdropFilter: 'blur(10px)',
+                          }}
+                        >
+                          <Grid container spacing={3}>
                             <Grid item xs={12} sm={6}>
-                              <Typography variant="body2" color="text.secondary">
-                                <strong>จำนวนช่วงสถานะ:</strong> {statusSpans.length} ช่วง
-                              </Typography>
+                              <Stack direction="row" alignItems="center" spacing={2}>
+                                <Box
+                                  sx={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 2,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    bgcolor: alpha('#f59e0b', 0.1),
+                                  }}
+                                >
+                                  <Label sx={{ color: '#f59e0b', fontSize: 20 }} />
+                                </Box>
+                                <Box>
+                                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                                    ช่วงสถานะ
+                                  </Typography>
+                                  <Typography variant="h6" fontWeight={800} color="#f59e0b">
+                                    {statusSpans.length}
+                                  </Typography>
+                                </Box>
+                              </Stack>
                             </Grid>
                             <Grid item xs={12} sm={6}>
-                              <Typography variant="body2" color="text.secondary">
-                                <strong>สถานะปัจจุบัน:</strong>{' '}
-                                {statusSpans.length > 0 ? statusSpans[statusSpans.length - 1].toStatus : wpDetail?.status || 'ไม่ระบุ'}
-                              </Typography>
+                              <Stack direction="row" alignItems="center" spacing={2}>
+                                <Box
+                                  sx={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 2,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    bgcolor: alpha('#10b981', 0.1),
+                                  }}
+                                >
+                                  <CheckCircle sx={{ color: '#10b981', fontSize: 20 }} />
+                                </Box>
+                                <Box>
+                                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                                    สถานะปัจจุบัน
+                                  </Typography>
+                                  <Typography variant="h6" fontWeight={800} color="#10b981">
+                                    {statusSpans.length > 0 ? statusSpans[statusSpans.length - 1].toStatus : wpDetail?.status || 'ไม่ระบุ'}
+                                  </Typography>
+                                </Box>
+                              </Stack>
                             </Grid>
                           </Grid>
                         </Box>
 
                         <Grid container spacing={3}>
-                          {/* First Card: New (Created) - Show Time, Not Duration */}
+                          {/* First Card: New (Created) - Elegant & Professional */}
                           {createdTs > 0 && (
                             <Grid item xs={12} sm={6} lg={4}>
                               <Zoom in timeout={400}>
                                 <Paper
                                   elevation={0}
                                   sx={{
-                                    p: 4,
-                                    borderRadius: 4,
-                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.1) 100%)',
-                                    border: `2px solid ${alpha('#6366f1', 0.3)}`,
+                                    p: 5,
+                                    borderRadius: 5,
+                                    background: isDark
+                                      ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(79, 70, 229, 0.05) 100%)'
+                                      : 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%)',
+                                    border: `1px solid ${alpha('#6366f1', 0.15)}`,
                                     position: 'relative',
                                     overflow: 'hidden',
                                     transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    backdropFilter: 'blur(20px)',
                                     '&::before': {
                                       content: '""',
                                       position: 'absolute',
                                       top: 0,
                                       left: 0,
                                       right: 0,
-                                      height: '4px',
-                                      background: `linear-gradient(90deg, #6366f1 0%, ${alpha('#6366f1', 0.5)} 100%)`,
+                                      height: '3px',
+                                      background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)',
                                     },
                                     '&:hover': {
                                       borderColor: '#6366f1',
-                                      boxShadow: `0 20px 40px ${alpha('#6366f1', 0.25)}, inset 0 0 0 1px ${alpha('#6366f1', 0.1)}`,
-                                      transform: 'translateY(-6px) scale(1.02)',
+                                      boxShadow: `0 25px 50px ${alpha('#6366f1', 0.2)}`,
+                                      transform: 'translateY(-8px)',
                                     },
                                   }}
                                 >
-                                  <Stack spacing={3}>
-                                    <Stack direction="row" alignItems="center" spacing={1.5}>
-                                      <Chip
-                                        label="เริ่มต้น"
-                                        size="small"
-                                        icon={<PlayArrow sx={{ fontSize: 16 }} />}
-                                        sx={{
-                                          bgcolor: 'rgba(255, 255, 255, 0.9)',
-                                          color: '#4f46e5',
-                                          fontWeight: 700,
-                                          border: `1px solid ${alpha('#6366f1', 0.2)}`,
-                                          fontSize: '0.8rem',
-                                        }}
-                                      />
-                                      <Chip
-                                        label="New (Created)"
-                                        sx={{
-                                          bgcolor: '#6366f1',
-                                          color: 'white',
-                                          fontWeight: 800,
-                                          fontSize: '0.9rem',
-                                          height: 36,
-                                          border: `2px solid ${alpha('#6366f1', 0.3)}`,
-                                          boxShadow: `0 4px 12px ${alpha('#6366f1', 0.3)}`,
-                                        }}
-                                      />
-                                    </Stack>
-
-                                    <Divider sx={{ borderColor: alpha('#6366f1', 0.15) }} />
-
-                                    <Box
+                                  <Stack spacing={3.5} alignItems="center">
+                                    {/* Status Badge */}
+                                    <Chip
+                                      label="New"
+                                      icon={<PlayArrow sx={{ fontSize: 18 }} />}
                                       sx={{
-                                        textAlign: 'center',
-                                        py: 3,
+                                        bgcolor: '#6366f1',
+                                        color: 'white',
+                                        fontWeight: 900,
+                                        fontSize: '0.95rem',
+                                        height: 38,
                                         px: 2,
-                                        bgcolor: 'rgba(255, 255, 255, 0.6)',
                                         borderRadius: 3,
-                                        border: `1px solid ${alpha('#6366f1', 0.1)}`,
+                                        boxShadow: `0 8px 24px ${alpha('#6366f1', 0.35)}`,
+                                        '& .MuiChip-icon': { color: 'white' },
                                       }}
-                                    >
-                                      <Stack spacing={1} alignItems="center">
-                                        <Stack direction="row" alignItems="center" spacing={1}>
-                                          <DateRange sx={{ color: '#6366f1', fontSize: 24 }} />
-                                          <Typography
-                                            variant="body2"
-                                            fontWeight={700}
-                                            sx={{ 
-                                              color: '#4f46e5', 
-                                              textTransform: 'uppercase', 
-                                              letterSpacing: 0.5, 
-                                              fontSize: '0.75rem' 
-                                            }}
-                                          >
-                                            เวลาที่สร้างงาน
-                                          </Typography>
-                                        </Stack>
-                                        <Typography variant="h5" fontWeight={900} sx={{ color: '#4f46e5' }}>
-                                          {format(new Date(createdTs), 'dd/MM/yyyy', { locale: th })}
-                                        </Typography>
-                                        <Typography variant="body2" fontWeight={600} sx={{ color: '#4f46e5' }}>
-                                          {format(new Date(createdTs), 'HH:mm:ss น.', { locale: th })}
-                                        </Typography>
-                                        <Typography variant="caption" sx={{ color: '#4f46e5', opacity: 0.85, mt: 1 }}>
-                                          🚀 จุดเริ่มต้นของงาน
-                                        </Typography>
-                                      </Stack>
+                                    />
+
+                                    {/* Time Display */}
+                                    <Box sx={{ textAlign: 'center', width: '100%' }}>
+                                      <Typography
+                                        variant="h3"
+                                        fontWeight={900}
+                                        sx={{
+                                          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                                          backgroundClip: 'text',
+                                          WebkitBackgroundClip: 'text',
+                                          WebkitTextFillColor: 'transparent',
+                                          letterSpacing: '-0.02em',
+                                          mb: 1,
+                                        }}
+                                      >
+                                        {format(new Date(createdTs), 'dd/MM/yyyy', { locale: th })}
+                                      </Typography>
+                                      <Typography
+                                        variant="h6"
+                                        fontWeight={600}
+                                        sx={{
+                                          color: alpha('#6366f1', 0.7),
+                                          letterSpacing: '0.05em',
+                                        }}
+                                      >
+                                        {format(new Date(createdTs), 'HH:mm:ss', { locale: th })}
+                                      </Typography>
                                     </Box>
                                   </Stack>
                                 </Paper>
@@ -1142,34 +1183,34 @@ const WorkPackageDetailPro: React.FC = () => {
                             </Grid>
                           )}
 
-                          {/* Subsequent Cards: Status Spans with Duration */}
+                          {/* Subsequent Cards: Status Spans - Modern & Elegant */}
                           {statusSpans.map((span, index) => {
                             const fromStatus = span.fromStatus || 'ไม่ระบุ';
                             const toStatus = span.toStatus || 'ไม่ระบุ';
                             const durationText = formatDuration(span.durationMs);
                             const normalizedToStatus = (toStatus || '').toLowerCase();
 
-                            // Enhanced color palette based on status
+                            // Premium color palette
                             let bgColor = '#6366f1';
-                            let textColor = '#4f46e5';
-                            let gradient = 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%)';
+                            let gradientStart = 'rgba(99, 102, 241, 0.08)';
+                            let gradientEnd = 'rgba(79, 70, 229, 0.05)';
 
                             if (normalizedToStatus.includes('new') || normalizedToStatus.includes('ใหม่')) {
                               bgColor = '#6366f1';
-                              textColor = '#4f46e5';
-                              gradient = 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.1) 100%)';
+                              gradientStart = 'rgba(99, 102, 241, 0.08)';
+                              gradientEnd = 'rgba(79, 70, 229, 0.05)';
                             } else if (normalizedToStatus.includes('รับเรื่อง')) {
                               bgColor = '#06b6d4';
-                              textColor = '#0891b2';
-                              gradient = 'linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.1) 100%)';
+                              gradientStart = 'rgba(6, 182, 212, 0.08)';
+                              gradientEnd = 'rgba(8, 145, 178, 0.05)';
                             } else if (normalizedToStatus.includes('กำลังดำเนินการ')) {
                               bgColor = '#f59e0b';
-                              textColor = '#d97706';
-                              gradient = 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%)';
+                              gradientStart = 'rgba(245, 158, 11, 0.08)';
+                              gradientEnd = 'rgba(217, 119, 6, 0.05)';
                             } else if (normalizedToStatus.includes('เสร็จ') || normalizedToStatus.includes('ปิด')) {
                               bgColor = '#10b981';
-                              textColor = '#059669';
-                              gradient = 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%)';
+                              gradientStart = 'rgba(16, 185, 129, 0.08)';
+                              gradientEnd = 'rgba(5, 150, 105, 0.05)';
                             }
 
                             return (
@@ -1178,109 +1219,79 @@ const WorkPackageDetailPro: React.FC = () => {
                                   <Paper
                                     elevation={0}
                                     sx={{
-                                      p: 4,
-                                      borderRadius: 4,
-                                      background: gradient,
-                                      border: `2px solid ${alpha(bgColor, 0.3)}`,
+                                      p: 5,
+                                      borderRadius: 5,
+                                      background: isDark
+                                        ? `linear-gradient(135deg, ${gradientStart} 0%, ${gradientEnd} 100%)`
+                                        : `linear-gradient(135deg, ${gradientStart} 0%, rgba(255, 255, 255, 0.95) 100%)`,
+                                      border: `1px solid ${alpha(bgColor, 0.15)}`,
                                       position: 'relative',
                                       overflow: 'hidden',
                                       transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                      backdropFilter: 'blur(20px)',
                                       '&::before': {
                                         content: '""',
                                         position: 'absolute',
                                         top: 0,
                                         left: 0,
                                         right: 0,
-                                        height: '4px',
-                                        background: `linear-gradient(90deg, ${bgColor} 0%, ${alpha(bgColor, 0.5)} 100%)`,
+                                        height: '3px',
+                                        background: `linear-gradient(90deg, ${bgColor} 0%, ${alpha(bgColor, 0.6)} 100%)`,
                                       },
                                       '&:hover': {
                                         borderColor: bgColor,
-                                        boxShadow: `0 20px 40px ${alpha(bgColor, 0.25)}, inset 0 0 0 1px ${alpha(bgColor, 0.1)}`,
-                                        transform: 'translateY(-6px) scale(1.02)',
+                                        boxShadow: `0 25px 50px ${alpha(bgColor, 0.2)}`,
+                                        transform: 'translateY(-8px)',
                                       },
                                     }}
                                   >
-                                    <Stack spacing={3}>
-                                      {/* Status Transition */}
-                                      <Stack direction="row" alignItems="center" spacing={1.5} flexWrap="wrap">
-                                        <Chip
-                                          label={fromStatus}
-                                          size="small"
-                                          sx={{
-                                            bgcolor: 'rgba(255, 255, 255, 0.9)',
-                                            color: textColor,
-                                            fontWeight: 700,
-                                            border: `1px solid ${alpha(bgColor, 0.2)}`,
-                                            fontSize: '0.8rem',
-                                          }}
-                                        />
-                                        <Box sx={{ color: bgColor, display: 'flex', alignItems: 'center' }}>
-                                          <TrendingFlat sx={{ fontSize: 24 }} />
-                                        </Box>
-                                        <Chip
-                                          label={toStatus}
-                                          sx={{
-                                            bgcolor: bgColor,
-                                            color: 'white',
-                                            fontWeight: 800,
-                                            fontSize: '0.9rem',
-                                            height: 36,
-                                            border: `2px solid ${alpha(bgColor, 0.3)}`,
-                                            boxShadow: `0 4px 12px ${alpha(bgColor, 0.3)}`,
-                                          }}
-                                        />
-                                      </Stack>
-
-                                      <Divider sx={{ borderColor: alpha(bgColor, 0.15) }} />
-
-                                      {/* Duration Display */}
-                                      <Box
+                                    <Stack spacing={3.5} alignItems="center">
+                                      {/* Status Badge */}
+                                      <Chip
+                                        label={toStatus}
                                         sx={{
-                                          textAlign: 'center',
-                                          py: 3,
+                                          bgcolor: bgColor,
+                                          color: 'white',
+                                          fontWeight: 900,
+                                          fontSize: '0.95rem',
+                                          height: 38,
                                           px: 2,
-                                          bgcolor: 'rgba(255, 255, 255, 0.6)',
                                           borderRadius: 3,
-                                          border: `1px solid ${alpha(bgColor, 0.1)}`,
+                                          boxShadow: `0 8px 24px ${alpha(bgColor, 0.35)}`,
                                         }}
-                                      >
-                                        <Stack spacing={1} alignItems="center">
-                                          <Stack direction="row" alignItems="center" spacing={1}>
-                                            <AccessTime sx={{ color: bgColor, fontSize: 24 }} />
-                                            <Typography
-                                              variant="body2"
-                                              fontWeight={700}
-                                              sx={{ 
-                                                color: textColor, 
-                                                textTransform: 'uppercase', 
-                                                letterSpacing: 0.5, 
-                                                fontSize: '0.75rem' 
-                                              }}
-                                            >
-                                              อยู่ในสถานะ {fromStatus}
-                                            </Typography>
-                                          </Stack>
-                                          <Typography variant="h4" fontWeight={900} sx={{ color: textColor }}>
-                                            {durationText}
-                                          </Typography>
-                                          <Typography variant="caption" sx={{ color: textColor, opacity: 0.85 }}>
-                                            คำนวณจาก activity #{span.index} − #{span.index - 1}
-                                          </Typography>
-                                        </Stack>
+                                      />
+
+                                      {/* Duration Display - Hero Style */}
+                                      <Box sx={{ textAlign: 'center', width: '100%' }}>
+                                        <Typography
+                                          variant="h2"
+                                          fontWeight={900}
+                                          sx={{
+                                            background: `linear-gradient(135deg, ${bgColor} 0%, ${alpha(bgColor, 0.7)} 100%)`,
+                                            backgroundClip: 'text',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                            letterSpacing: '-0.03em',
+                                            fontSize: { xs: '2.5rem', sm: '3rem' },
+                                            lineHeight: 1.2,
+                                          }}
+                                        >
+                                          {durationText}
+                                        </Typography>
                                       </Box>
 
-                                      <Divider sx={{ borderColor: alpha(bgColor, 0.15) }} />
-
-                                      {/* Timestamp Info */}
-                                      <Stack spacing={1}>
-                                        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-                                          📅 เริ่ม: {format(new Date(span.startTs), 'dd/MM/yyyy HH:mm:ss', { locale: th })}
-                                        </Typography>
-                                        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-                                          📅 จบ: {format(new Date(span.endTs), 'dd/MM/yyyy HH:mm:ss', { locale: th })}
-                                        </Typography>
-                                      </Stack>
+                                      {/* From Status - Subtle */}
+                                      <Chip
+                                        label={`จาก ${fromStatus}`}
+                                        size="small"
+                                        sx={{
+                                          bgcolor: alpha(bgColor, 0.08),
+                                          color: bgColor,
+                                          fontWeight: 600,
+                                          fontSize: '0.75rem',
+                                          border: `1px solid ${alpha(bgColor, 0.15)}`,
+                                        }}
+                                      />
                                     </Stack>
                                   </Paper>
                                 </Zoom>
@@ -1288,112 +1299,101 @@ const WorkPackageDetailPro: React.FC = () => {
                             );
                           })}
 
-                          {/* Tail Span: Current Status Duration (Optional) */}
+                          {/* Tail Span: Live Status - Premium Design */}
                           {tailSpan && (
                             <Grid item xs={12} sm={6} lg={4}>
                               <Zoom in timeout={500 + statusSpans.length * 100}>
                                 <Paper
                                   elevation={0}
                                   sx={{
-                                    p: 4,
-                                    borderRadius: 4,
-                                    background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)',
-                                    border: `2px solid ${alpha('#ef4444', 0.3)}`,
+                                    p: 5,
+                                    borderRadius: 5,
+                                    background: isDark
+                                      ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.05) 100%)'
+                                      : 'linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%)',
+                                    border: `1px solid ${alpha('#ef4444', 0.15)}`,
                                     position: 'relative',
                                     overflow: 'hidden',
                                     transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    backdropFilter: 'blur(20px)',
                                     '&::before': {
                                       content: '""',
                                       position: 'absolute',
                                       top: 0,
                                       left: 0,
                                       right: 0,
-                                      height: '4px',
-                                      background: `linear-gradient(90deg, #ef4444 0%, ${alpha('#ef4444', 0.5)} 100%)`,
+                                      height: '3px',
+                                      background: 'linear-gradient(90deg, #ef4444 0%, #f97316 100%)',
                                     },
                                     '&::after': {
-                                      content: '"LIVE"',
+                                      content: '"●"',
                                       position: 'absolute',
-                                      top: 12,
-                                      right: 12,
-                                      fontSize: '0.7rem',
-                                      fontWeight: 900,
-                                      color: 'white',
-                                      bgcolor: '#ef4444',
-                                      px: 1,
-                                      py: 0.25,
-                                      borderRadius: 1,
+                                      top: 16,
+                                      right: 16,
+                                      fontSize: '1.2rem',
+                                      color: '#ef4444',
                                       animation: 'pulse 2s infinite',
                                     },
                                     '&:hover': {
                                       borderColor: '#ef4444',
-                                      boxShadow: `0 20px 40px ${alpha('#ef4444', 0.25)}, inset 0 0 0 1px ${alpha('#ef4444', 0.1)}`,
-                                      transform: 'translateY(-6px) scale(1.02)',
+                                      boxShadow: `0 25px 50px ${alpha('#ef4444', 0.2)}`,
+                                      transform: 'translateY(-8px)',
+                                    },
+                                    '@keyframes pulse': {
+                                      '0%, 100%': { opacity: 1 },
+                                      '50%': { opacity: 0.5 },
                                     },
                                   }}
                                 >
-                                  <Stack spacing={3}>
-                                    <Stack direction="row" alignItems="center" spacing={1.5} flexWrap="wrap">
-                                      <Chip
-                                        label={tailSpan.status}
-                                        sx={{
-                                          bgcolor: '#ef4444',
-                                          color: 'white',
-                                          fontWeight: 800,
-                                          fontSize: '0.9rem',
-                                          height: 36,
-                                          border: `2px solid ${alpha('#ef4444', 0.3)}`,
-                                          boxShadow: `0 4px 12px ${alpha('#ef4444', 0.3)}`,
-                                        }}
-                                      />
-                                      <Chip
-                                        label="ปัจจุบัน"
-                                        size="small"
-                                        sx={{
-                                          bgcolor: '#dc2626',
-                                          color: 'white',
-                                          fontWeight: 700,
-                                          animation: 'pulse 2s infinite',
-                                        }}
-                                      />
-                                    </Stack>
-
-                                    <Divider sx={{ borderColor: alpha('#ef4444', 0.15) }} />
-
-                                    <Box
+                                  <Stack spacing={3.5} alignItems="center">
+                                    {/* Status Badge with Live Indicator */}
+                                    <Chip
+                                      label={tailSpan.status}
+                                      icon={<FiberManualRecord sx={{ fontSize: 12, animation: 'pulse 2s infinite' }} />}
                                       sx={{
-                                        textAlign: 'center',
-                                        py: 3,
+                                        bgcolor: '#ef4444',
+                                        color: 'white',
+                                        fontWeight: 900,
+                                        fontSize: '0.95rem',
+                                        height: 38,
                                         px: 2,
-                                        bgcolor: 'rgba(255, 255, 255, 0.6)',
                                         borderRadius: 3,
-                                        border: `1px solid ${alpha('#ef4444', 0.1)}`,
+                                        boxShadow: `0 8px 24px ${alpha('#ef4444', 0.35)}`,
+                                        '& .MuiChip-icon': { color: 'white' },
                                       }}
-                                    >
-                                      <Stack spacing={1} alignItems="center">
-                                        <Stack direction="row" alignItems="center" spacing={1}>
-                                          <AccessTime sx={{ color: '#ef4444', fontSize: 24 }} />
-                                          <Typography
-                                            variant="body2"
-                                            fontWeight={700}
-                                            sx={{ 
-                                              color: '#dc2626', 
-                                              textTransform: 'uppercase', 
-                                              letterSpacing: 0.5, 
-                                              fontSize: '0.75rem' 
-                                            }}
-                                          >
-                                            อยู่ในสถานะปัจจุบัน
-                                          </Typography>
-                                        </Stack>
-                                        <Typography variant="h4" fontWeight={900} sx={{ color: '#dc2626' }}>
-                                          {formatDuration(tailSpan.durationMs)}
-                                        </Typography>
-                                        <Typography variant="caption" sx={{ color: '#dc2626', opacity: 0.85 }}>
-                                          ตั้งแต่ activity สุดท้ายจนถึงปัจจุบัน
-                                        </Typography>
-                                      </Stack>
+                                    />
+
+                                    {/* Duration Display - Hero Style */}
+                                    <Box sx={{ textAlign: 'center', width: '100%' }}>
+                                      <Typography
+                                        variant="h2"
+                                        fontWeight={900}
+                                        sx={{
+                                          background: 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)',
+                                          backgroundClip: 'text',
+                                          WebkitBackgroundClip: 'text',
+                                          WebkitTextFillColor: 'transparent',
+                                          letterSpacing: '-0.03em',
+                                          fontSize: { xs: '2.5rem', sm: '3rem' },
+                                          lineHeight: 1.2,
+                                        }}
+                                      >
+                                        {formatDuration(tailSpan.durationMs)}
+                                      </Typography>
                                     </Box>
+
+                                    {/* Live Badge */}
+                                    <Chip
+                                      label="LIVE"
+                                      size="small"
+                                      sx={{
+                                        bgcolor: alpha('#ef4444', 0.08),
+                                        color: '#ef4444',
+                                        fontWeight: 600,
+                                        fontSize: '0.75rem',
+                                        border: `1px solid ${alpha('#ef4444', 0.15)}`,
+                                      }}
+                                    />
                                   </Stack>
                                 </Paper>
                               </Zoom>
@@ -1911,68 +1911,96 @@ const WorkPackageDetailPro: React.FC = () => {
                                 </Box>
                               </Stack>
 
-                              {/* First Activity: Show Created Time */}
+                              {/* First Activity: Created Time - Elegant Display */}
                               {isFirstActivity && (
                                 <Box
                                   sx={{
-                                    p: 3,
+                                    p: 3.5,
                                     mb: 3,
-                                    bgcolor: 'rgba(99, 102, 241, 0.1)',
-                                    borderLeft: '4px solid #6366f1',
-                                    borderRadius: 2,
+                                    background: isDark
+                                      ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(79, 70, 229, 0.05) 100%)'
+                                      : 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(255, 255, 255, 0.5) 100%)',
+                                    borderLeft: '3px solid #6366f1',
+                                    borderRadius: 3,
+                                    backdropFilter: 'blur(10px)',
                                   }}
                                 >
-                                  <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-                                    <PlayArrow fontSize="small" sx={{ color: '#6366f1' }} />
-                                    <Typography variant="subtitle2" fontWeight={800} color="#4f46e5">
-                                      🚀 Created (New)
-                                    </Typography>
+                                  <Stack direction="row" alignItems="center" spacing={2}>
+                                    <Avatar
+                                      sx={{
+                                        bgcolor: '#6366f1',
+                                        width: 36,
+                                        height: 36,
+                                        boxShadow: `0 4px 12px ${alpha('#6366f1', 0.3)}`,
+                                      }}
+                                    >
+                                      <PlayArrow sx={{ fontSize: 20 }} />
+                                    </Avatar>
+                                    <Box flex={1}>
+                                      <Typography variant="caption" fontWeight={600} color="#6366f1" sx={{ textTransform: 'uppercase', letterSpacing: 0.5, mb: 0.5 }}>
+                                        Created
+                                      </Typography>
+                                      <Typography
+                                        variant="h6"
+                                        fontWeight={900}
+                                        sx={{
+                                          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                                          backgroundClip: 'text',
+                                          WebkitBackgroundClip: 'text',
+                                          WebkitTextFillColor: 'transparent',
+                                        }}
+                                      >
+                                        {activityDate ? format(activityDate, 'dd/MM/yyyy HH:mm:ss', { locale: th }) : 'ไม่ระบุ'}
+                                      </Typography>
+                                    </Box>
                                   </Stack>
-                                  <Typography
-                                    variant="body1"
-                                    sx={{
-                                      lineHeight: 1.7,
-                                      color: '#4338ca',
-                                      fontWeight: 600,
-                                    }}
-                                  >
-                                    งานถูกสร้างเมื่อ{' '}
-                                    <strong style={{ color: '#3730a3' }}>
-                                      {activityDate ? format(activityDate, 'dd/MM/yyyy HH:mm:ss น.', { locale: th }) : 'ไม่ระบุ'}
-                                    </strong>
-                                  </Typography>
                                 </Box>
                               )}
 
-                              {/* Status Change Duration Information */}
+                              {/* Status Change: Duration Display - Hero Style */}
                               {isStatusChange && !isFirstActivity && activity.timeInPrevStatusText && (
                                 <Box
                                   sx={{
-                                    p: 3,
+                                    p: 4,
                                     mb: 3,
-                                    bgcolor: 'rgba(99, 102, 241, 0.1)',
-                                    borderLeft: '4px solid #6366f1',
-                                    borderRadius: 2,
+                                    background: isDark
+                                      ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(79, 70, 229, 0.05) 100%)'
+                                      : 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(255, 255, 255, 0.5) 100%)',
+                                    borderLeft: '3px solid #6366f1',
+                                    borderRadius: 3,
+                                    backdropFilter: 'blur(10px)',
                                   }}
                                 >
-                                  <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-                                    <AccessTime fontSize="small" sx={{ color: '#6366f1' }} />
-                                    <Typography variant="subtitle2" fontWeight={800} color="#4f46e5">
-                                      ⏱️ ระยะเวลาในสถานะ
-                                    </Typography>
+                                  <Stack direction="row" alignItems="center" spacing={3}>
+                                    <Avatar
+                                      sx={{
+                                        bgcolor: '#6366f1',
+                                        width: 48,
+                                        height: 48,
+                                        boxShadow: `0 8px 24px ${alpha('#6366f1', 0.35)}`,
+                                      }}
+                                    >
+                                      <AccessTime sx={{ fontSize: 28 }} />
+                                    </Avatar>
+                                    <Box flex={1}>
+                                      <Typography variant="caption" fontWeight={600} color="#6366f1" sx={{ textTransform: 'uppercase', letterSpacing: 0.5, mb: 0.5 }}>
+                                        {activity.prevStatus}
+                                      </Typography>
+                                      <Typography
+                                        variant="h4"
+                                        fontWeight={900}
+                                        sx={{
+                                          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                                          backgroundClip: 'text',
+                                          WebkitBackgroundClip: 'text',
+                                          WebkitTextFillColor: 'transparent',
+                                          letterSpacing: '-0.02em',
+                                        }}
+                                      >
+                                        {activity.timeInPrevStatusText}
+                                      </Typography>
+                                    </Box>
                                   </Stack>
-                                  <Typography
-                                    variant="body1"
-                                    sx={{
-                                      lineHeight: 1.7,
-                                      color: '#4338ca',
-                                      fontWeight: 600,
-                                    }}
-                                  >
-                                    อยู่ในสถานะ "{activity.prevStatus}" นาน{' '}
-                                    <strong style={{ color: '#3730a3' }}>{activity.timeInPrevStatusText}</strong>{' '}
-                                    (คำนวณจาก activity ถัดไป − ก่อนหน้า)
-                                  </Typography>
                                 </Box>
                               )}
 
