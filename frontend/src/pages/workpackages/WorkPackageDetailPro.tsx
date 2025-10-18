@@ -90,219 +90,240 @@ import { th } from 'date-fns/locale';
 import { wpApi } from '../../api/client';
 import DOMPurify from 'dompurify';
 
-// ===== TIME-IN-STATUS CALCULATION UTILITIES =====
+// ===== TIME-IN-STATUS CALCULATION UTILITIES (BY NEIGHBOR ACTIVITIES) =====
 
 /**
- * Enhanced duration formatter with Thai locale support
+ * Type for any activity with flexible field names
  */
-const formatDurationText = (durationMs: number, options?: { suffix?: string; minimumUnit?: 'minute' | 'second' }) => {
-  if (!Number.isFinite(durationMs) || durationMs < 0) {
+type AnyActivity = {
+  id?: number | string;
+  version?: number;
+  created_at?: string;
+  createdAt?: string;
+  created_on?: string;
+  createdOn?: string;
+  details?: Array<{
+    property?: string;
+    name?: string;
+    from?: any;
+    to?: any;
+    old_value?: any;
+    new_value?: any;
+  }>;
+  notes?: string | null;
+  user_name?: string;
+};
+
+/**
+ * Interface for status span calculated by neighbor activities
+ */
+interface StatusSpan {
+  index: number;         // index ของ activity ที่เป็นตัว "จบช่วง" (activity i)
+  startTs: number;       // time(activity i-1) in ms
+  endTs: number;         // time(activity i) in ms
+  durationMs: number;    // end - start
+  fromStatus: string;    // จาก activity i (from)
+  toStatus: string;      // จาก activity i (to)
+}
+
+/**
+ * Duration formatter with Thai locale
+ * @param ms - Duration in milliseconds
+ * @returns Formatted string like "2 วัน 3 ชม. 15 นาที"
+ */
+const formatDuration = (ms: number): string => {
+  if (!Number.isFinite(ms) || ms < 0) {
     return '-';
   }
 
-  const { suffix, minimumUnit = 'minute' } = options || {};
-  const totalSeconds = Math.floor(durationMs / 1000);
-  const totalMinutes = Math.floor(totalSeconds / 60);
+  if (ms < 60000) {
+    return 'น้อยกว่าหนึ่งนาที';
+  }
+
+  const totalMinutes = Math.floor(ms / 60000);
   const days = Math.floor(totalMinutes / (60 * 24));
   const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
   const minutes = totalMinutes % 60;
-  const seconds = totalSeconds % 60;
 
   const parts: string[] = [];
-  if (days > 0) {
-    parts.push(`${days} วัน`);
-  }
-  if (hours > 0) {
-    parts.push(`${hours} ชม.`);
-  }
-  if (minutes > 0 || (minimumUnit === 'minute' && parts.length === 0)) {
-    parts.push(`${minutes} นาที`);
-  }
-  if (minimumUnit === 'second' && parts.length === 0) {
-    parts.push(`${seconds} วินาที`);
-  }
+  if (days > 0) parts.push(`${days} วัน`);
+  if (hours > 0) parts.push(`${hours} ชม.`);
+  if (minutes > 0) parts.push(`${minutes} นาที`);
 
-  const text = parts.join(' ');
-  return suffix ? `${text} ${suffix}` : text;
+  return parts.join(' ');
 };
 
 /**
- * Interface for status change events extracted from activities
+ * Get timestamp from activity (supports multiple field names)
+ * @param a - Activity object
+ * @returns Epoch time in milliseconds
  */
-interface StatusChange {
-  timestamp: Date;
-  fromStatus: string | null;
-  toStatus: string;
-  byUser: string;
-  activityId: number;
-}
+const getTs = (a: AnyActivity): number => {
+  if (!a) return 0;
 
-/**
- * Interface for status timeline spans with calculated durations
- */
-interface StatusSpan {
-  status: string;
-  startTs: Date;
-  endTs: Date | null; // null = current status (ongoing)
-  durationMs: number;
-  byUser: string;
-  isCurrent: boolean;
-  activityId?: number;
-}
+  const rawDate = a.created_at || a.createdAt || a.created_on || a.createdOn;
+  if (rawDate) {
+    const timestamp = Date.parse(rawDate);
+    if (!Number.isNaN(timestamp)) return timestamp;
+  }
 
-/**
- * Extract status changes from chronological activities
- * @param activitiesAsc - Activities sorted from oldest to newest
- * @returns Array of status change events
- */
-const extractStatusChanges = (activitiesAsc: any[]): StatusChange[] => {
-  const changes: StatusChange[] = [];
-  
-  activitiesAsc.forEach((activity) => {
-    if (!activity?.details || !Array.isArray(activity.details)) {
-      return;
-    }
+  // Fallback to version or id
+  if (typeof a.version === 'number') {
+    return a.version * 1000000000;
+  }
+  if (typeof a.id === 'number') {
+    return a.id * 100000000;
+  }
 
-    const statusDetail = activity.details.find((d: any) => 
-      d.property === 'status' || d.property === 'Status'
-    );
-
-    if (!statusDetail || !statusDetail.new_value) {
-      return;
-    }
-
-    const timestamp = activity.created_at ? new Date(activity.created_at) : new Date();
-    const fromStatus = statusDetail.old_value || null;
-    const toStatus = statusDetail.new_value;
-    const byUser = activity.user_name || 'ไม่ระบุ';
-
-    changes.push({
-      timestamp,
-      fromStatus,
-      toStatus,
-      byUser,
-      activityId: activity.id || 0,
-    });
-  });
-
-  return changes;
+  return 0;
 };
 
 /**
- * Build complete status timeline with accurate time-in-status calculations
- * @param activitiesAsc - Chronological activities
- * @param wpCreatedAt - Work package creation timestamp
- * @param wpCurrentStatus - Current status from work package data
- * @param wpAuthor - Work package author
- * @param useNowForCurrent - Whether to use current time for ongoing status
- * @returns Complete status timeline with durations
+ * Extract status name from various formats
+ * @param v - Status value (can be object, string, or number)
+ * @returns Status name as string
  */
-const buildStatusTimeline = (
-  activitiesAsc: any[],
-  wpCreatedAt: Date | null,
-  wpCurrentStatus: string,
-  wpAuthor: string,
-  useNowForCurrent: boolean = true
-): StatusSpan[] => {
-  const statusChanges = extractStatusChanges(activitiesAsc);
+const pickName = (v: any): string => {
+  if (!v) return '';
+  if (typeof v === 'string') return v.trim();
+  if (typeof v === 'number') return String(v);
+  if (typeof v === 'object' && v.name) return String(v.name).trim();
+  return String(v).trim();
+};
+
+/**
+ * Extract status change from activity details
+ * @param a - Activity object
+ * @returns Status change info or null
+ */
+const getStatusChange = (a: AnyActivity): { fromStatus: string; toStatus: string } | null => {
+  if (!a?.details || !Array.isArray(a.details)) {
+    return null;
+  }
+
+  const statusDetail = a.details.find(
+    (d) => d.property === 'status' || d.property === 'Status' || d.name === 'status' || d.name === 'Status'
+  );
+
+  if (!statusDetail) {
+    return null;
+  }
+
+  // Support both old_value/new_value and from/to
+  const fromRaw = statusDetail.old_value ?? statusDetail.from;
+  const toRaw = statusDetail.new_value ?? statusDetail.to;
+
+  if (!toRaw) {
+    return null;
+  }
+
+  return {
+    fromStatus: pickName(fromRaw),
+    toStatus: pickName(toRaw),
+  };
+};
+
+/**
+ * Extract "Created" time from activities or work package
+ * @param activitiesAsc - Activities sorted oldest to newest
+ * @param wpDetail - Work package detail object
+ * @returns Epoch time in ms for "New (Created)" or 0 if unavailable
+ */
+const extractCreatedTime = (activitiesAsc: AnyActivity[], wpDetail: any): number => {
+  // Try first activity
+  if (activitiesAsc && activitiesAsc.length > 0) {
+    const firstTs = getTs(activitiesAsc[0]);
+    if (firstTs > 0) return firstTs;
+  }
+
+  // Fallback to work package created_at
+  if (wpDetail?.created_at) {
+    const ts = Date.parse(wpDetail.created_at);
+    if (!Number.isNaN(ts)) return ts;
+  }
+
+  return 0;
+};
+
+/**
+ * Compute status spans using neighbor activities formula:
+ * Each status span = time(activity i) - time(activity i-1)
+ * 
+ * @param activitiesAsc - Activities sorted oldest to newest
+ * @returns Array of status spans
+ */
+const computeStatusSpansByNeighbor = (activitiesAsc: AnyActivity[]): StatusSpan[] => {
   const spans: StatusSpan[] = [];
 
-  if (!wpCreatedAt) {
+  if (!activitiesAsc || activitiesAsc.length < 2) {
     return spans;
   }
 
-  // Determine initial status
-  let initialStatus = wpCurrentStatus;
-  if (statusChanges.length > 0) {
-    const firstChange = statusChanges[0];
-    if (firstChange.fromStatus) {
-      initialStatus = firstChange.fromStatus;
+  // Loop from i=1 to N-1
+  for (let i = 1; i < activitiesAsc.length; i++) {
+    const currentActivity = activitiesAsc[i];
+    const change = getStatusChange(currentActivity);
+
+    if (!change) {
+      continue; // Not a status-changed activity
     }
+
+    const prevActivity = activitiesAsc[i - 1];
+    const startTs = getTs(prevActivity);
+    const endTs = getTs(currentActivity);
+
+    // Skip if timestamps are invalid or negative duration
+    if (startTs <= 0 || endTs <= 0 || endTs < startTs) {
+      continue;
+    }
+
+    const durationMs = Math.max(0, endTs - startTs);
+
+    spans.push({
+      index: i,
+      startTs,
+      endTs,
+      durationMs,
+      fromStatus: change.fromStatus,
+      toStatus: change.toStatus,
+    });
   }
-
-  // Build timeline spans
-  let currentStartTs = wpCreatedAt;
-  let currentStatus = initialStatus;
-  let currentUser = wpAuthor;
-
-  statusChanges.forEach((change, index) => {
-    // Close previous span
-    const previousSpan: StatusSpan = {
-      status: currentStatus,
-      startTs: currentStartTs,
-      endTs: change.timestamp,
-      durationMs: Math.max(0, change.timestamp.getTime() - currentStartTs.getTime()),
-      byUser: currentUser,
-      isCurrent: false,
-      activityId: index > 0 ? statusChanges[index - 1].activityId : undefined,
-    };
-    spans.push(previousSpan);
-
-    // Start new span
-    currentStartTs = change.timestamp;
-    currentStatus = change.toStatus;
-    currentUser = change.byUser;
-  });
-
-  // Add final/current span
-  const endTs = useNowForCurrent ? null : new Date();
-  const currentSpan: StatusSpan = {
-    status: currentStatus,
-    startTs: currentStartTs,
-    endTs,
-    durationMs: endTs ? Math.max(0, endTs.getTime() - currentStartTs.getTime()) : 
-                      Math.max(0, Date.now() - currentStartTs.getTime()),
-    byUser: currentUser,
-    isCurrent: !endTs,
-    activityId: statusChanges.length > 0 ? statusChanges[statusChanges.length - 1].activityId : undefined,
-  };
-  spans.push(currentSpan);
 
   return spans;
 };
 
 /**
- * Attach duration information to activities for enhanced display
- * @param activitiesAsc - Chronological activities  
- * @param statusTimeline - Calculated status timeline
- * @returns Activities enhanced with duration data
+ * Compute tail span (optional) - time from last activity to now/updated_at
+ * @param activitiesAsc - Activities sorted oldest to newest
+ * @param endRefMs - Reference end time (now or updated_at)
+ * @returns Tail span or null
  */
-const attachDurationsToActivities = (activitiesAsc: any[], statusTimeline: StatusSpan[]) => {
-  return activitiesAsc.map((activity) => {
-    const statusDetail = activity.details?.find((d: any) => 
-      d.property === 'status' || d.property === 'Status'
-    );
+const computeTailSpan = (
+  activitiesAsc: AnyActivity[],
+  endRefMs: number
+): { durationMs: number; status: string } | null => {
+  if (!activitiesAsc || activitiesAsc.length === 0) {
+    return null;
+  }
 
-    if (!statusDetail) {
-      return activity;
-    }
+  const lastActivity = activitiesAsc[activitiesAsc.length - 1];
+  const lastChange = getStatusChange(lastActivity);
 
-    // Find matching timeline span
-    const matchingSpan = statusTimeline.find(span => span.activityId === activity.id);
-    
-    let timeInPrevStatusMs = 0;
-    let timeInPrevStatusText = '';
-    let prevStatus = '';
+  if (!lastChange) {
+    return null; // Last activity is not a status change
+  }
 
-    if (matchingSpan) {
-      // Find the previous span to get time spent in previous status
-      const spanIndex = statusTimeline.indexOf(matchingSpan);
-      if (spanIndex > 0) {
-        const prevSpan = statusTimeline[spanIndex - 1];
-        timeInPrevStatusMs = prevSpan.durationMs;
-        timeInPrevStatusText = formatDurationText(timeInPrevStatusMs);
-        prevStatus = prevSpan.status;
-      }
-    }
+  const lastTs = getTs(lastActivity);
+  if (lastTs <= 0 || endRefMs <= lastTs) {
+    return null;
+  }
 
-    return {
-      ...activity,
-      timeInPrevStatusMs,
-      timeInPrevStatusText,
-      prevStatus,
-      matchingSpan,
-    };
-  });
+  const durationMs = Math.max(0, endRefMs - lastTs);
+
+  return {
+    durationMs,
+    status: lastChange.toStatus,
+  };
 };
 
 interface TabPanelProps {
@@ -428,98 +449,82 @@ const WorkPackageDetailPro: React.FC = () => {
   // Activities array (always defined so hooks below run consistently)
   const activities = journals?.journals || [];
 
-  // Sort activities from oldest to newest — keep as a hook so it runs on every render
-  const chronologicalActivities = React.useMemo(() => {
+  // Sort activities from oldest to newest
+  const activitiesAsc = React.useMemo(() => {
     if (!Array.isArray(activities) || activities.length === 0) {
       return [];
     }
 
-    const getActivityTimestamp = (entry: any): number => {
-      if (!entry) return 0;
-
-      const rawDate = entry.created_at || entry.createdAt || entry.created_on || entry.createdOn;
-      if (rawDate) {
-        const timestamp = Date.parse(rawDate);
-        if (!Number.isNaN(timestamp)) return timestamp;
-      }
-
-      if (typeof entry.version === 'number') {
-        return entry.version * 1000000000;
-      }
-
-      if (typeof entry.id === 'number') {
-        return entry.id * 100000000;
-      }
-
-      return 0;
-    };
-
     const sorted = [...activities].sort((a, b) => {
-      return getActivityTimestamp(a) - getActivityTimestamp(b);
+      return getTs(a) - getTs(b);
     });
 
     return sorted;
-  }, [activities, wpId]);
+  }, [activities]);
 
-  // Enhanced status timeline calculation using actual journal activities
-  const statusTimeline = React.useMemo(() => {
-    if (!wpDetail) {
-      return [];
-    }
+  // Extract "Created" time (New)
+  const createdTs = React.useMemo(() => {
+    return extractCreatedTime(activitiesAsc, wpDetail);
+  }, [activitiesAsc, wpDetail]);
 
-    const wpData: any = wpDetail;
-    const createdAt = wpData.created_at ? new Date(wpData.created_at) : null;
-    const currentStatus = wpData.status || 'New';
-    const author = wpData.author_name || 'System';
+  // Compute status spans by neighbor activities formula
+  const statusSpans = React.useMemo(() => {
+    return computeStatusSpansByNeighbor(activitiesAsc);
+  }, [activitiesAsc]);
 
-    // Build accurate timeline from activities
-    const timeline = buildStatusTimeline(
-      chronologicalActivities,
-      createdAt,
-      currentStatus,
-      author,
-      true // Use current time for ongoing status
-    );
+  // Compute tail span (optional - time from last activity to now)
+  const tailSpan = React.useMemo(() => {
+    if (!wpDetail) return null;
 
-    // Convert to display format
-    return timeline.map((span, index) => ({
-      activityId: span.activityId || -1,
-      status: span.status,
-      enteredAt: span.startTs,
-      user: span.byUser,
-      previousStatus: index > 0 ? timeline[index - 1].status : null,
-      transitionDurationMs: index > 0 ? timeline[index - 1].durationMs : undefined,
-      transitionDurationText: index > 0 ? formatDurationText(timeline[index - 1].durationMs) : undefined,
-      timeInStatusMs: span.durationMs,
-      timeInStatusText: formatDurationText(span.durationMs, { 
-        suffix: span.isCurrent ? '(จนถึงปัจจุบัน)' : '' 
-      }),
-      isCurrent: span.isCurrent,
-    }));
-  }, [chronologicalActivities, wpDetail]);
+    const endRefMs = wpDetail.updated_at
+      ? Date.parse(wpDetail.updated_at)
+      : Date.now();
 
-  // Enhanced activities with duration information
+    return computeTailSpan(activitiesAsc, endRefMs);
+  }, [activitiesAsc, wpDetail]);
+
+  // Enhanced activities with duration annotations for display
   const activitiesWithDurations = React.useMemo(() => {
-    if (!wpDetail) {
-      return chronologicalActivities;
-    }
+    return activitiesAsc.map((activity, i) => {
+      const change = getStatusChange(activity);
 
-    const wpData: any = wpDetail;
-    const createdAt = wpData.created_at ? new Date(wpData.created_at) : null;
-    const currentStatus = wpData.status || 'New';
-    const author = wpData.author_name || 'System';
+      if (!change || i === 0) {
+        // Not a status change or first activity
+        return {
+          ...activity,
+          isStatusChange: !!change,
+          isFirstActivity: i === 0,
+          timeInPrevStatusMs: 0,
+          timeInPrevStatusText: '',
+          prevStatus: '',
+        };
+      }
 
-    // Build timeline for duration calculations
-    const timeline = buildStatusTimeline(
-      chronologicalActivities,
-      createdAt,
-      currentStatus,
-      author,
-      true
-    );
+      // Find matching span
+      const matchingSpan = statusSpans.find((span) => span.index === i);
 
-    return attachDurationsToActivities(chronologicalActivities, timeline);
-  }, [chronologicalActivities, wpDetail]);
+      if (!matchingSpan) {
+        return {
+          ...activity,
+          isStatusChange: true,
+          isFirstActivity: false,
+          timeInPrevStatusMs: 0,
+          timeInPrevStatusText: '',
+          prevStatus: change.fromStatus,
+        };
+      }
+
+      return {
+        ...activity,
+        isStatusChange: true,
+        isFirstActivity: false,
+        timeInPrevStatusMs: matchingSpan.durationMs,
+        timeInPrevStatusText: formatDuration(matchingSpan.durationMs),
+        prevStatus: matchingSpan.fromStatus,
+        toStatus: matchingSpan.toStatus,
+      };
+    });
+  }, [activitiesAsc, statusSpans]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -633,7 +638,7 @@ const WorkPackageDetailPro: React.FC = () => {
 
   const priorityConfig = getPriorityConfig(wp.priority);
 
-  const totalComments = chronologicalActivities.filter(
+  const totalComments = activitiesAsc.filter(
     (a: any) => a.notes && a.notes.trim().length > 0
   ).length;
 
@@ -823,7 +828,7 @@ const WorkPackageDetailPro: React.FC = () => {
                       {
                         icon: <Update fontSize="small" />,
                         label: 'กิจกรรมทั้งหมด',
-                        value: `${chronologicalActivities.length.toLocaleString()} รายการ`,
+                        value: `${activitiesAsc.length.toLocaleString()} รายการ`,
                       },
                       {
                         icon: <Comment fontSize="small" />,
@@ -916,7 +921,7 @@ const WorkPackageDetailPro: React.FC = () => {
               <Tab icon={<Description />} label="รายละเอียด" iconPosition="start" />
               <Tab
                 icon={
-                  <Badge badgeContent={chronologicalActivities.length} color="error" max={99}>
+                  <Badge badgeContent={activitiesAsc.length} color="error" max={99}>
                     <Timeline />
                   </Badge>
                 }
@@ -980,8 +985,8 @@ const WorkPackageDetailPro: React.FC = () => {
                     </Fade>
                   )}
 
-                  {/* Enhanced Status Duration Cards with Accurate Timeline */}
-                  {statusTimeline.length > 0 && (
+                  {/* Status Duration Cards - Calculated by Neighbor Activities */}
+                  {(createdTs > 0 || statusSpans.length > 0) && (
                     <Fade in timeout={500}>
                       <Box>
                         <Stack direction="row" alignItems="center" spacing={2} mb={3}>
@@ -1002,10 +1007,10 @@ const WorkPackageDetailPro: React.FC = () => {
                               WebkitBackgroundClip: 'text',
                               WebkitTextFillColor: 'transparent',
                             }}>
-                              ⏱️ เวลาในแต่ละสถานะ
+                              ⏱️ สรุปเวลาแต่ละสถานะ
                             </Typography>
                             <Typography variant="body2" color="text.secondary" fontWeight={600}>
-                              คำนวณจากลำดับกิจกรรมจริง โดยใช้ timestamp ของแต่ละ status change
+                              คำนวณจากกิจกรรมถัดไป − กิจกรรมก่อนหน้า
                             </Typography>
                           </Box>
                         </Stack>
@@ -1015,62 +1020,161 @@ const WorkPackageDetailPro: React.FC = () => {
                           <Stack direction="row" alignItems="center" spacing={2} mb={2}>
                             <AccessTime sx={{ color: '#f59e0b' }} />
                             <Typography variant="h6" fontWeight={700} color="#92400e">
-                              สรุปไทม์ไลน์ทั้งหมด
+                              สรุปไทม์ไลน์
                             </Typography>
                           </Stack>
                           <Grid container spacing={2}>
                             <Grid item xs={12} sm={6}>
                               <Typography variant="body2" color="text.secondary">
-                                <strong>รวมเวลาทั้งหมด:</strong>{' '}
-                                {formatDurationText(statusTimeline.reduce((sum, item) => sum + (item.timeInStatusMs || 0), 0))}
+                                <strong>จำนวนช่วงสถานะ:</strong> {statusSpans.length} ช่วง
                               </Typography>
                             </Grid>
                             <Grid item xs={12} sm={6}>
                               <Typography variant="body2" color="text.secondary">
-                                <strong>สถานะปัจจุบัน:</strong> {statusTimeline.find(item => item.isCurrent)?.status || 'ไม่ระบุ'}
+                                <strong>สถานะปัจจุบัน:</strong>{' '}
+                                {statusSpans.length > 0 ? statusSpans[statusSpans.length - 1].toStatus : wpDetail?.status || 'ไม่ระบุ'}
                               </Typography>
                             </Grid>
                           </Grid>
                         </Box>
 
                         <Grid container spacing={3}>
-                          {statusTimeline.map((item, index) => {
-                            const toStatus = item.status || 'ไม่ระบุ';
-                            const fromStatus = item.previousStatus || 'สร้างงาน';
-                            const normalizedStatus = (toStatus || '').toLowerCase();
-                            const isInitialEntry = item.activityId === -1 || !item.previousStatus;
-                            const transitionText = item.transitionDurationText;
-                            const timeInStatusText = item.timeInStatusText;
-                            const enteredAt = item.enteredAt ? new Date(item.enteredAt) : null;
-                            const displayUser = item.user || 'System';
-                            const userInitial = displayUser.charAt(0).toUpperCase();
+                          {/* First Card: New (Created) - Show Time, Not Duration */}
+                          {createdTs > 0 && (
+                            <Grid item xs={12} sm={6} lg={4}>
+                              <Zoom in timeout={400}>
+                                <Paper
+                                  elevation={0}
+                                  sx={{
+                                    p: 4,
+                                    borderRadius: 4,
+                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.1) 100%)',
+                                    border: `2px solid ${alpha('#6366f1', 0.3)}`,
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    '&::before': {
+                                      content: '""',
+                                      position: 'absolute',
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      height: '4px',
+                                      background: `linear-gradient(90deg, #6366f1 0%, ${alpha('#6366f1', 0.5)} 100%)`,
+                                    },
+                                    '&:hover': {
+                                      borderColor: '#6366f1',
+                                      boxShadow: `0 20px 40px ${alpha('#6366f1', 0.25)}, inset 0 0 0 1px ${alpha('#6366f1', 0.1)}`,
+                                      transform: 'translateY(-6px) scale(1.02)',
+                                    },
+                                  }}
+                                >
+                                  <Stack spacing={3}>
+                                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                                      <Chip
+                                        label="เริ่มต้น"
+                                        size="small"
+                                        icon={<PlayArrow sx={{ fontSize: 16 }} />}
+                                        sx={{
+                                          bgcolor: 'rgba(255, 255, 255, 0.9)',
+                                          color: '#4f46e5',
+                                          fontWeight: 700,
+                                          border: `1px solid ${alpha('#6366f1', 0.2)}`,
+                                          fontSize: '0.8rem',
+                                        }}
+                                      />
+                                      <Chip
+                                        label="New (Created)"
+                                        sx={{
+                                          bgcolor: '#6366f1',
+                                          color: 'white',
+                                          fontWeight: 800,
+                                          fontSize: '0.9rem',
+                                          height: 36,
+                                          border: `2px solid ${alpha('#6366f1', 0.3)}`,
+                                          boxShadow: `0 4px 12px ${alpha('#6366f1', 0.3)}`,
+                                        }}
+                                      />
+                                    </Stack>
+
+                                    <Divider sx={{ borderColor: alpha('#6366f1', 0.15) }} />
+
+                                    <Box
+                                      sx={{
+                                        textAlign: 'center',
+                                        py: 3,
+                                        px: 2,
+                                        bgcolor: 'rgba(255, 255, 255, 0.6)',
+                                        borderRadius: 3,
+                                        border: `1px solid ${alpha('#6366f1', 0.1)}`,
+                                      }}
+                                    >
+                                      <Stack spacing={1} alignItems="center">
+                                        <Stack direction="row" alignItems="center" spacing={1}>
+                                          <DateRange sx={{ color: '#6366f1', fontSize: 24 }} />
+                                          <Typography
+                                            variant="body2"
+                                            fontWeight={700}
+                                            sx={{ 
+                                              color: '#4f46e5', 
+                                              textTransform: 'uppercase', 
+                                              letterSpacing: 0.5, 
+                                              fontSize: '0.75rem' 
+                                            }}
+                                          >
+                                            เวลาที่สร้างงาน
+                                          </Typography>
+                                        </Stack>
+                                        <Typography variant="h5" fontWeight={900} sx={{ color: '#4f46e5' }}>
+                                          {format(new Date(createdTs), 'dd/MM/yyyy', { locale: th })}
+                                        </Typography>
+                                        <Typography variant="body2" fontWeight={600} sx={{ color: '#4f46e5' }}>
+                                          {format(new Date(createdTs), 'HH:mm:ss น.', { locale: th })}
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ color: '#4f46e5', opacity: 0.85, mt: 1 }}>
+                                          🚀 จุดเริ่มต้นของงาน
+                                        </Typography>
+                                      </Stack>
+                                    </Box>
+                                  </Stack>
+                                </Paper>
+                              </Zoom>
+                            </Grid>
+                          )}
+
+                          {/* Subsequent Cards: Status Spans with Duration */}
+                          {statusSpans.map((span, index) => {
+                            const fromStatus = span.fromStatus || 'ไม่ระบุ';
+                            const toStatus = span.toStatus || 'ไม่ระบุ';
+                            const durationText = formatDuration(span.durationMs);
+                            const normalizedToStatus = (toStatus || '').toLowerCase();
 
                             // Enhanced color palette based on status
                             let bgColor = '#6366f1';
                             let textColor = '#4f46e5';
                             let gradient = 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%)';
 
-                            if (normalizedStatus.includes('new') || normalizedStatus.includes('ใหม่')) {
+                            if (normalizedToStatus.includes('new') || normalizedToStatus.includes('ใหม่')) {
                               bgColor = '#6366f1';
                               textColor = '#4f46e5';
                               gradient = 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.1) 100%)';
-                            } else if (normalizedStatus.includes('รับเรื่อง')) {
+                            } else if (normalizedToStatus.includes('รับเรื่อง')) {
                               bgColor = '#06b6d4';
                               textColor = '#0891b2';
                               gradient = 'linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.1) 100%)';
-                            } else if (normalizedStatus.includes('กำลังดำเนินการ')) {
+                            } else if (normalizedToStatus.includes('กำลังดำเนินการ')) {
                               bgColor = '#f59e0b';
                               textColor = '#d97706';
                               gradient = 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%)';
-                            } else if (normalizedStatus.includes('เสร็จ') || normalizedStatus.includes('ปิด')) {
+                            } else if (normalizedToStatus.includes('เสร็จ') || normalizedToStatus.includes('ปิด')) {
                               bgColor = '#10b981';
                               textColor = '#059669';
                               gradient = 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%)';
                             }
 
                             return (
-                              <Grid item xs={12} sm={6} lg={4} key={index}>
-                                <Zoom in timeout={400 + index * 100}>
+                              <Grid item xs={12} sm={6} lg={4} key={`span-${index}`}>
+                                <Zoom in timeout={500 + index * 100}>
                                   <Paper
                                     elevation={0}
                                     sx={{
@@ -1090,20 +1194,6 @@ const WorkPackageDetailPro: React.FC = () => {
                                         height: '4px',
                                         background: `linear-gradient(90deg, ${bgColor} 0%, ${alpha(bgColor, 0.5)} 100%)`,
                                       },
-                                      '&::after': item.isCurrent ? {
-                                        content: '"LIVE"',
-                                        position: 'absolute',
-                                        top: 12,
-                                        right: 12,
-                                        fontSize: '0.7rem',
-                                        fontWeight: 900,
-                                        color: 'white',
-                                        bgcolor: '#ef4444',
-                                        px: 1,
-                                        py: 0.25,
-                                        borderRadius: 1,
-                                        animation: 'pulse 2s infinite',
-                                      } : {},
                                       '&:hover': {
                                         borderColor: bgColor,
                                         boxShadow: `0 20px 40px ${alpha(bgColor, 0.25)}, inset 0 0 0 1px ${alpha(bgColor, 0.1)}`,
@@ -1112,39 +1202,22 @@ const WorkPackageDetailPro: React.FC = () => {
                                     }}
                                   >
                                     <Stack spacing={3}>
-                                      {/* Status Transition with Enhanced Icons */}
+                                      {/* Status Transition */}
                                       <Stack direction="row" alignItems="center" spacing={1.5} flexWrap="wrap">
-                                        {item.previousStatus ? (
-                                          <>
-                                            <Chip
-                                              label={fromStatus}
-                                              size="small"
-                                              sx={{
-                                                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                                                color: textColor,
-                                                fontWeight: 700,
-                                                border: `1px solid ${alpha(bgColor, 0.2)}`,
-                                                fontSize: '0.8rem',
-                                              }}
-                                            />
-                                            <Box sx={{ color: bgColor, display: 'flex', alignItems: 'center' }}>
-                                              <TrendingFlat sx={{ fontSize: 24 }} />
-                                            </Box>
-                                          </>
-                                        ) : (
-                                          <Chip
-                                            label="เริ่มต้น"
-                                            size="small"
-                                            icon={<PlayArrow sx={{ fontSize: 16 }} />}
-                                            sx={{
-                                              bgcolor: 'rgba(255, 255, 255, 0.9)',
-                                              color: textColor,
-                                              fontWeight: 700,
-                                              border: `1px solid ${alpha(bgColor, 0.2)}`,
-                                              fontSize: '0.8rem',
-                                            }}
-                                          />
-                                        )}
+                                        <Chip
+                                          label={fromStatus}
+                                          size="small"
+                                          sx={{
+                                            bgcolor: 'rgba(255, 255, 255, 0.9)',
+                                            color: textColor,
+                                            fontWeight: 700,
+                                            border: `1px solid ${alpha(bgColor, 0.2)}`,
+                                            fontSize: '0.8rem',
+                                          }}
+                                        />
+                                        <Box sx={{ color: bgColor, display: 'flex', alignItems: 'center' }}>
+                                          <TrendingFlat sx={{ fontSize: 24 }} />
+                                        </Box>
                                         <Chip
                                           label={toStatus}
                                           sx={{
@@ -1157,23 +1230,11 @@ const WorkPackageDetailPro: React.FC = () => {
                                             boxShadow: `0 4px 12px ${alpha(bgColor, 0.3)}`,
                                           }}
                                         />
-                                        {item.isCurrent && (
-                                          <Chip
-                                            label="ปัจจุบัน"
-                                            size="small"
-                                            sx={{
-                                              bgcolor: '#ef4444',
-                                              color: 'white',
-                                              fontWeight: 700,
-                                              animation: 'pulse 2s infinite',
-                                            }}
-                                          />
-                                        )}
                                       </Stack>
 
                                       <Divider sx={{ borderColor: alpha(bgColor, 0.15) }} />
 
-                                      {/* Enhanced Duration Display */}
+                                      {/* Duration Display */}
                                       <Box
                                         sx={{
                                           textAlign: 'center',
@@ -1182,7 +1243,6 @@ const WorkPackageDetailPro: React.FC = () => {
                                           bgcolor: 'rgba(255, 255, 255, 0.6)',
                                           borderRadius: 3,
                                           border: `1px solid ${alpha(bgColor, 0.1)}`,
-                                          position: 'relative',
                                         }}
                                       >
                                         <Stack spacing={1} alignItems="center">
@@ -1198,52 +1258,28 @@ const WorkPackageDetailPro: React.FC = () => {
                                                 fontSize: '0.75rem' 
                                               }}
                                             >
-                                              เวลาที่อยู่ในสถานะนี้
+                                              อยู่ในสถานะ {fromStatus}
                                             </Typography>
                                           </Stack>
                                           <Typography variant="h4" fontWeight={900} sx={{ color: textColor }}>
-                                            {timeInStatusText || 'กำลังคำนวณ...'}
+                                            {durationText}
                                           </Typography>
-                                          {transitionText ? (
-                                            <Typography variant="caption" sx={{ color: textColor, opacity: 0.85 }}>
-                                              จากสถานะ "{fromStatus}" หลัง {transitionText}
-                                            </Typography>
-                                          ) : (
-                                            <Typography variant="caption" sx={{ color: textColor, opacity: 0.85 }}>
-                                              {isInitialEntry ? '🚀 จุดเริ่มต้นของงาน' : 'ไม่มีข้อมูลเวลาเดิม'}
-                                            </Typography>
-                                          )}
+                                          <Typography variant="caption" sx={{ color: textColor, opacity: 0.85 }}>
+                                            คำนวณจาก activity #{span.index} − #{span.index - 1}
+                                          </Typography>
                                         </Stack>
                                       </Box>
 
                                       <Divider sx={{ borderColor: alpha(bgColor, 0.15) }} />
 
-                                      {/* User and Timestamp */}
-                                      <Stack spacing={1.5}>
-                                        <Stack direction="row" alignItems="center" spacing={1.5}>
-                                          <Avatar
-                                            sx={{
-                                              bgcolor: alpha(bgColor, 0.15),
-                                              color: bgColor,
-                                              width: 36,
-                                              height: 36,
-                                              fontSize: '1rem',
-                                              fontWeight: 800,
-                                            }}
-                                          >
-                                            {userInitial || '?'}
-                                          </Avatar>
-                                          <Box>
-                                            <Typography variant="body2" fontWeight={700} sx={{ color: textColor }}>
-                                              {displayUser}
-                                            </Typography>
-                                            {enteredAt && (
-                                              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-                                                📅 {format(enteredAt, 'dd/MM/yyyy HH:mm น.', { locale: th })}
-                                              </Typography>
-                                            )}
-                                          </Box>
-                                        </Stack>
+                                      {/* Timestamp Info */}
+                                      <Stack spacing={1}>
+                                        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                                          📅 เริ่ม: {format(new Date(span.startTs), 'dd/MM/yyyy HH:mm:ss', { locale: th })}
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                                          📅 จบ: {format(new Date(span.endTs), 'dd/MM/yyyy HH:mm:ss', { locale: th })}
+                                        </Typography>
                                       </Stack>
                                     </Stack>
                                   </Paper>
@@ -1251,6 +1287,118 @@ const WorkPackageDetailPro: React.FC = () => {
                               </Grid>
                             );
                           })}
+
+                          {/* Tail Span: Current Status Duration (Optional) */}
+                          {tailSpan && (
+                            <Grid item xs={12} sm={6} lg={4}>
+                              <Zoom in timeout={500 + statusSpans.length * 100}>
+                                <Paper
+                                  elevation={0}
+                                  sx={{
+                                    p: 4,
+                                    borderRadius: 4,
+                                    background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)',
+                                    border: `2px solid ${alpha('#ef4444', 0.3)}`,
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    '&::before': {
+                                      content: '""',
+                                      position: 'absolute',
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      height: '4px',
+                                      background: `linear-gradient(90deg, #ef4444 0%, ${alpha('#ef4444', 0.5)} 100%)`,
+                                    },
+                                    '&::after': {
+                                      content: '"LIVE"',
+                                      position: 'absolute',
+                                      top: 12,
+                                      right: 12,
+                                      fontSize: '0.7rem',
+                                      fontWeight: 900,
+                                      color: 'white',
+                                      bgcolor: '#ef4444',
+                                      px: 1,
+                                      py: 0.25,
+                                      borderRadius: 1,
+                                      animation: 'pulse 2s infinite',
+                                    },
+                                    '&:hover': {
+                                      borderColor: '#ef4444',
+                                      boxShadow: `0 20px 40px ${alpha('#ef4444', 0.25)}, inset 0 0 0 1px ${alpha('#ef4444', 0.1)}`,
+                                      transform: 'translateY(-6px) scale(1.02)',
+                                    },
+                                  }}
+                                >
+                                  <Stack spacing={3}>
+                                    <Stack direction="row" alignItems="center" spacing={1.5} flexWrap="wrap">
+                                      <Chip
+                                        label={tailSpan.status}
+                                        sx={{
+                                          bgcolor: '#ef4444',
+                                          color: 'white',
+                                          fontWeight: 800,
+                                          fontSize: '0.9rem',
+                                          height: 36,
+                                          border: `2px solid ${alpha('#ef4444', 0.3)}`,
+                                          boxShadow: `0 4px 12px ${alpha('#ef4444', 0.3)}`,
+                                        }}
+                                      />
+                                      <Chip
+                                        label="ปัจจุบัน"
+                                        size="small"
+                                        sx={{
+                                          bgcolor: '#dc2626',
+                                          color: 'white',
+                                          fontWeight: 700,
+                                          animation: 'pulse 2s infinite',
+                                        }}
+                                      />
+                                    </Stack>
+
+                                    <Divider sx={{ borderColor: alpha('#ef4444', 0.15) }} />
+
+                                    <Box
+                                      sx={{
+                                        textAlign: 'center',
+                                        py: 3,
+                                        px: 2,
+                                        bgcolor: 'rgba(255, 255, 255, 0.6)',
+                                        borderRadius: 3,
+                                        border: `1px solid ${alpha('#ef4444', 0.1)}`,
+                                      }}
+                                    >
+                                      <Stack spacing={1} alignItems="center">
+                                        <Stack direction="row" alignItems="center" spacing={1}>
+                                          <AccessTime sx={{ color: '#ef4444', fontSize: 24 }} />
+                                          <Typography
+                                            variant="body2"
+                                            fontWeight={700}
+                                            sx={{ 
+                                              color: '#dc2626', 
+                                              textTransform: 'uppercase', 
+                                              letterSpacing: 0.5, 
+                                              fontSize: '0.75rem' 
+                                            }}
+                                          >
+                                            อยู่ในสถานะปัจจุบัน
+                                          </Typography>
+                                        </Stack>
+                                        <Typography variant="h4" fontWeight={900} sx={{ color: '#dc2626' }}>
+                                          {formatDuration(tailSpan.durationMs)}
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ color: '#dc2626', opacity: 0.85 }}>
+                                          ตั้งแต่ activity สุดท้ายจนถึงปัจจุบัน
+                                        </Typography>
+                                      </Stack>
+                                    </Box>
+                                  </Stack>
+                                </Paper>
+                              </Zoom>
+                            </Grid>
+                          )}
                         </Grid>
                       </Box>
                     </Fade>
@@ -1649,9 +1797,8 @@ const WorkPackageDetailPro: React.FC = () => {
                       const activityDate = activity.created_at ? new Date(activity.created_at) : null;
                       const hasComment = activity.notes && activity.notes.trim().length > 0;
                       const hasChanges = activity.details && activity.details.length > 0;
-                      const isStatusChange = activity.details?.some((d: any) => 
-                        d.property === 'status' || d.property === 'Status'
-                      );
+                      const isStatusChange = activity.isStatusChange;
+                      const isFirstActivity = activity.isFirstActivity;
 
                       return (
                         <Zoom in key={activity.id || index} timeout={300 + index * 50}>
@@ -1764,8 +1911,41 @@ const WorkPackageDetailPro: React.FC = () => {
                                 </Box>
                               </Stack>
 
+                              {/* First Activity: Show Created Time */}
+                              {isFirstActivity && (
+                                <Box
+                                  sx={{
+                                    p: 3,
+                                    mb: 3,
+                                    bgcolor: 'rgba(99, 102, 241, 0.1)',
+                                    borderLeft: '4px solid #6366f1',
+                                    borderRadius: 2,
+                                  }}
+                                >
+                                  <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+                                    <PlayArrow fontSize="small" sx={{ color: '#6366f1' }} />
+                                    <Typography variant="subtitle2" fontWeight={800} color="#4f46e5">
+                                      🚀 Created (New)
+                                    </Typography>
+                                  </Stack>
+                                  <Typography
+                                    variant="body1"
+                                    sx={{
+                                      lineHeight: 1.7,
+                                      color: '#4338ca',
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    งานถูกสร้างเมื่อ{' '}
+                                    <strong style={{ color: '#3730a3' }}>
+                                      {activityDate ? format(activityDate, 'dd/MM/yyyy HH:mm:ss น.', { locale: th }) : 'ไม่ระบุ'}
+                                    </strong>
+                                  </Typography>
+                                </Box>
+                              )}
+
                               {/* Status Change Duration Information */}
-                              {isStatusChange && activity.timeInPrevStatusText && (
+                              {isStatusChange && !isFirstActivity && activity.timeInPrevStatusText && (
                                 <Box
                                   sx={{
                                     p: 3,
@@ -1791,7 +1971,7 @@ const WorkPackageDetailPro: React.FC = () => {
                                   >
                                     อยู่ในสถานะ "{activity.prevStatus}" นาน{' '}
                                     <strong style={{ color: '#3730a3' }}>{activity.timeInPrevStatusText}</strong>{' '}
-                                    ก่อนเปลี่ยนเป็น "{activity.details?.find((d: any) => d.property === 'status')?.new_value}"
+                                    (คำนวณจาก activity ถัดไป − ก่อนหน้า)
                                   </Typography>
                                 </Box>
                               )}
@@ -1839,9 +2019,6 @@ const WorkPackageDetailPro: React.FC = () => {
                                   <Grid container spacing={2}>
                                     {activity.details.map((detail: any, i: number) => {
                                       const isDetailStatusChange = detail.property === 'status' || detail.property === 'Status';
-                                      const matchingTimeline = isDetailStatusChange
-                                        ? statusTimeline.find((t) => t.activityId === activity.id)
-                                        : null;
 
                                       return (
                                         <Grid item xs={12} sm={isDetailStatusChange ? 12 : 6} key={i}>
@@ -1865,28 +2042,10 @@ const WorkPackageDetailPro: React.FC = () => {
                                             }}
                                           >
                                             <Stack spacing={1.5}>
-                                              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                                                <Typography variant="subtitle2" fontWeight={900} sx={{ color: isDetailStatusChange ? '#6366f1' : 'text.primary' }}>
-                                                  {detail.property}
-                                                  {isDetailStatusChange && ' 🎯'}
-                                                </Typography>
-                                                {isDetailStatusChange && matchingTimeline?.timeInStatusText && (
-                                                  <Chip
-                                                    icon={<AccessTime sx={{ fontSize: 16 }} />}
-                                                    label={matchingTimeline.timeInStatusText}
-                                                    size="small"
-                                                    sx={{
-                                                      bgcolor: alpha('#6366f1', 0.15),
-                                                      color: '#6366f1',
-                                                      fontWeight: 800,
-                                                      fontSize: '0.75rem',
-                                                      height: 26,
-                                                      border: `1px solid ${alpha('#6366f1', 0.3)}`,
-                                                      '& .MuiChip-icon': { color: '#6366f1' },
-                                                    }}
-                                                  />
-                                                )}
-                                              </Stack>
+                                              <Typography variant="subtitle2" fontWeight={900} sx={{ color: isDetailStatusChange ? '#6366f1' : 'text.primary' }}>
+                                                {detail.property}
+                                                {isDetailStatusChange && ' 🎯'}
+                                              </Typography>
                                               <Stack
                                                 direction="row"
                                                 alignItems="center"

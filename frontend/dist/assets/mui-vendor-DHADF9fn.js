@@ -24416,7 +24416,7 @@ const DarkMode = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
 const DashboardIcon = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
   d: "M3 13h8V3H3zm0 8h8v-6H3zm10 0h8V11h-8zm0-18v6h8V3z"
 }), "Dashboard");
-const DateRangeIcon = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
+const DateRange = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
   d: "M9 11H7v2h2zm4 0h-2v2h2zm4 0h-2v2h2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 16H5V9h14z"
 }), "DateRange");
 const Delete = createSvgIcon(/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
@@ -40919,7 +40919,7 @@ export {
   RadioButtonUncheckedIcon as az,
   createTheme as b,
   dialogClasses as b0,
-  DateRangeIcon as b1,
+  DateRange as b1,
   OutlinedInput as b2,
   CloudSyncIcon as b3,
   LinearProgress as b4,
@@ -40998,4 +40998,4 @@ export {
   ListItemButton as y,
   ListItemIcon as z
 };
-//# sourceMappingURL=mui-vendor-CUL2wbOE.js.map
+//# sourceMappingURL=mui-vendor-DHADF9fn.js.map

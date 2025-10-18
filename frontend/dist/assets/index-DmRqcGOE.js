@@ -18,9 +18,9 @@ var __privateWrapper = (obj, member, setter, getter) => ({
   }
 });
 var _provider, _providerCalled, _a, _focused, _cleanup, _setup, _b, _online, _cleanup2, _setup2, _c, _gcTimeout, _d, _initialState, _revertState, _cache, _client, _retryer, _defaultOptions, _abortSignalConsumed, _Query_instances, dispatch_fn, _e, _client2, _currentQuery, _currentQueryInitialState, _currentResult, _currentResultState, _currentResultOptions, _currentThenable, _selectError, _selectFn, _selectResult, _lastQueryWithDefinedData, _staleTimeoutId, _refetchIntervalId, _currentRefetchInterval, _trackedProps, _QueryObserver_instances, executeFetch_fn, updateStaleTimeout_fn, computeRefetchInterval_fn, updateRefetchInterval_fn, updateTimers_fn, clearStaleTimeout_fn, clearRefetchInterval_fn, updateQuery_fn, notify_fn, _f, _client3, _observers, _mutationCache, _retryer2, _Mutation_instances, dispatch_fn2, _g, _mutations, _scopes, _mutationId, _h, _client4, _currentResult2, _currentMutation, _mutateOptions, _MutationObserver_instances, updateResult_fn, notify_fn2, _i, _queries, _j, _queryCache, _mutationCache2, _defaultOptions2, _queryDefaults, _mutationDefaults, _mountCount, _unsubscribeFocus, _unsubscribeOnline, _k;
-import { j as jsxRuntimeExports, a as alpha, b as createTheme, T as ThemeProvider$1, C as CssBaseline, B as Box, d as CircularProgress, u as useTheme$1, A as AppBar, e as Toolbar, I as IconButton, M as MenuIcon, S as Search, f as InputBase, g as Chip, h as Stack, i as Tooltip, k as AddIcon, D as DarkMode, L as LightMode, l as Badge, N as NotificationsIcon, m as Divider, n as Avatar, o as Typography, p as Menu, q as MenuItem, r as SettingsIcon, s as Person, t as LogoutIcon, v as DashboardIcon, W as WorkIcon, w as AssessmentIcon, x as List, y as ListItemButton, z as ListItemIcon, E as ListItemText, F as Container, G as LocationOn, H as PhoneIcon, J as EmailIcon, K as GitHubIcon, O as FavoriteIcon, Q as useMediaQuery, R as Drawer, U as Fade, V as Card, Z as Zoom, X as Slide, Y as Alert, _ as TextField, $ as InputAdornment, a0 as VisibilityOff, a1 as Visibility, a2 as LockIcon, a3 as Button, a4 as LoginIcon, a5 as SecurityIcon, a6 as ErrorIcon, a7 as RefreshIcon, a8 as CardContent, a9 as TrendingUpIcon, aa as TrendingDownIcon, ab as Grid, ac as Assignment, ad as WarningIcon, ae as Schedule, af as CheckCircle, ag as Paper, ah as PieChartIcon, ai as ShowChart, aj as DataGrid, ak as Dialog, al as DialogTitle, am as DialogContent, an as FormControl, ao as InputLabel, ap as Select, aq as FormControlLabel, ar as Switch, as as DialogActions, at as Snackbar, au as GridActionsCellItem, av as Edit, aw as ResetPasswordIcon, ax as Autocomplete, ay as Checkbox, az as RadioButtonUncheckedIcon, aA as PeopleIcon, aB as Delete, aC as Tabs, aD as Tab, aE as FilterListIcon, aF as Sync, aG as Api, aH as Palette, aI as SaveIcon, aJ as ListItem, aK as ListItemSecondaryAction, P as PropTypes, aL as _objectWithoutPropertiesLoose, aM as _extends, aN as useThemeProps, aO as useRtl, aP as styled, c as clsx, aQ as shouldForwardProp_1, aR as Grow, aS as FocusTrap, aT as Popper, aU as createSvgIcon, aV as useFormControl, aW as shouldForwardProp, aX as FormHelperText, aY as major, aZ as TransitionGroup, a_ as ButtonBase, a$ as CSSTransition, b0 as dialogClasses, b1 as DateRangeIcon, b2 as OutlinedInput, b3 as CloudSyncIcon, b4 as LinearProgress, b5 as InfoIcon, b6 as NetworkCheckIcon, b7 as PlayArrow, b8 as TableContainer, b9 as Table, ba as TableHead, bb as TableRow, bc as TableCell, bd as TableBody, be as DownloadIcon, bf as FiberNew, bg as Block, bh as Clear, bi as ToggleButtonGroup, bj as ToggleButton, bk as GridView, bl as ViewWeek, bm as TuneRounded, bn as Sort, bo as Collapse, bp as ButtonGroup, bq as CardActionArea, br as MoreVert, bs as Category, bt as PersonOutline, bu as AccessTime, bv as Update, bw as AttachFile, bx as Comment, by as Check, bz as Share, bA as Timeline, bB as Pagination, bC as Description, bD as Skeleton, bE as ErrorOutline, bF as ArrowBack, bG as Label, bH as CalendarMonth, bI as HistoryToggleOff, bJ as TrendingFlat, bK as ContactPhone, bL as Bolt, bM as Groups, bN as TaskAlt, bO as HourglassTop, bP as CheckCircleRounded, bQ as FiberManualRecord, bR as PriorityHigh, bS as Flag } from "./mui-vendor-CUL2wbOE.js";
+import { j as jsxRuntimeExports, a as alpha, b as createTheme, T as ThemeProvider$1, C as CssBaseline, B as Box, d as CircularProgress, u as useTheme$1, A as AppBar, e as Toolbar, I as IconButton, M as MenuIcon, S as Search, f as InputBase, g as Chip, h as Stack, i as Tooltip, k as AddIcon, D as DarkMode, L as LightMode, l as Badge, N as NotificationsIcon, m as Divider, n as Avatar, o as Typography, p as Menu, q as MenuItem, r as SettingsIcon, s as Person, t as LogoutIcon, v as DashboardIcon, W as WorkIcon, w as AssessmentIcon, x as List, y as ListItemButton, z as ListItemIcon, E as ListItemText, F as Container, G as LocationOn, H as PhoneIcon, J as EmailIcon, K as GitHubIcon, O as FavoriteIcon, Q as useMediaQuery, R as Drawer, U as Fade, V as Card, Z as Zoom, X as Slide, Y as Alert, _ as TextField, $ as InputAdornment, a0 as VisibilityOff, a1 as Visibility, a2 as LockIcon, a3 as Button, a4 as LoginIcon, a5 as SecurityIcon, a6 as ErrorIcon, a7 as RefreshIcon, a8 as CardContent, a9 as TrendingUpIcon, aa as TrendingDownIcon, ab as Grid, ac as Assignment, ad as WarningIcon, ae as Schedule, af as CheckCircle, ag as Paper, ah as PieChartIcon, ai as ShowChart, aj as DataGrid, ak as Dialog, al as DialogTitle, am as DialogContent, an as FormControl, ao as InputLabel, ap as Select, aq as FormControlLabel, ar as Switch, as as DialogActions, at as Snackbar, au as GridActionsCellItem, av as Edit, aw as ResetPasswordIcon, ax as Autocomplete, ay as Checkbox, az as RadioButtonUncheckedIcon, aA as PeopleIcon, aB as Delete, aC as Tabs, aD as Tab, aE as FilterListIcon, aF as Sync, aG as Api, aH as Palette, aI as SaveIcon, aJ as ListItem, aK as ListItemSecondaryAction, P as PropTypes, aL as _objectWithoutPropertiesLoose, aM as _extends, aN as useThemeProps, aO as useRtl, aP as styled, c as clsx, aQ as shouldForwardProp_1, aR as Grow, aS as FocusTrap, aT as Popper, aU as createSvgIcon, aV as useFormControl, aW as shouldForwardProp, aX as FormHelperText, aY as major, aZ as TransitionGroup, a_ as ButtonBase, a$ as CSSTransition, b0 as dialogClasses, b1 as DateRange, b2 as OutlinedInput, b3 as CloudSyncIcon, b4 as LinearProgress, b5 as InfoIcon, b6 as NetworkCheckIcon, b7 as PlayArrow, b8 as TableContainer, b9 as Table, ba as TableHead, bb as TableRow, bc as TableCell, bd as TableBody, be as DownloadIcon, bf as FiberNew, bg as Block, bh as Clear, bi as ToggleButtonGroup, bj as ToggleButton, bk as GridView, bl as ViewWeek, bm as TuneRounded, bn as Sort, bo as Collapse, bp as ButtonGroup, bq as CardActionArea, br as MoreVert, bs as Category, bt as PersonOutline, bu as AccessTime, bv as Update, bw as AttachFile, bx as Comment, by as Check, bz as Share, bA as Timeline, bB as Pagination, bC as Description, bD as Skeleton, bE as ErrorOutline, bF as ArrowBack, bG as Label, bH as CalendarMonth, bI as HistoryToggleOff, bJ as TrendingFlat, bK as ContactPhone, bL as Bolt, bM as Groups, bN as TaskAlt, bO as HourglassTop, bP as CheckCircleRounded, bQ as FiberManualRecord, bR as PriorityHigh, bS as Flag } from "./mui-vendor-DHADF9fn.js";
 import { d as reactDomExports, r as reactExports, N as Navigate, u as useNavigate, f as useLocation, O as Outlet, b as React, R as React$1, h as useParams, B as BrowserRouter, i as Routes, j as Route } from "./react-vendor-Cq8tfVx5.js";
-import { R as ResponsiveContainer, P as PieChart, a as Pie, C as Cell, T as Tooltip$1, B as BarChart, b as CartesianGrid, X as XAxis, Y as YAxis, c as Bar, L as LineChart, d as Line } from "./chart-vendor-B4mXDXqa.js";
+import { R as ResponsiveContainer, P as PieChart, a as Pie, C as Cell, T as Tooltip$1, B as BarChart, b as CartesianGrid, X as XAxis, Y as YAxis, c as Bar, L as LineChart, d as Line } from "./chart-vendor-EdIRVdBM.js";
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -23227,7 +23227,7 @@ const DefaultFiltersPage = () => {
       /* @__PURE__ */ jsxRuntimeExports.jsxs(Grid, { container: true, spacing: 4, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs(Grid, { item: true, xs: 12, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { display: "flex", alignItems: "center", gap: 2, mb: 3, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(DateRangeIcon, { color: "primary", sx: { fontSize: 32 } }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(DateRange, { color: "primary", sx: { fontSize: 32 } }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h6", fontWeight: 700, children: "ช่วงวันที่" })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs(Grid, { container: true, spacing: 3, children: [
@@ -26000,133 +26000,123 @@ function createDOMPurify() {
   return DOMPurify;
 }
 var purify = createDOMPurify();
-const formatDurationText = (durationMs, options) => {
-  if (!Number.isFinite(durationMs) || durationMs < 0) {
+const formatDuration = (ms) => {
+  if (!Number.isFinite(ms) || ms < 0) {
     return "-";
   }
-  const { suffix, minimumUnit = "minute" } = options || {};
-  const totalSeconds = Math.floor(durationMs / 1e3);
-  const totalMinutes = Math.floor(totalSeconds / 60);
+  if (ms < 6e4) {
+    return "น้อยกว่าหนึ่งนาที";
+  }
+  const totalMinutes = Math.floor(ms / 6e4);
   const days = Math.floor(totalMinutes / (60 * 24));
   const hours = Math.floor(totalMinutes % (60 * 24) / 60);
   const minutes = totalMinutes % 60;
-  const seconds = totalSeconds % 60;
   const parts = [];
-  if (days > 0) {
-    parts.push(`${days} วัน`);
-  }
-  if (hours > 0) {
-    parts.push(`${hours} ชม.`);
-  }
-  if (minutes > 0 || minimumUnit === "minute" && parts.length === 0) {
-    parts.push(`${minutes} นาที`);
-  }
-  if (minimumUnit === "second" && parts.length === 0) {
-    parts.push(`${seconds} วินาที`);
-  }
-  const text2 = parts.join(" ");
-  return suffix ? `${text2} ${suffix}` : text2;
+  if (days > 0) parts.push(`${days} วัน`);
+  if (hours > 0) parts.push(`${hours} ชม.`);
+  if (minutes > 0) parts.push(`${minutes} นาที`);
+  return parts.join(" ");
 };
-const extractStatusChanges = (activitiesAsc) => {
-  const changes = [];
-  activitiesAsc.forEach((activity) => {
-    if (!(activity == null ? void 0 : activity.details) || !Array.isArray(activity.details)) {
-      return;
-    }
-    const statusDetail = activity.details.find(
-      (d) => d.property === "status" || d.property === "Status"
-    );
-    if (!statusDetail || !statusDetail.new_value) {
-      return;
-    }
-    const timestamp = activity.created_at ? new Date(activity.created_at) : /* @__PURE__ */ new Date();
-    const fromStatus = statusDetail.old_value || null;
-    const toStatus = statusDetail.new_value;
-    const byUser = activity.user_name || "ไม่ระบุ";
-    changes.push({
-      timestamp,
-      fromStatus,
-      toStatus,
-      byUser,
-      activityId: activity.id || 0
-    });
-  });
-  return changes;
+const getTs = (a) => {
+  if (!a) return 0;
+  const rawDate = a.created_at || a.createdAt || a.created_on || a.createdOn;
+  if (rawDate) {
+    const timestamp = Date.parse(rawDate);
+    if (!Number.isNaN(timestamp)) return timestamp;
+  }
+  if (typeof a.version === "number") {
+    return a.version * 1e9;
+  }
+  if (typeof a.id === "number") {
+    return a.id * 1e8;
+  }
+  return 0;
 };
-const buildStatusTimeline = (activitiesAsc, wpCreatedAt, wpCurrentStatus, wpAuthor, useNowForCurrent = true) => {
-  const statusChanges = extractStatusChanges(activitiesAsc);
+const pickName = (v) => {
+  if (!v) return "";
+  if (typeof v === "string") return v.trim();
+  if (typeof v === "number") return String(v);
+  if (typeof v === "object" && v.name) return String(v.name).trim();
+  return String(v).trim();
+};
+const getStatusChange = (a) => {
+  if (!(a == null ? void 0 : a.details) || !Array.isArray(a.details)) {
+    return null;
+  }
+  const statusDetail = a.details.find(
+    (d) => d.property === "status" || d.property === "Status" || d.name === "status" || d.name === "Status"
+  );
+  if (!statusDetail) {
+    return null;
+  }
+  const fromRaw = statusDetail.old_value ?? statusDetail.from;
+  const toRaw = statusDetail.new_value ?? statusDetail.to;
+  if (!toRaw) {
+    return null;
+  }
+  return {
+    fromStatus: pickName(fromRaw),
+    toStatus: pickName(toRaw)
+  };
+};
+const extractCreatedTime = (activitiesAsc, wpDetail) => {
+  if (activitiesAsc && activitiesAsc.length > 0) {
+    const firstTs = getTs(activitiesAsc[0]);
+    if (firstTs > 0) return firstTs;
+  }
+  if (wpDetail == null ? void 0 : wpDetail.created_at) {
+    const ts = Date.parse(wpDetail.created_at);
+    if (!Number.isNaN(ts)) return ts;
+  }
+  return 0;
+};
+const computeStatusSpansByNeighbor = (activitiesAsc) => {
   const spans = [];
-  if (!wpCreatedAt) {
+  if (!activitiesAsc || activitiesAsc.length < 2) {
     return spans;
   }
-  let initialStatus = wpCurrentStatus;
-  if (statusChanges.length > 0) {
-    const firstChange = statusChanges[0];
-    if (firstChange.fromStatus) {
-      initialStatus = firstChange.fromStatus;
+  for (let i = 1; i < activitiesAsc.length; i++) {
+    const currentActivity = activitiesAsc[i];
+    const change = getStatusChange(currentActivity);
+    if (!change) {
+      continue;
     }
+    const prevActivity = activitiesAsc[i - 1];
+    const startTs = getTs(prevActivity);
+    const endTs = getTs(currentActivity);
+    if (startTs <= 0 || endTs <= 0 || endTs < startTs) {
+      continue;
+    }
+    const durationMs = Math.max(0, endTs - startTs);
+    spans.push({
+      index: i,
+      startTs,
+      endTs,
+      durationMs,
+      fromStatus: change.fromStatus,
+      toStatus: change.toStatus
+    });
   }
-  let currentStartTs = wpCreatedAt;
-  let currentStatus = initialStatus;
-  let currentUser = wpAuthor;
-  statusChanges.forEach((change, index) => {
-    const previousSpan = {
-      status: currentStatus,
-      startTs: currentStartTs,
-      endTs: change.timestamp,
-      durationMs: Math.max(0, change.timestamp.getTime() - currentStartTs.getTime()),
-      byUser: currentUser,
-      isCurrent: false,
-      activityId: index > 0 ? statusChanges[index - 1].activityId : void 0
-    };
-    spans.push(previousSpan);
-    currentStartTs = change.timestamp;
-    currentStatus = change.toStatus;
-    currentUser = change.byUser;
-  });
-  const endTs = useNowForCurrent ? null : /* @__PURE__ */ new Date();
-  const currentSpan = {
-    status: currentStatus,
-    startTs: currentStartTs,
-    endTs,
-    durationMs: endTs ? Math.max(0, endTs.getTime() - currentStartTs.getTime()) : Math.max(0, Date.now() - currentStartTs.getTime()),
-    byUser: currentUser,
-    isCurrent: !endTs,
-    activityId: statusChanges.length > 0 ? statusChanges[statusChanges.length - 1].activityId : void 0
-  };
-  spans.push(currentSpan);
   return spans;
 };
-const attachDurationsToActivities = (activitiesAsc, statusTimeline) => {
-  return activitiesAsc.map((activity) => {
-    var _a2;
-    const statusDetail = (_a2 = activity.details) == null ? void 0 : _a2.find(
-      (d) => d.property === "status" || d.property === "Status"
-    );
-    if (!statusDetail) {
-      return activity;
-    }
-    const matchingSpan = statusTimeline.find((span) => span.activityId === activity.id);
-    let timeInPrevStatusMs = 0;
-    let timeInPrevStatusText = "";
-    let prevStatus = "";
-    if (matchingSpan) {
-      const spanIndex = statusTimeline.indexOf(matchingSpan);
-      if (spanIndex > 0) {
-        const prevSpan = statusTimeline[spanIndex - 1];
-        timeInPrevStatusMs = prevSpan.durationMs;
-        timeInPrevStatusText = formatDurationText(timeInPrevStatusMs);
-        prevStatus = prevSpan.status;
-      }
-    }
-    return {
-      ...activity,
-      timeInPrevStatusMs,
-      timeInPrevStatusText,
-      prevStatus,
-      matchingSpan
-    };
-  });
+const computeTailSpan = (activitiesAsc, endRefMs) => {
+  if (!activitiesAsc || activitiesAsc.length === 0) {
+    return null;
+  }
+  const lastActivity = activitiesAsc[activitiesAsc.length - 1];
+  const lastChange = getStatusChange(lastActivity);
+  if (!lastChange) {
+    return null;
+  }
+  const lastTs = getTs(lastActivity);
+  if (lastTs <= 0 || endRefMs <= lastTs) {
+    return null;
+  }
+  const durationMs = Math.max(0, endRefMs - lastTs);
+  return {
+    durationMs,
+    status: lastChange.toStatus
+  };
 };
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -26143,7 +26133,7 @@ function TabPanel(props) {
   );
 }
 const WorkPackageDetailPro = () => {
-  var _a2, _b2, _c2;
+  var _a2, _b2;
   const { id } = useParams();
   const navigate = useNavigate();
   const theme = useTheme$1();
@@ -26217,78 +26207,61 @@ const WorkPackageDetailPro = () => {
     refetchOnMount: true
   });
   const activities = (journals == null ? void 0 : journals.journals) || [];
-  const chronologicalActivities = React.useMemo(() => {
+  const activitiesAsc = React.useMemo(() => {
     if (!Array.isArray(activities) || activities.length === 0) {
       return [];
     }
-    const getActivityTimestamp = (entry) => {
-      if (!entry) return 0;
-      const rawDate = entry.created_at || entry.createdAt || entry.created_on || entry.createdOn;
-      if (rawDate) {
-        const timestamp = Date.parse(rawDate);
-        if (!Number.isNaN(timestamp)) return timestamp;
-      }
-      if (typeof entry.version === "number") {
-        return entry.version * 1e9;
-      }
-      if (typeof entry.id === "number") {
-        return entry.id * 1e8;
-      }
-      return 0;
-    };
     const sorted = [...activities].sort((a, b) => {
-      return getActivityTimestamp(a) - getActivityTimestamp(b);
+      return getTs(a) - getTs(b);
     });
     return sorted;
-  }, [activities, wpId]);
-  const statusTimeline = React.useMemo(() => {
-    if (!wpDetail) {
-      return [];
-    }
-    const wpData = wpDetail;
-    const createdAt = wpData.created_at ? new Date(wpData.created_at) : null;
-    const currentStatus2 = wpData.status || "New";
-    const author = wpData.author_name || "System";
-    const timeline = buildStatusTimeline(
-      chronologicalActivities,
-      createdAt,
-      currentStatus2,
-      author,
-      true
-      // Use current time for ongoing status
-    );
-    return timeline.map((span, index) => ({
-      activityId: span.activityId || -1,
-      status: span.status,
-      enteredAt: span.startTs,
-      user: span.byUser,
-      previousStatus: index > 0 ? timeline[index - 1].status : null,
-      transitionDurationMs: index > 0 ? timeline[index - 1].durationMs : void 0,
-      transitionDurationText: index > 0 ? formatDurationText(timeline[index - 1].durationMs) : void 0,
-      timeInStatusMs: span.durationMs,
-      timeInStatusText: formatDurationText(span.durationMs, {
-        suffix: span.isCurrent ? "(จนถึงปัจจุบัน)" : ""
-      }),
-      isCurrent: span.isCurrent
-    }));
-  }, [chronologicalActivities, wpDetail]);
+  }, [activities]);
+  const createdTs = React.useMemo(() => {
+    return extractCreatedTime(activitiesAsc, wpDetail);
+  }, [activitiesAsc, wpDetail]);
+  const statusSpans = React.useMemo(() => {
+    return computeStatusSpansByNeighbor(activitiesAsc);
+  }, [activitiesAsc]);
+  const tailSpan = React.useMemo(() => {
+    if (!wpDetail) return null;
+    const endRefMs = wpDetail.updated_at ? Date.parse(wpDetail.updated_at) : Date.now();
+    return computeTailSpan(activitiesAsc, endRefMs);
+  }, [activitiesAsc, wpDetail]);
   const activitiesWithDurations = React.useMemo(() => {
-    if (!wpDetail) {
-      return chronologicalActivities;
-    }
-    const wpData = wpDetail;
-    const createdAt = wpData.created_at ? new Date(wpData.created_at) : null;
-    const currentStatus2 = wpData.status || "New";
-    const author = wpData.author_name || "System";
-    const timeline = buildStatusTimeline(
-      chronologicalActivities,
-      createdAt,
-      currentStatus2,
-      author,
-      true
-    );
-    return attachDurationsToActivities(chronologicalActivities, timeline);
-  }, [chronologicalActivities, wpDetail]);
+    return activitiesAsc.map((activity, i) => {
+      const change = getStatusChange(activity);
+      if (!change || i === 0) {
+        return {
+          ...activity,
+          isStatusChange: !!change,
+          isFirstActivity: i === 0,
+          timeInPrevStatusMs: 0,
+          timeInPrevStatusText: "",
+          prevStatus: ""
+        };
+      }
+      const matchingSpan = statusSpans.find((span) => span.index === i);
+      if (!matchingSpan) {
+        return {
+          ...activity,
+          isStatusChange: true,
+          isFirstActivity: false,
+          timeInPrevStatusMs: 0,
+          timeInPrevStatusText: "",
+          prevStatus: change.fromStatus
+        };
+      }
+      return {
+        ...activity,
+        isStatusChange: true,
+        isFirstActivity: false,
+        timeInPrevStatusMs: matchingSpan.durationMs,
+        timeInPrevStatusText: formatDuration(matchingSpan.durationMs),
+        prevStatus: matchingSpan.fromStatus,
+        toStatus: matchingSpan.toStatus
+      };
+    });
+  }, [activitiesAsc, statusSpans]);
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
@@ -26370,7 +26343,7 @@ const WorkPackageDetailPro = () => {
     return { color: "#f59e0b", icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Flag, {}), label: priority };
   };
   const priorityConfig = getPriorityConfig(wp.priority);
-  const totalComments = chronologicalActivities.filter(
+  const totalComments = activitiesAsc.filter(
     (a) => a.notes && a.notes.trim().length > 0
   ).length;
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -26573,7 +26546,7 @@ const WorkPackageDetailPro = () => {
                 {
                   icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Update, { fontSize: "small" }),
                   label: "กิจกรรมทั้งหมด",
-                  value: `${chronologicalActivities.length.toLocaleString()} รายการ`
+                  value: `${activitiesAsc.length.toLocaleString()} รายการ`
                 },
                 {
                   icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Comment, { fontSize: "small" }),
@@ -26665,7 +26638,7 @@ const WorkPackageDetailPro = () => {
                     /* @__PURE__ */ jsxRuntimeExports.jsx(
                       Tab,
                       {
-                        icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { badgeContent: chronologicalActivities.length, color: "error", max: 99, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Timeline, {}) }),
+                        icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { badgeContent: activitiesAsc.length, color: "error", max: 99, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Timeline, {}) }),
                         label: "ประวัติกิจกรรม",
                         iconPosition: "start"
                       }
@@ -26728,7 +26701,7 @@ const WorkPackageDetailPro = () => {
                     ]
                   }
                 ) }),
-                statusTimeline.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, { in: true, timeout: 500, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
+                (createdTs > 0 || statusSpans.length > 0) && /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, { in: true, timeout: 500, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 2, mb: 3, children: [
                     /* @__PURE__ */ jsxRuntimeExports.jsx(
                       Avatar,
@@ -26748,67 +26721,39 @@ const WorkPackageDetailPro = () => {
                         backgroundClip: "text",
                         WebkitBackgroundClip: "text",
                         WebkitTextFillColor: "transparent"
-                      }, children: "⏱️ เวลาในแต่ละสถานะ" }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body2", color: "text.secondary", fontWeight: 600, children: "คำนวณจากลำดับกิจกรรมจริง โดยใช้ timestamp ของแต่ละ status change" })
+                      }, children: "⏱️ สรุปเวลาแต่ละสถานะ" }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body2", color: "text.secondary", fontWeight: 600, children: "คำนวณจากกิจกรรมถัดไป − กิจกรรมก่อนหน้า" })
                     ] })
                   ] }),
                   /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { sx: { mb: 4, p: 3, bgcolor: alpha("#f59e0b", 0.1), borderRadius: 3, border: `1px solid ${alpha("#f59e0b", 0.2)}` }, children: [
                     /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 2, mb: 2, children: [
                       /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { color: "#f59e0b" } }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h6", fontWeight: 700, color: "#92400e", children: "สรุปไทม์ไลน์ทั้งหมด" })
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h6", fontWeight: 700, color: "#92400e", children: "สรุปไทม์ไลน์" })
                     ] }),
                     /* @__PURE__ */ jsxRuntimeExports.jsxs(Grid, { container: true, spacing: 2, children: [
                       /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "body2", color: "text.secondary", children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "รวมเวลาทั้งหมด:" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "จำนวนช่วงสถานะ:" }),
                         " ",
-                        formatDurationText(statusTimeline.reduce((sum, item) => sum + (item.timeInStatusMs || 0), 0))
+                        statusSpans.length,
+                        " ช่วง"
                       ] }) }),
                       /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "body2", color: "text.secondary", children: [
                         /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "สถานะปัจจุบัน:" }),
                         " ",
-                        ((_a2 = statusTimeline.find((item) => item.isCurrent)) == null ? void 0 : _a2.status) || "ไม่ระบุ"
+                        statusSpans.length > 0 ? statusSpans[statusSpans.length - 1].toStatus : (wpDetail == null ? void 0 : wpDetail.status) || "ไม่ระบุ"
                       ] }) })
                     ] })
                   ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { container: true, spacing: 3, children: statusTimeline.map((item, index) => {
-                    const toStatus = item.status || "ไม่ระบุ";
-                    const fromStatus = item.previousStatus || "สร้างงาน";
-                    const normalizedStatus = toStatus.toLowerCase();
-                    const isInitialEntry = item.activityId === -1 || !item.previousStatus;
-                    const transitionText = item.transitionDurationText;
-                    const timeInStatusText = item.timeInStatusText;
-                    const enteredAt = item.enteredAt ? new Date(item.enteredAt) : null;
-                    const displayUser = item.user || "System";
-                    const userInitial = displayUser.charAt(0).toUpperCase();
-                    let bgColor = "#6366f1";
-                    let textColor = "#4f46e5";
-                    let gradient = "linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%)";
-                    if (normalizedStatus.includes("new") || normalizedStatus.includes("ใหม่")) {
-                      bgColor = "#6366f1";
-                      textColor = "#4f46e5";
-                      gradient = "linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.1) 100%)";
-                    } else if (normalizedStatus.includes("รับเรื่อง")) {
-                      bgColor = "#06b6d4";
-                      textColor = "#0891b2";
-                      gradient = "linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.1) 100%)";
-                    } else if (normalizedStatus.includes("กำลังดำเนินการ")) {
-                      bgColor = "#f59e0b";
-                      textColor = "#d97706";
-                      gradient = "linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%)";
-                    } else if (normalizedStatus.includes("เสร็จ") || normalizedStatus.includes("ปิด")) {
-                      bgColor = "#10b981";
-                      textColor = "#059669";
-                      gradient = "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%)";
-                    }
-                    return /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, lg: 4, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Zoom, { in: true, timeout: 400 + index * 100, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs(Grid, { container: true, spacing: 3, children: [
+                    createdTs > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, lg: 4, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Zoom, { in: true, timeout: 400, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
                       Paper,
                       {
                         elevation: 0,
                         sx: {
                           p: 4,
                           borderRadius: 4,
-                          background: gradient,
-                          border: `2px solid ${alpha(bgColor, 0.3)}`,
+                          background: "linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.1) 100%)",
+                          border: `2px solid ${alpha("#6366f1", 0.3)}`,
                           position: "relative",
                           overflow: "hidden",
                           transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -26819,31 +26764,140 @@ const WorkPackageDetailPro = () => {
                             left: 0,
                             right: 0,
                             height: "4px",
-                            background: `linear-gradient(90deg, ${bgColor} 0%, ${alpha(bgColor, 0.5)} 100%)`
+                            background: `linear-gradient(90deg, #6366f1 0%, ${alpha("#6366f1", 0.5)} 100%)`
                           },
-                          "&::after": item.isCurrent ? {
-                            content: '"LIVE"',
-                            position: "absolute",
-                            top: 12,
-                            right: 12,
-                            fontSize: "0.7rem",
-                            fontWeight: 900,
-                            color: "white",
-                            bgcolor: "#ef4444",
-                            px: 1,
-                            py: 0.25,
-                            borderRadius: 1,
-                            animation: "pulse 2s infinite"
-                          } : {},
                           "&:hover": {
-                            borderColor: bgColor,
-                            boxShadow: `0 20px 40px ${alpha(bgColor, 0.25)}, inset 0 0 0 1px ${alpha(bgColor, 0.1)}`,
+                            borderColor: "#6366f1",
+                            boxShadow: `0 20px 40px ${alpha("#6366f1", 0.25)}, inset 0 0 0 1px ${alpha("#6366f1", 0.1)}`,
                             transform: "translateY(-6px) scale(1.02)"
                           }
                         },
                         children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 3, children: [
-                          /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1.5, flexWrap: "wrap", children: [
-                            item.previousStatus ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1.5, children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              Chip,
+                              {
+                                label: "เริ่มต้น",
+                                size: "small",
+                                icon: /* @__PURE__ */ jsxRuntimeExports.jsx(PlayArrow, { sx: { fontSize: 16 } }),
+                                sx: {
+                                  bgcolor: "rgba(255, 255, 255, 0.9)",
+                                  color: "#4f46e5",
+                                  fontWeight: 700,
+                                  border: `1px solid ${alpha("#6366f1", 0.2)}`,
+                                  fontSize: "0.8rem"
+                                }
+                              }
+                            ),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              Chip,
+                              {
+                                label: "New (Created)",
+                                sx: {
+                                  bgcolor: "#6366f1",
+                                  color: "white",
+                                  fontWeight: 800,
+                                  fontSize: "0.9rem",
+                                  height: 36,
+                                  border: `2px solid ${alpha("#6366f1", 0.3)}`,
+                                  boxShadow: `0 4px 12px ${alpha("#6366f1", 0.3)}`
+                                }
+                              }
+                            )
+                          ] }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Divider, { sx: { borderColor: alpha("#6366f1", 0.15) } }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            Box,
+                            {
+                              sx: {
+                                textAlign: "center",
+                                py: 3,
+                                px: 2,
+                                bgcolor: "rgba(255, 255, 255, 0.6)",
+                                borderRadius: 3,
+                                border: `1px solid ${alpha("#6366f1", 0.1)}`
+                              },
+                              children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 1, alignItems: "center", children: [
+                                /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1, children: [
+                                  /* @__PURE__ */ jsxRuntimeExports.jsx(DateRange, { sx: { color: "#6366f1", fontSize: 24 } }),
+                                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                    Typography,
+                                    {
+                                      variant: "body2",
+                                      fontWeight: 700,
+                                      sx: {
+                                        color: "#4f46e5",
+                                        textTransform: "uppercase",
+                                        letterSpacing: 0.5,
+                                        fontSize: "0.75rem"
+                                      },
+                                      children: "เวลาที่สร้างงาน"
+                                    }
+                                  )
+                                ] }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h5", fontWeight: 900, sx: { color: "#4f46e5" }, children: format(new Date(createdTs), "dd/MM/yyyy", { locale: th }) }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body2", fontWeight: 600, sx: { color: "#4f46e5" }, children: format(new Date(createdTs), "HH:mm:ss น.", { locale: th }) }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", sx: { color: "#4f46e5", opacity: 0.85, mt: 1 }, children: "🚀 จุดเริ่มต้นของงาน" })
+                              ] })
+                            }
+                          )
+                        ] })
+                      }
+                    ) }) }),
+                    statusSpans.map((span, index) => {
+                      const fromStatus = span.fromStatus || "ไม่ระบุ";
+                      const toStatus = span.toStatus || "ไม่ระบุ";
+                      const durationText = formatDuration(span.durationMs);
+                      const normalizedToStatus = toStatus.toLowerCase();
+                      let bgColor = "#6366f1";
+                      let textColor = "#4f46e5";
+                      let gradient = "linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%)";
+                      if (normalizedToStatus.includes("new") || normalizedToStatus.includes("ใหม่")) {
+                        bgColor = "#6366f1";
+                        textColor = "#4f46e5";
+                        gradient = "linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.1) 100%)";
+                      } else if (normalizedToStatus.includes("รับเรื่อง")) {
+                        bgColor = "#06b6d4";
+                        textColor = "#0891b2";
+                        gradient = "linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.1) 100%)";
+                      } else if (normalizedToStatus.includes("กำลังดำเนินการ")) {
+                        bgColor = "#f59e0b";
+                        textColor = "#d97706";
+                        gradient = "linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%)";
+                      } else if (normalizedToStatus.includes("เสร็จ") || normalizedToStatus.includes("ปิด")) {
+                        bgColor = "#10b981";
+                        textColor = "#059669";
+                        gradient = "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%)";
+                      }
+                      return /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, lg: 4, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Zoom, { in: true, timeout: 500 + index * 100, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Paper,
+                        {
+                          elevation: 0,
+                          sx: {
+                            p: 4,
+                            borderRadius: 4,
+                            background: gradient,
+                            border: `2px solid ${alpha(bgColor, 0.3)}`,
+                            position: "relative",
+                            overflow: "hidden",
+                            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                            "&::before": {
+                              content: '""',
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              height: "4px",
+                              background: `linear-gradient(90deg, ${bgColor} 0%, ${alpha(bgColor, 0.5)} 100%)`
+                            },
+                            "&:hover": {
+                              borderColor: bgColor,
+                              boxShadow: `0 20px 40px ${alpha(bgColor, 0.25)}, inset 0 0 0 1px ${alpha(bgColor, 0.1)}`,
+                              transform: "translateY(-6px) scale(1.02)"
+                            }
+                          },
+                          children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 3, children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1.5, flexWrap: "wrap", children: [
                               /* @__PURE__ */ jsxRuntimeExports.jsx(
                                 Chip,
                                 {
@@ -26858,44 +26912,146 @@ const WorkPackageDetailPro = () => {
                                   }
                                 }
                               ),
-                              /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { sx: { color: bgColor, display: "flex", alignItems: "center" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(TrendingFlat, { sx: { fontSize: 24 } }) })
-                            ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { sx: { color: bgColor, display: "flex", alignItems: "center" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(TrendingFlat, { sx: { fontSize: 24 } }) }),
+                              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                Chip,
+                                {
+                                  label: toStatus,
+                                  sx: {
+                                    bgcolor: bgColor,
+                                    color: "white",
+                                    fontWeight: 800,
+                                    fontSize: "0.9rem",
+                                    height: 36,
+                                    border: `2px solid ${alpha(bgColor, 0.3)}`,
+                                    boxShadow: `0 4px 12px ${alpha(bgColor, 0.3)}`
+                                  }
+                                }
+                              )
+                            ] }),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(Divider, { sx: { borderColor: alpha(bgColor, 0.15) } }),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              Box,
+                              {
+                                sx: {
+                                  textAlign: "center",
+                                  py: 3,
+                                  px: 2,
+                                  bgcolor: "rgba(255, 255, 255, 0.6)",
+                                  borderRadius: 3,
+                                  border: `1px solid ${alpha(bgColor, 0.1)}`
+                                },
+                                children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 1, alignItems: "center", children: [
+                                  /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1, children: [
+                                    /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { color: bgColor, fontSize: 24 } }),
+                                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                                      Typography,
+                                      {
+                                        variant: "body2",
+                                        fontWeight: 700,
+                                        sx: {
+                                          color: textColor,
+                                          textTransform: "uppercase",
+                                          letterSpacing: 0.5,
+                                          fontSize: "0.75rem"
+                                        },
+                                        children: [
+                                          "อยู่ในสถานะ ",
+                                          fromStatus
+                                        ]
+                                      }
+                                    )
+                                  ] }),
+                                  /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h4", fontWeight: 900, sx: { color: textColor }, children: durationText }),
+                                  /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "caption", sx: { color: textColor, opacity: 0.85 }, children: [
+                                    "คำนวณจาก activity #",
+                                    span.index,
+                                    " − #",
+                                    span.index - 1
+                                  ] })
+                                ] })
+                              }
+                            ),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(Divider, { sx: { borderColor: alpha(bgColor, 0.15) } }),
+                            /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 1, children: [
+                              /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "caption", sx: { color: "text.secondary", fontSize: "0.7rem" }, children: [
+                                "📅 เริ่ม: ",
+                                format(new Date(span.startTs), "dd/MM/yyyy HH:mm:ss", { locale: th })
+                              ] }),
+                              /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "caption", sx: { color: "text.secondary", fontSize: "0.7rem" }, children: [
+                                "📅 จบ: ",
+                                format(new Date(span.endTs), "dd/MM/yyyy HH:mm:ss", { locale: th })
+                              ] })
+                            ] })
+                          ] })
+                        }
+                      ) }) }, `span-${index}`);
+                    }),
+                    tailSpan && /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, lg: 4, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Zoom, { in: true, timeout: 500 + statusSpans.length * 100, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Paper,
+                      {
+                        elevation: 0,
+                        sx: {
+                          p: 4,
+                          borderRadius: 4,
+                          background: "linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)",
+                          border: `2px solid ${alpha("#ef4444", 0.3)}`,
+                          position: "relative",
+                          overflow: "hidden",
+                          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                          "&::before": {
+                            content: '""',
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: "4px",
+                            background: `linear-gradient(90deg, #ef4444 0%, ${alpha("#ef4444", 0.5)} 100%)`
+                          },
+                          "&::after": {
+                            content: '"LIVE"',
+                            position: "absolute",
+                            top: 12,
+                            right: 12,
+                            fontSize: "0.7rem",
+                            fontWeight: 900,
+                            color: "white",
+                            bgcolor: "#ef4444",
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: 1,
+                            animation: "pulse 2s infinite"
+                          },
+                          "&:hover": {
+                            borderColor: "#ef4444",
+                            boxShadow: `0 20px 40px ${alpha("#ef4444", 0.25)}, inset 0 0 0 1px ${alpha("#ef4444", 0.1)}`,
+                            transform: "translateY(-6px) scale(1.02)"
+                          }
+                        },
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 3, children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1.5, flexWrap: "wrap", children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(
                               Chip,
                               {
-                                label: "เริ่มต้น",
-                                size: "small",
-                                icon: /* @__PURE__ */ jsxRuntimeExports.jsx(PlayArrow, { sx: { fontSize: 16 } }),
+                                label: tailSpan.status,
                                 sx: {
-                                  bgcolor: "rgba(255, 255, 255, 0.9)",
-                                  color: textColor,
-                                  fontWeight: 700,
-                                  border: `1px solid ${alpha(bgColor, 0.2)}`,
-                                  fontSize: "0.8rem"
+                                  bgcolor: "#ef4444",
+                                  color: "white",
+                                  fontWeight: 800,
+                                  fontSize: "0.9rem",
+                                  height: 36,
+                                  border: `2px solid ${alpha("#ef4444", 0.3)}`,
+                                  boxShadow: `0 4px 12px ${alpha("#ef4444", 0.3)}`
                                 }
                               }
                             ),
                             /* @__PURE__ */ jsxRuntimeExports.jsx(
                               Chip,
                               {
-                                label: toStatus,
-                                sx: {
-                                  bgcolor: bgColor,
-                                  color: "white",
-                                  fontWeight: 800,
-                                  fontSize: "0.9rem",
-                                  height: 36,
-                                  border: `2px solid ${alpha(bgColor, 0.3)}`,
-                                  boxShadow: `0 4px 12px ${alpha(bgColor, 0.3)}`
-                                }
-                              }
-                            ),
-                            item.isCurrent && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                              Chip,
-                              {
                                 label: "ปัจจุบัน",
                                 size: "small",
                                 sx: {
-                                  bgcolor: "#ef4444",
+                                  bgcolor: "#dc2626",
                                   color: "white",
                                   fontWeight: 700,
                                   animation: "pulse 2s infinite"
@@ -26903,7 +27059,7 @@ const WorkPackageDetailPro = () => {
                               }
                             )
                           ] }),
-                          /* @__PURE__ */ jsxRuntimeExports.jsx(Divider, { sx: { borderColor: alpha(bgColor, 0.15) } }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Divider, { sx: { borderColor: alpha("#ef4444", 0.15) } }),
                           /* @__PURE__ */ jsxRuntimeExports.jsx(
                             Box,
                             {
@@ -26913,65 +27069,35 @@ const WorkPackageDetailPro = () => {
                                 px: 2,
                                 bgcolor: "rgba(255, 255, 255, 0.6)",
                                 borderRadius: 3,
-                                border: `1px solid ${alpha(bgColor, 0.1)}`,
-                                position: "relative"
+                                border: `1px solid ${alpha("#ef4444", 0.1)}`
                               },
                               children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 1, alignItems: "center", children: [
                                 /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1, children: [
-                                  /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { color: bgColor, fontSize: 24 } }),
+                                  /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { color: "#ef4444", fontSize: 24 } }),
                                   /* @__PURE__ */ jsxRuntimeExports.jsx(
                                     Typography,
                                     {
                                       variant: "body2",
                                       fontWeight: 700,
                                       sx: {
-                                        color: textColor,
+                                        color: "#dc2626",
                                         textTransform: "uppercase",
                                         letterSpacing: 0.5,
                                         fontSize: "0.75rem"
                                       },
-                                      children: "เวลาที่อยู่ในสถานะนี้"
+                                      children: "อยู่ในสถานะปัจจุบัน"
                                     }
                                   )
                                 ] }),
-                                /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h4", fontWeight: 900, sx: { color: textColor }, children: timeInStatusText || "กำลังคำนวณ..." }),
-                                transitionText ? /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "caption", sx: { color: textColor, opacity: 0.85 }, children: [
-                                  'จากสถานะ "',
-                                  fromStatus,
-                                  '" หลัง ',
-                                  transitionText
-                                ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", sx: { color: textColor, opacity: 0.85 }, children: isInitialEntry ? "🚀 จุดเริ่มต้นของงาน" : "ไม่มีข้อมูลเวลาเดิม" })
+                                /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h4", fontWeight: 900, sx: { color: "#dc2626" }, children: formatDuration(tailSpan.durationMs) }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", sx: { color: "#dc2626", opacity: 0.85 }, children: "ตั้งแต่ activity สุดท้ายจนถึงปัจจุบัน" })
                               ] })
                             }
-                          ),
-                          /* @__PURE__ */ jsxRuntimeExports.jsx(Divider, { sx: { borderColor: alpha(bgColor, 0.15) } }),
-                          /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, { spacing: 1.5, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1.5, children: [
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(
-                              Avatar,
-                              {
-                                sx: {
-                                  bgcolor: alpha(bgColor, 0.15),
-                                  color: bgColor,
-                                  width: 36,
-                                  height: 36,
-                                  fontSize: "1rem",
-                                  fontWeight: 800
-                                },
-                                children: userInitial || "?"
-                              }
-                            ),
-                            /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
-                              /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body2", fontWeight: 700, sx: { color: textColor }, children: displayUser }),
-                              enteredAt && /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "caption", sx: { color: "text.secondary", fontSize: "0.7rem" }, children: [
-                                "📅 ",
-                                format(enteredAt, "dd/MM/yyyy HH:mm น.", { locale: th })
-                              ] })
-                            ] })
-                          ] }) })
+                          )
                         ] })
                       }
-                    ) }) }, index);
-                  }) })
+                    ) }) })
+                  ] })
                 ] }) }),
                 /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, { in: true, timeout: 800, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, { direction: "row", alignItems: "center", justifyContent: "space-between", mb: 3, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 2, children: [
@@ -27139,7 +27265,7 @@ const WorkPackageDetailPro = () => {
                               icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Bolt, {}),
                               label: wp.customField9,
                               sx: {
-                                bgcolor: ((_b2 = wp.customField9) == null ? void 0 : _b2.toLowerCase().includes("ด่วน")) ? "#ef4444" : "#f59e0b",
+                                bgcolor: ((_a2 = wp.customField9) == null ? void 0 : _a2.toLowerCase().includes("ด่วน")) ? "#ef4444" : "#f59e0b",
                                 color: "white",
                                 fontWeight: 800
                               }
@@ -27182,7 +27308,7 @@ const WorkPackageDetailPro = () => {
                                   fontSize: "1.2rem",
                                   fontWeight: 900
                                 },
-                                children: ((_c2 = wp.assignee_name) == null ? void 0 : _c2.charAt(0)) || "?"
+                                children: ((_b2 = wp.assignee_name) == null ? void 0 : _b2.charAt(0)) || "?"
                               }
                             ),
                             /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body1", fontWeight: 700, color: "#075985", children: wp.assignee_name || "ยังไม่ได้มอบหมาย" })
@@ -27217,13 +27343,11 @@ const WorkPackageDetailPro = () => {
                 ] }) })
               ] }) }) }),
               /* @__PURE__ */ jsxRuntimeExports.jsx(TabPanel, { value: tabValue, index: 1, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { sx: { px: 4 }, children: activitiesWithDurations.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(List, { sx: { width: "100%" }, children: activitiesWithDurations.map((activity, index) => {
-                var _a3, _b3, _c3;
                 const activityDate = activity.created_at ? new Date(activity.created_at) : null;
                 const hasComment = activity.notes && activity.notes.trim().length > 0;
                 const hasChanges = activity.details && activity.details.length > 0;
-                const isStatusChange = (_a3 = activity.details) == null ? void 0 : _a3.some(
-                  (d) => d.property === "status" || d.property === "Status"
-                );
+                const isStatusChange = activity.isStatusChange;
+                const isFirstActivity = activity.isFirstActivity;
                 return /* @__PURE__ */ jsxRuntimeExports.jsx(Zoom, { in: true, timeout: 300 + index * 50, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
                   ListItem,
                   {
@@ -27310,7 +27434,41 @@ const WorkPackageDetailPro = () => {
                               }
                             ) })
                           ] }),
-                          isStatusChange && activity.timeInPrevStatusText && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                          isFirstActivity && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                            Box,
+                            {
+                              sx: {
+                                p: 3,
+                                mb: 3,
+                                bgcolor: "rgba(99, 102, 241, 0.1)",
+                                borderLeft: "4px solid #6366f1",
+                                borderRadius: 2
+                              },
+                              children: [
+                                /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1, mb: 2, children: [
+                                  /* @__PURE__ */ jsxRuntimeExports.jsx(PlayArrow, { fontSize: "small", sx: { color: "#6366f1" } }),
+                                  /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "subtitle2", fontWeight: 800, color: "#4f46e5", children: "🚀 Created (New)" })
+                                ] }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                                  Typography,
+                                  {
+                                    variant: "body1",
+                                    sx: {
+                                      lineHeight: 1.7,
+                                      color: "#4338ca",
+                                      fontWeight: 600
+                                    },
+                                    children: [
+                                      "งานถูกสร้างเมื่อ",
+                                      " ",
+                                      /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { color: "#3730a3" }, children: activityDate ? format(activityDate, "dd/MM/yyyy HH:mm:ss น.", { locale: th }) : "ไม่ระบุ" })
+                                    ]
+                                  }
+                                )
+                              ]
+                            }
+                          ),
+                          isStatusChange && !isFirstActivity && activity.timeInPrevStatusText && /* @__PURE__ */ jsxRuntimeExports.jsxs(
                             Box,
                             {
                               sx: {
@@ -27341,9 +27499,7 @@ const WorkPackageDetailPro = () => {
                                       " ",
                                       /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { color: "#3730a3" }, children: activity.timeInPrevStatusText }),
                                       " ",
-                                      'ก่อนเปลี่ยนเป็น "',
-                                      (_c3 = (_b3 = activity.details) == null ? void 0 : _b3.find((d) => d.property === "status")) == null ? void 0 : _c3.new_value,
-                                      '"'
+                                      "(คำนวณจาก activity ถัดไป − ก่อนหน้า)"
                                     ]
                                   }
                                 )
@@ -27392,7 +27548,6 @@ const WorkPackageDetailPro = () => {
                             ] }),
                             /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { container: true, spacing: 2, children: activity.details.map((detail, i) => {
                               const isDetailStatusChange = detail.property === "status" || detail.property === "Status";
-                              const matchingTimeline = isDetailStatusChange ? statusTimeline.find((t) => t.activityId === activity.id) : null;
                               return /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: isDetailStatusChange ? 12 : 6, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
                                 Paper,
                                 {
@@ -27410,28 +27565,9 @@ const WorkPackageDetailPro = () => {
                                     }
                                   },
                                   children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 1.5, children: [
-                                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", justifyContent: "space-between", children: [
-                                      /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "subtitle2", fontWeight: 900, sx: { color: isDetailStatusChange ? "#6366f1" : "text.primary" }, children: [
-                                        detail.property,
-                                        isDetailStatusChange && " 🎯"
-                                      ] }),
-                                      isDetailStatusChange && (matchingTimeline == null ? void 0 : matchingTimeline.timeInStatusText) && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                                        Chip,
-                                        {
-                                          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { fontSize: 16 } }),
-                                          label: matchingTimeline.timeInStatusText,
-                                          size: "small",
-                                          sx: {
-                                            bgcolor: alpha("#6366f1", 0.15),
-                                            color: "#6366f1",
-                                            fontWeight: 800,
-                                            fontSize: "0.75rem",
-                                            height: 26,
-                                            border: `1px solid ${alpha("#6366f1", 0.3)}`,
-                                            "& .MuiChip-icon": { color: "#6366f1" }
-                                          }
-                                        }
-                                      )
+                                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "subtitle2", fontWeight: 900, sx: { color: isDetailStatusChange ? "#6366f1" : "text.primary" }, children: [
+                                      detail.property,
+                                      isDetailStatusChange && " 🎯"
                                     ] }),
                                     /* @__PURE__ */ jsxRuntimeExports.jsxs(
                                       Stack,
@@ -27540,4 +27676,4 @@ client.createRoot(document.getElementById("root")).render(
     /* @__PURE__ */ jsxRuntimeExports.jsx(App, {})
   ] }) })
 );
-//# sourceMappingURL=index-BX1LUNUV.js.map
+//# sourceMappingURL=index-DmRqcGOE.js.map
