@@ -90,6 +90,11 @@ import { th } from 'date-fns/locale';
 import { wpApi } from '../../api/client';
 import DOMPurify from 'dompurify';
 
+// ===== TIME-IN-STATUS CALCULATION UTILITIES =====
+
+/**
+ * Enhanced duration formatter with Thai locale support
+ */
 const formatDurationText = (durationMs: number, options?: { suffix?: string; minimumUnit?: 'minute' | 'second' }) => {
   if (!Number.isFinite(durationMs) || durationMs < 0) {
     return '-';
@@ -108,7 +113,7 @@ const formatDurationText = (durationMs: number, options?: { suffix?: string; min
     parts.push(`${days} วัน`);
   }
   if (hours > 0) {
-    parts.push(`${hours} ชั่วโมง`);
+    parts.push(`${hours} ชม.`);
   }
   if (minutes > 0 || (minimumUnit === 'minute' && parts.length === 0)) {
     parts.push(`${minutes} นาที`);
@@ -119,6 +124,185 @@ const formatDurationText = (durationMs: number, options?: { suffix?: string; min
 
   const text = parts.join(' ');
   return suffix ? `${text} ${suffix}` : text;
+};
+
+/**
+ * Interface for status change events extracted from activities
+ */
+interface StatusChange {
+  timestamp: Date;
+  fromStatus: string | null;
+  toStatus: string;
+  byUser: string;
+  activityId: number;
+}
+
+/**
+ * Interface for status timeline spans with calculated durations
+ */
+interface StatusSpan {
+  status: string;
+  startTs: Date;
+  endTs: Date | null; // null = current status (ongoing)
+  durationMs: number;
+  byUser: string;
+  isCurrent: boolean;
+  activityId?: number;
+}
+
+/**
+ * Extract status changes from chronological activities
+ * @param activitiesAsc - Activities sorted from oldest to newest
+ * @returns Array of status change events
+ */
+const extractStatusChanges = (activitiesAsc: any[]): StatusChange[] => {
+  const changes: StatusChange[] = [];
+  
+  activitiesAsc.forEach((activity) => {
+    if (!activity?.details || !Array.isArray(activity.details)) {
+      return;
+    }
+
+    const statusDetail = activity.details.find((d: any) => 
+      d.property === 'status' || d.property === 'Status'
+    );
+
+    if (!statusDetail || !statusDetail.new_value) {
+      return;
+    }
+
+    const timestamp = activity.created_at ? new Date(activity.created_at) : new Date();
+    const fromStatus = statusDetail.old_value || null;
+    const toStatus = statusDetail.new_value;
+    const byUser = activity.user_name || 'ไม่ระบุ';
+
+    changes.push({
+      timestamp,
+      fromStatus,
+      toStatus,
+      byUser,
+      activityId: activity.id || 0,
+    });
+  });
+
+  return changes;
+};
+
+/**
+ * Build complete status timeline with accurate time-in-status calculations
+ * @param activitiesAsc - Chronological activities
+ * @param wpCreatedAt - Work package creation timestamp
+ * @param wpCurrentStatus - Current status from work package data
+ * @param wpAuthor - Work package author
+ * @param useNowForCurrent - Whether to use current time for ongoing status
+ * @returns Complete status timeline with durations
+ */
+const buildStatusTimeline = (
+  activitiesAsc: any[],
+  wpCreatedAt: Date | null,
+  wpCurrentStatus: string,
+  wpAuthor: string,
+  useNowForCurrent: boolean = true
+): StatusSpan[] => {
+  const statusChanges = extractStatusChanges(activitiesAsc);
+  const spans: StatusSpan[] = [];
+
+  if (!wpCreatedAt) {
+    return spans;
+  }
+
+  // Determine initial status
+  let initialStatus = wpCurrentStatus;
+  if (statusChanges.length > 0) {
+    const firstChange = statusChanges[0];
+    if (firstChange.fromStatus) {
+      initialStatus = firstChange.fromStatus;
+    }
+  }
+
+  // Build timeline spans
+  let currentStartTs = wpCreatedAt;
+  let currentStatus = initialStatus;
+  let currentUser = wpAuthor;
+
+  statusChanges.forEach((change, index) => {
+    // Close previous span
+    const previousSpan: StatusSpan = {
+      status: currentStatus,
+      startTs: currentStartTs,
+      endTs: change.timestamp,
+      durationMs: Math.max(0, change.timestamp.getTime() - currentStartTs.getTime()),
+      byUser: currentUser,
+      isCurrent: false,
+      activityId: index > 0 ? statusChanges[index - 1].activityId : undefined,
+    };
+    spans.push(previousSpan);
+
+    // Start new span
+    currentStartTs = change.timestamp;
+    currentStatus = change.toStatus;
+    currentUser = change.byUser;
+  });
+
+  // Add final/current span
+  const endTs = useNowForCurrent ? null : new Date();
+  const currentSpan: StatusSpan = {
+    status: currentStatus,
+    startTs: currentStartTs,
+    endTs,
+    durationMs: endTs ? Math.max(0, endTs.getTime() - currentStartTs.getTime()) : 
+                      Math.max(0, Date.now() - currentStartTs.getTime()),
+    byUser: currentUser,
+    isCurrent: !endTs,
+    activityId: statusChanges.length > 0 ? statusChanges[statusChanges.length - 1].activityId : undefined,
+  };
+  spans.push(currentSpan);
+
+  return spans;
+};
+
+/**
+ * Attach duration information to activities for enhanced display
+ * @param activitiesAsc - Chronological activities  
+ * @param statusTimeline - Calculated status timeline
+ * @returns Activities enhanced with duration data
+ */
+const attachDurationsToActivities = (activitiesAsc: any[], statusTimeline: StatusSpan[]) => {
+  return activitiesAsc.map((activity) => {
+    const statusDetail = activity.details?.find((d: any) => 
+      d.property === 'status' || d.property === 'Status'
+    );
+
+    if (!statusDetail) {
+      return activity;
+    }
+
+    // Find matching timeline span
+    const matchingSpan = statusTimeline.find(span => span.activityId === activity.id);
+    
+    let timeInPrevStatusMs = 0;
+    let timeInPrevStatusText = '';
+    let prevStatus = '';
+
+    if (matchingSpan) {
+      // Find the previous span to get time spent in previous status
+      const spanIndex = statusTimeline.indexOf(matchingSpan);
+      if (spanIndex > 0) {
+        const prevSpan = statusTimeline[spanIndex - 1];
+        timeInPrevStatusMs = prevSpan.durationMs;
+        timeInPrevStatusText = formatDurationText(timeInPrevStatusMs);
+        prevStatus = prevSpan.status;
+      }
+    }
+
+    return {
+      ...activity,
+      timeInPrevStatusMs,
+      timeInPrevStatusText,
+      prevStatus,
+      matchingSpan,
+    };
+  });
 };
 
 interface TabPanelProps {
@@ -277,7 +461,7 @@ const WorkPackageDetailPro: React.FC = () => {
     return sorted;
   }, [activities, wpId]);
 
-  // Calculate status timeline from activities with correct duration calculation
+  // Enhanced status timeline calculation using actual journal activities
   const statusTimeline = React.useMemo(() => {
     if (!wpDetail) {
       return [];
@@ -285,119 +469,56 @@ const WorkPackageDetailPro: React.FC = () => {
 
     const wpData: any = wpDetail;
     const createdAt = wpData.created_at ? new Date(wpData.created_at) : null;
+    const currentStatus = wpData.status || 'New';
+    const author = wpData.author_name || 'System';
 
-    type RawEntry = {
-      status: string;
-      enteredAt: Date;
-      actor: string;
-      activityId: number;
-    };
+    // Build accurate timeline from activities
+    const timeline = buildStatusTimeline(
+      chronologicalActivities,
+      createdAt,
+      currentStatus,
+      author,
+      true // Use current time for ongoing status
+    );
 
-    const entries: RawEntry[] = [];
+    // Convert to display format
+    return timeline.map((span, index) => ({
+      activityId: span.activityId || -1,
+      status: span.status,
+      enteredAt: span.startTs,
+      user: span.byUser,
+      previousStatus: index > 0 ? timeline[index - 1].status : null,
+      transitionDurationMs: index > 0 ? timeline[index - 1].durationMs : undefined,
+      transitionDurationText: index > 0 ? formatDurationText(timeline[index - 1].durationMs) : undefined,
+      timeInStatusMs: span.durationMs,
+      timeInStatusText: formatDurationText(span.durationMs, { 
+        suffix: span.isCurrent ? '(จนถึงปัจจุบัน)' : '' 
+      }),
+      isCurrent: span.isCurrent,
+    }));
+  }, [chronologicalActivities, wpDetail]);
 
-    // Determine the initial status at creation time
-    let initialStatus = wpData.status || 'New';
-    const firstStatusChange = chronologicalActivities.find((activity: any) => {
-      if (activity.details && Array.isArray(activity.details)) {
-        return activity.details.some(
-          (d: any) => (d.property === 'status' || d.property === 'Status') && d.new_value
-        );
-      }
-      return false;
-    });
-
-    if (firstStatusChange) {
-      const firstChange = firstStatusChange.details.find(
-        (d: any) => d.property === 'status' || d.property === 'Status'
-      );
-      if (firstChange?.old_value) {
-        initialStatus = firstChange.old_value;
-      }
+  // Enhanced activities with duration information
+  const activitiesWithDurations = React.useMemo(() => {
+    if (!wpDetail) {
+      return chronologicalActivities;
     }
 
-    if (createdAt) {
-      entries.push({
-        status: initialStatus,
-        enteredAt: createdAt,
-        actor: wpData.author_name || 'System',
-        activityId: -1,
-      });
-    }
+    const wpData: any = wpDetail;
+    const createdAt = wpData.created_at ? new Date(wpData.created_at) : null;
+    const currentStatus = wpData.status || 'New';
+    const author = wpData.author_name || 'System';
 
-    // Collect all subsequent status changes
-    chronologicalActivities.forEach((activity: any) => {
-      if (!activity?.details || !Array.isArray(activity.details)) {
-        return;
-      }
+    // Build timeline for duration calculations
+    const timeline = buildStatusTimeline(
+      chronologicalActivities,
+      createdAt,
+      currentStatus,
+      author,
+      true
+    );
 
-      const statusDetail = activity.details.find(
-        (d: any) => d.property === 'status' || d.property === 'Status'
-      );
-      if (!statusDetail || !statusDetail.new_value) {
-        return;
-      }
-
-      const enteredAt = activity.created_at ? new Date(activity.created_at) : new Date();
-      entries.push({
-        status: statusDetail.new_value,
-        enteredAt,
-        actor: activity.user_name || 'ไม่ระบุ',
-        activityId: activity.id,
-      });
-    });
-
-    if (entries.length === 0 && createdAt) {
-      entries.push({
-        status: wpData.status || 'ไม่ระบุ',
-        enteredAt: createdAt,
-        actor: wpData.author_name || 'System',
-        activityId: -1,
-      });
-    }
-
-    const sorted = entries.sort((a, b) => a.enteredAt.getTime() - b.enteredAt.getTime());
-
-    const formatted = sorted.map((entry, index) => {
-      const previous = sorted[index - 1];
-      const next = sorted[index + 1];
-
-      let transitionDurationMs: number | undefined;
-      let transitionDurationText: string | undefined;
-      let previousStatus: string | undefined;
-
-      if (previous) {
-        const diffPrev = entry.enteredAt.getTime() - previous.enteredAt.getTime();
-        if (diffPrev >= 0) {
-          transitionDurationMs = diffPrev;
-          transitionDurationText = formatDurationText(diffPrev);
-          previousStatus = previous.status;
-        }
-      }
-
-      const referenceEnd = next ? next.enteredAt : new Date();
-      const timeInStatusDiff = referenceEnd.getTime() - entry.enteredAt.getTime();
-
-      const timeInStatusMs = timeInStatusDiff >= 0 ? timeInStatusDiff : undefined;
-      const timeInStatusText =
-        timeInStatusMs !== undefined
-          ? formatDurationText(timeInStatusMs, { suffix: next ? '' : '(จนถึงปัจจุบัน)' })
-          : undefined;
-
-      return {
-        activityId: entry.activityId,
-        status: entry.status,
-        enteredAt: entry.enteredAt,
-        user: entry.actor,
-        previousStatus,
-        transitionDurationMs,
-        transitionDurationText,
-        timeInStatusMs,
-        timeInStatusText,
-        isCurrent: !next,
-      };
-    });
-
-    return formatted;
+    return attachDurationsToActivities(chronologicalActivities, timeline);
   }, [chronologicalActivities, wpDetail]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -859,7 +980,7 @@ const WorkPackageDetailPro: React.FC = () => {
                     </Fade>
                   )}
 
-                  {/* Status Duration Cards */}
+                  {/* Enhanced Status Duration Cards with Accurate Timeline */}
                   {statusTimeline.length > 0 && (
                     <Fade in timeout={500}>
                       <Box>
@@ -867,16 +988,50 @@ const WorkPackageDetailPro: React.FC = () => {
                           <Avatar
                             sx={{
                               bgcolor: '#f59e0b',
-                              width: 48,
-                              height: 48,
+                              width: 52,
+                              height: 52,
+                              boxShadow: '0 8px 24px rgba(245, 158, 11, 0.3)',
                             }}
                           >
-                            <HistoryToggleOff />
+                            <HistoryToggleOff sx={{ fontSize: 28 }} />
                           </Avatar>
-                          <Typography variant="h5" fontWeight={800} color="#92400e">
-                            ⏱️ ระยะเวลาในแต่ละสถานะ
-                          </Typography>
+                          <Box>
+                            <Typography variant="h4" fontWeight={900} sx={{ 
+                              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                              backgroundClip: 'text',
+                              WebkitBackgroundClip: 'text',
+                              WebkitTextFillColor: 'transparent',
+                            }}>
+                              ⏱️ เวลาในแต่ละสถานะ
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                              คำนวณจากลำดับกิจกรรมจริง โดยใช้ timestamp ของแต่ละ status change
+                            </Typography>
+                          </Box>
                         </Stack>
+
+                        {/* Timeline Summary */}
+                        <Box sx={{ mb: 4, p: 3, bgcolor: alpha('#f59e0b', 0.1), borderRadius: 3, border: `1px solid ${alpha('#f59e0b', 0.2)}` }}>
+                          <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+                            <AccessTime sx={{ color: '#f59e0b' }} />
+                            <Typography variant="h6" fontWeight={700} color="#92400e">
+                              สรุปไทม์ไลน์ทั้งหมด
+                            </Typography>
+                          </Stack>
+                          <Grid container spacing={2}>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="body2" color="text.secondary">
+                                <strong>รวมเวลาทั้งหมด:</strong>{' '}
+                                {formatDurationText(statusTimeline.reduce((sum, item) => sum + (item.timeInStatusMs || 0), 0))}
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="body2" color="text.secondary">
+                                <strong>สถานะปัจจุบัน:</strong> {statusTimeline.find(item => item.isCurrent)?.status || 'ไม่ระบุ'}
+                              </Typography>
+                            </Grid>
+                          </Grid>
+                        </Box>
 
                         <Grid container spacing={3}>
                           {statusTimeline.map((item, index) => {
@@ -890,7 +1045,7 @@ const WorkPackageDetailPro: React.FC = () => {
                             const displayUser = item.user || 'System';
                             const userInitial = displayUser.charAt(0).toUpperCase();
 
-                            // Color based on destination status - Modern palette
+                            // Enhanced color palette based on status
                             let bgColor = '#6366f1';
                             let textColor = '#4f46e5';
                             let gradient = 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%)';
@@ -919,7 +1074,7 @@ const WorkPackageDetailPro: React.FC = () => {
                                   <Paper
                                     elevation={0}
                                     sx={{
-                                      p: 3.5,
+                                      p: 4,
                                       borderRadius: 4,
                                       background: gradient,
                                       border: `2px solid ${alpha(bgColor, 0.3)}`,
@@ -935,6 +1090,20 @@ const WorkPackageDetailPro: React.FC = () => {
                                         height: '4px',
                                         background: `linear-gradient(90deg, ${bgColor} 0%, ${alpha(bgColor, 0.5)} 100%)`,
                                       },
+                                      '&::after': item.isCurrent ? {
+                                        content: '"LIVE"',
+                                        position: 'absolute',
+                                        top: 12,
+                                        right: 12,
+                                        fontSize: '0.7rem',
+                                        fontWeight: 900,
+                                        color: 'white',
+                                        bgcolor: '#ef4444',
+                                        px: 1,
+                                        py: 0.25,
+                                        borderRadius: 1,
+                                        animation: 'pulse 2s infinite',
+                                      } : {},
                                       '&:hover': {
                                         borderColor: bgColor,
                                         boxShadow: `0 20px 40px ${alpha(bgColor, 0.25)}, inset 0 0 0 1px ${alpha(bgColor, 0.1)}`,
@@ -942,8 +1111,8 @@ const WorkPackageDetailPro: React.FC = () => {
                                       },
                                     }}
                                   >
-                                    <Stack spacing={2.5}>
-                                      {/* Status Transition with Icon */}
+                                    <Stack spacing={3}>
+                                      {/* Status Transition with Enhanced Icons */}
                                       <Stack direction="row" alignItems="center" spacing={1.5} flexWrap="wrap">
                                         {item.previousStatus ? (
                                           <>
@@ -951,7 +1120,7 @@ const WorkPackageDetailPro: React.FC = () => {
                                               label={fromStatus}
                                               size="small"
                                               sx={{
-                                                bgcolor: 'rgba(255, 255, 255, 0.8)',
+                                                bgcolor: 'rgba(255, 255, 255, 0.9)',
                                                 color: textColor,
                                                 fontWeight: 700,
                                                 border: `1px solid ${alpha(bgColor, 0.2)}`,
@@ -966,8 +1135,9 @@ const WorkPackageDetailPro: React.FC = () => {
                                           <Chip
                                             label="เริ่มต้น"
                                             size="small"
+                                            icon={<PlayArrow sx={{ fontSize: 16 }} />}
                                             sx={{
-                                              bgcolor: 'rgba(255, 255, 255, 0.8)',
+                                              bgcolor: 'rgba(255, 255, 255, 0.9)',
                                               color: textColor,
                                               fontWeight: 700,
                                               border: `1px solid ${alpha(bgColor, 0.2)}`,
@@ -975,32 +1145,27 @@ const WorkPackageDetailPro: React.FC = () => {
                                             }}
                                           />
                                         )}
-                                        {!item.previousStatus && (
-                                          <Box sx={{ color: bgColor, display: 'flex', alignItems: 'center' }}>
-                                            <PlayArrow sx={{ fontSize: 20 }} />
-                                          </Box>
-                                        )}
                                         <Chip
                                           label={toStatus}
                                           sx={{
                                             bgcolor: bgColor,
                                             color: 'white',
                                             fontWeight: 800,
-                                            fontSize: '0.85rem',
-                                            height: 32,
+                                            fontSize: '0.9rem',
+                                            height: 36,
                                             border: `2px solid ${alpha(bgColor, 0.3)}`,
                                             boxShadow: `0 4px 12px ${alpha(bgColor, 0.3)}`,
                                           }}
                                         />
                                         {item.isCurrent && (
                                           <Chip
-                                            label="สถานะปัจจุบัน"
+                                            label="ปัจจุบัน"
                                             size="small"
                                             sx={{
-                                              bgcolor: alpha(bgColor, 0.2),
-                                              color: textColor,
+                                              bgcolor: '#ef4444',
+                                              color: 'white',
                                               fontWeight: 700,
-                                              border: `1px solid ${alpha(bgColor, 0.2)}`,
+                                              animation: 'pulse 2s infinite',
                                             }}
                                           />
                                         )}
@@ -1008,38 +1173,44 @@ const WorkPackageDetailPro: React.FC = () => {
 
                                       <Divider sx={{ borderColor: alpha(bgColor, 0.15) }} />
 
-                                      {/* Duration Display - Prominent */}
+                                      {/* Enhanced Duration Display */}
                                       <Box
                                         sx={{
                                           textAlign: 'center',
-                                          py: 2,
+                                          py: 3,
                                           px: 2,
-                                          bgcolor: 'rgba(255, 255, 255, 0.5)',
-                                          borderRadius: 2,
+                                          bgcolor: 'rgba(255, 255, 255, 0.6)',
+                                          borderRadius: 3,
                                           border: `1px solid ${alpha(bgColor, 0.1)}`,
+                                          position: 'relative',
                                         }}
                                       >
-                                        <Stack spacing={0.75} alignItems="center">
+                                        <Stack spacing={1} alignItems="center">
                                           <Stack direction="row" alignItems="center" spacing={1}>
-                                            <AccessTime sx={{ color: bgColor, fontSize: 22 }} />
+                                            <AccessTime sx={{ color: bgColor, fontSize: 24 }} />
                                             <Typography
                                               variant="body2"
                                               fontWeight={700}
-                                              sx={{ color: textColor, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.75rem' }}
+                                              sx={{ 
+                                                color: textColor, 
+                                                textTransform: 'uppercase', 
+                                                letterSpacing: 0.5, 
+                                                fontSize: '0.75rem' 
+                                              }}
                                             >
                                               เวลาที่อยู่ในสถานะนี้
                                             </Typography>
                                           </Stack>
-                                          <Typography variant="h5" fontWeight={900} sx={{ color: textColor }}>
+                                          <Typography variant="h4" fontWeight={900} sx={{ color: textColor }}>
                                             {timeInStatusText || 'กำลังคำนวณ...'}
                                           </Typography>
                                           {transitionText ? (
                                             <Typography variant="caption" sx={{ color: textColor, opacity: 0.85 }}>
-                                              จากสถานะ {fromStatus} หลัง {transitionText}
+                                              จากสถานะ "{fromStatus}" หลัง {transitionText}
                                             </Typography>
                                           ) : (
                                             <Typography variant="caption" sx={{ color: textColor, opacity: 0.85 }}>
-                                              {isInitialEntry ? 'จุดเริ่มต้นของงาน' : 'ไม่มีข้อมูลเวลาเดิม'}
+                                              {isInitialEntry ? '🚀 จุดเริ่มต้นของงาน' : 'ไม่มีข้อมูลเวลาเดิม'}
                                             </Typography>
                                           )}
                                         </Stack>
@@ -1054,9 +1225,9 @@ const WorkPackageDetailPro: React.FC = () => {
                                             sx={{
                                               bgcolor: alpha(bgColor, 0.15),
                                               color: bgColor,
-                                              width: 32,
-                                              height: 32,
-                                              fontSize: '0.9rem',
+                                              width: 36,
+                                              height: 36,
+                                              fontSize: '1rem',
                                               fontWeight: 800,
                                             }}
                                           >
@@ -1068,7 +1239,7 @@ const WorkPackageDetailPro: React.FC = () => {
                                             </Typography>
                                             {enteredAt && (
                                               <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-                                                {format(enteredAt, 'dd/MM/yyyy HH:mm', { locale: th })}
+                                                📅 {format(enteredAt, 'dd/MM/yyyy HH:mm น.', { locale: th })}
                                               </Typography>
                                             )}
                                           </Box>
@@ -1472,12 +1643,15 @@ const WorkPackageDetailPro: React.FC = () => {
             {/* Tab 2: Activities */}
             <TabPanel value={tabValue} index={1}>
               <Box sx={{ px: 4 }}>
-                {chronologicalActivities.length > 0 ? (
+                {activitiesWithDurations.length > 0 ? (
                   <List sx={{ width: '100%' }}>
-                    {chronologicalActivities.map((activity: any, index: number) => {
+                    {activitiesWithDurations.map((activity: any, index: number) => {
                       const activityDate = activity.created_at ? new Date(activity.created_at) : null;
                       const hasComment = activity.notes && activity.notes.trim().length > 0;
                       const hasChanges = activity.details && activity.details.length > 0;
+                      const isStatusChange = activity.details?.some((d: any) => 
+                        d.property === 'status' || d.property === 'Status'
+                      );
 
                       return (
                         <Zoom in key={activity.id || index} timeout={300 + index * 50}>
@@ -1498,10 +1672,14 @@ const WorkPackageDetailPro: React.FC = () => {
                                 border: `3px solid ${
                                   hasComment
                                     ? alpha(theme.palette.warning.main, 0.3)
+                                    : isStatusChange
+                                    ? alpha('#6366f1', 0.4)
                                     : alpha(theme.palette.primary.main, 0.3)
                                 }`,
                                 background: hasComment
                                   ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
+                                  : isStatusChange
+                                  ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)'
                                   : 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
                                 position: 'relative',
                                 overflow: 'hidden',
@@ -1509,7 +1687,11 @@ const WorkPackageDetailPro: React.FC = () => {
                                 '&:hover': {
                                   transform: 'translateX(10px)',
                                   boxShadow: `0 12px 30px ${alpha(
-                                    hasComment ? theme.palette.warning.main : theme.palette.primary.main,
+                                    hasComment 
+                                      ? theme.palette.warning.main 
+                                      : isStatusChange 
+                                      ? '#6366f1'
+                                      : theme.palette.primary.main,
                                     0.3
                                   )}`,
                                 },
@@ -1520,7 +1702,11 @@ const WorkPackageDetailPro: React.FC = () => {
                                   left: 0,
                                   width: 6,
                                   height: '100%',
-                                  bgcolor: hasComment ? 'warning.main' : 'primary.main',
+                                  bgcolor: hasComment 
+                                    ? 'warning.main' 
+                                    : isStatusChange 
+                                    ? '#6366f1'
+                                    : 'primary.main',
                                 },
                               }}
                             >
@@ -1528,16 +1714,24 @@ const WorkPackageDetailPro: React.FC = () => {
                               <Stack direction="row" alignItems="center" spacing={3} mb={3}>
                                 <Avatar
                                   sx={{
-                                    bgcolor: hasComment ? '#f59e0b' : '#3b82f6',
+                                    bgcolor: hasComment 
+                                      ? '#f59e0b' 
+                                      : isStatusChange 
+                                      ? '#6366f1' 
+                                      : '#3b82f6',
                                     width: 56,
                                     height: 56,
                                     boxShadow: `0 4px 12px ${alpha(
-                                      hasComment ? '#f59e0b' : '#3b82f6',
+                                      hasComment 
+                                        ? '#f59e0b' 
+                                        : isStatusChange 
+                                        ? '#6366f1'
+                                        : '#3b82f6',
                                       0.4
                                     )}`,
                                   }}
                                 >
-                                  {hasComment ? <Comment /> : <Update />}
+                                  {hasComment ? <Comment /> : isStatusChange ? <HistoryToggleOff /> : <Update />}
                                 </Avatar>
                                 <Box flex={1}>
                                   <Stack
@@ -1555,7 +1749,9 @@ const WorkPackageDetailPro: React.FC = () => {
                                       sx={{
                                         height: 28,
                                         fontWeight: 800,
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        background: isStatusChange 
+                                          ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+                                          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                         color: 'white',
                                       }}
                                     />
@@ -1567,6 +1763,38 @@ const WorkPackageDetailPro: React.FC = () => {
                                   </Stack>
                                 </Box>
                               </Stack>
+
+                              {/* Status Change Duration Information */}
+                              {isStatusChange && activity.timeInPrevStatusText && (
+                                <Box
+                                  sx={{
+                                    p: 3,
+                                    mb: 3,
+                                    bgcolor: 'rgba(99, 102, 241, 0.1)',
+                                    borderLeft: '4px solid #6366f1',
+                                    borderRadius: 2,
+                                  }}
+                                >
+                                  <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+                                    <AccessTime fontSize="small" sx={{ color: '#6366f1' }} />
+                                    <Typography variant="subtitle2" fontWeight={800} color="#4f46e5">
+                                      ⏱️ ระยะเวลาในสถานะ
+                                    </Typography>
+                                  </Stack>
+                                  <Typography
+                                    variant="body1"
+                                    sx={{
+                                      lineHeight: 1.7,
+                                      color: '#4338ca',
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    อยู่ในสถานะ "{activity.prevStatus}" นาน{' '}
+                                    <strong style={{ color: '#3730a3' }}>{activity.timeInPrevStatusText}</strong>{' '}
+                                    ก่อนเปลี่ยนเป็น "{activity.details?.find((d: any) => d.property === 'status')?.new_value}"
+                                  </Typography>
+                                </Box>
+                              )}
 
                               {/* Comment */}
                               {hasComment && (
@@ -1610,31 +1838,27 @@ const WorkPackageDetailPro: React.FC = () => {
                                   </Stack>
                                   <Grid container spacing={2}>
                                     {activity.details.map((detail: any, i: number) => {
-                                      // Find matching status change in timeline to get duration
-                                      const isStatusChange = detail.property === 'status' || detail.property === 'Status';
-                                      const matchingTimeline = isStatusChange
+                                      const isDetailStatusChange = detail.property === 'status' || detail.property === 'Status';
+                                      const matchingTimeline = isDetailStatusChange
                                         ? statusTimeline.find((t) => t.activityId === activity.id)
                                         : null;
-                                      const timelinePreviousStatus = matchingTimeline?.previousStatus || 'เริ่มต้น';
-                                      const timelineTransitionText = matchingTimeline?.transitionDurationText || 'ไม่พบข้อมูลเวลาเดิม';
-                                      const timelineTimeInStatusText = matchingTimeline?.timeInStatusText;
 
                                       return (
-                                        <Grid item xs={12} sm={isStatusChange ? 12 : 6} key={i}>
+                                        <Grid item xs={12} sm={isDetailStatusChange ? 12 : 6} key={i}>
                                           <Paper
                                             elevation={0}
                                             sx={{
                                               p: 2.5,
-                                              bgcolor: isStatusChange 
+                                              bgcolor: isDetailStatusChange 
                                                 ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)'
                                                 : 'rgba(255,255,255,0.7)',
-                                              border: `2px solid ${isStatusChange ? alpha('#6366f1', 0.3) : alpha(theme.palette.primary.main, 0.2)}`,
+                                              border: `2px solid ${isDetailStatusChange ? alpha('#6366f1', 0.3) : alpha(theme.palette.primary.main, 0.2)}`,
                                               borderRadius: 2,
                                               transition: 'all 0.3s ease',
                                               '&:hover': {
                                                 transform: 'scale(1.02)',
-                                                borderColor: isStatusChange ? '#6366f1' : theme.palette.primary.main,
-                                                boxShadow: isStatusChange 
+                                                borderColor: isDetailStatusChange ? '#6366f1' : theme.palette.primary.main,
+                                                boxShadow: isDetailStatusChange 
                                                   ? '0 8px 24px rgba(99, 102, 241, 0.2)'
                                                   : '0 4px 12px rgba(0, 0, 0, 0.1)',
                                               },
@@ -1642,14 +1866,14 @@ const WorkPackageDetailPro: React.FC = () => {
                                           >
                                             <Stack spacing={1.5}>
                                               <Stack direction="row" alignItems="center" justifyContent="space-between">
-                                                <Typography variant="subtitle2" fontWeight={900} sx={{ color: isStatusChange ? '#6366f1' : 'text.primary' }}>
+                                                <Typography variant="subtitle2" fontWeight={900} sx={{ color: isDetailStatusChange ? '#6366f1' : 'text.primary' }}>
                                                   {detail.property}
-                                                  {isStatusChange && ' 🎯'}
+                                                  {isDetailStatusChange && ' 🎯'}
                                                 </Typography>
-                                                {isStatusChange && matchingTimeline && (
+                                                {isDetailStatusChange && matchingTimeline?.timeInStatusText && (
                                                   <Chip
                                                     icon={<AccessTime sx={{ fontSize: 16 }} />}
-                                                    label={timelineTransitionText}
+                                                    label={matchingTimeline.timeInStatusText}
                                                     size="small"
                                                     sx={{
                                                       bgcolor: alpha('#6366f1', 0.15),
@@ -1682,7 +1906,7 @@ const WorkPackageDetailPro: React.FC = () => {
                                                         borderColor: alpha('#ef4444', 0.3),
                                                       }}
                                                     />
-                                                    <Typography variant="body2" fontWeight={900} sx={{ color: isStatusChange ? '#6366f1' : 'text.primary' }}>
+                                                    <Typography variant="body2" fontWeight={900} sx={{ color: isDetailStatusChange ? '#6366f1' : 'text.primary' }}>
                                                       →
                                                     </Typography>
                                                   </>
@@ -1699,29 +1923,6 @@ const WorkPackageDetailPro: React.FC = () => {
                                                   }}
                                                 />
                                               </Stack>
-                                              {isStatusChange && matchingTimeline && (
-                                                <Box
-                                                  sx={{
-                                                    mt: 1,
-                                                    pt: 1.5,
-                                                    borderTop: `1px solid ${alpha('#6366f1', 0.2)}`,
-                                                  }}
-                                                >
-                                                  <Stack spacing={0.5}>
-                                                    <Typography
-                                                      variant="caption"
-                                                      sx={{ color: '#6366f1', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}
-                                                    >
-                                                      ⏱️ สถานะ {timelinePreviousStatus} ใช้เวลา: {timelineTransitionText}
-                                                    </Typography>
-                                                    {timelineTimeInStatusText && (
-                                                      <Typography variant="caption" sx={{ color: '#6366f1', fontWeight: 600, opacity: 0.85 }}>
-                                                        อยู่ในสถานะใหม่ {timelineTimeInStatusText}
-                                                      </Typography>
-                                                    )}
-                                                  </Stack>
-                                                </Box>
-                                              )}
                                             </Stack>
                                           </Paper>
                                         </Grid>

@@ -26016,7 +26016,7 @@ const formatDurationText = (durationMs, options) => {
     parts.push(`${days} วัน`);
   }
   if (hours > 0) {
-    parts.push(`${hours} ชั่วโมง`);
+    parts.push(`${hours} ชม.`);
   }
   if (minutes > 0 || minimumUnit === "minute" && parts.length === 0) {
     parts.push(`${minutes} นาที`);
@@ -26026,6 +26026,107 @@ const formatDurationText = (durationMs, options) => {
   }
   const text2 = parts.join(" ");
   return suffix ? `${text2} ${suffix}` : text2;
+};
+const extractStatusChanges = (activitiesAsc) => {
+  const changes = [];
+  activitiesAsc.forEach((activity) => {
+    if (!(activity == null ? void 0 : activity.details) || !Array.isArray(activity.details)) {
+      return;
+    }
+    const statusDetail = activity.details.find(
+      (d) => d.property === "status" || d.property === "Status"
+    );
+    if (!statusDetail || !statusDetail.new_value) {
+      return;
+    }
+    const timestamp = activity.created_at ? new Date(activity.created_at) : /* @__PURE__ */ new Date();
+    const fromStatus = statusDetail.old_value || null;
+    const toStatus = statusDetail.new_value;
+    const byUser = activity.user_name || "ไม่ระบุ";
+    changes.push({
+      timestamp,
+      fromStatus,
+      toStatus,
+      byUser,
+      activityId: activity.id || 0
+    });
+  });
+  return changes;
+};
+const buildStatusTimeline = (activitiesAsc, wpCreatedAt, wpCurrentStatus, wpAuthor, useNowForCurrent = true) => {
+  const statusChanges = extractStatusChanges(activitiesAsc);
+  const spans = [];
+  if (!wpCreatedAt) {
+    return spans;
+  }
+  let initialStatus = wpCurrentStatus;
+  if (statusChanges.length > 0) {
+    const firstChange = statusChanges[0];
+    if (firstChange.fromStatus) {
+      initialStatus = firstChange.fromStatus;
+    }
+  }
+  let currentStartTs = wpCreatedAt;
+  let currentStatus = initialStatus;
+  let currentUser = wpAuthor;
+  statusChanges.forEach((change, index) => {
+    const previousSpan = {
+      status: currentStatus,
+      startTs: currentStartTs,
+      endTs: change.timestamp,
+      durationMs: Math.max(0, change.timestamp.getTime() - currentStartTs.getTime()),
+      byUser: currentUser,
+      isCurrent: false,
+      activityId: index > 0 ? statusChanges[index - 1].activityId : void 0
+    };
+    spans.push(previousSpan);
+    currentStartTs = change.timestamp;
+    currentStatus = change.toStatus;
+    currentUser = change.byUser;
+  });
+  const endTs = useNowForCurrent ? null : /* @__PURE__ */ new Date();
+  const currentSpan = {
+    status: currentStatus,
+    startTs: currentStartTs,
+    endTs,
+    durationMs: endTs ? Math.max(0, endTs.getTime() - currentStartTs.getTime()) : Math.max(0, Date.now() - currentStartTs.getTime()),
+    byUser: currentUser,
+    isCurrent: !endTs,
+    activityId: statusChanges.length > 0 ? statusChanges[statusChanges.length - 1].activityId : void 0
+  };
+  spans.push(currentSpan);
+  return spans;
+};
+const attachDurationsToActivities = (activitiesAsc, statusTimeline) => {
+  return activitiesAsc.map((activity) => {
+    var _a2;
+    const statusDetail = (_a2 = activity.details) == null ? void 0 : _a2.find(
+      (d) => d.property === "status" || d.property === "Status"
+    );
+    if (!statusDetail) {
+      return activity;
+    }
+    const matchingSpan = statusTimeline.find((span) => span.activityId === activity.id);
+    let timeInPrevStatusMs = 0;
+    let timeInPrevStatusText = "";
+    let prevStatus = "";
+    if (matchingSpan) {
+      const spanIndex = statusTimeline.indexOf(matchingSpan);
+      if (spanIndex > 0) {
+        const prevSpan = statusTimeline[spanIndex - 1];
+        timeInPrevStatusMs = prevSpan.durationMs;
+        timeInPrevStatusText = formatDurationText(timeInPrevStatusMs);
+        prevStatus = prevSpan.status;
+      }
+    }
+    return {
+      ...activity,
+      timeInPrevStatusMs,
+      timeInPrevStatusText,
+      prevStatus,
+      matchingSpan
+    };
+  });
 };
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -26042,7 +26143,7 @@ function TabPanel(props) {
   );
 }
 const WorkPackageDetailPro = () => {
-  var _a2, _b2;
+  var _a2, _b2, _c2;
   const { id } = useParams();
   const navigate = useNavigate();
   const theme = useTheme$1();
@@ -26146,92 +26247,47 @@ const WorkPackageDetailPro = () => {
     }
     const wpData = wpDetail;
     const createdAt = wpData.created_at ? new Date(wpData.created_at) : null;
-    const entries2 = [];
-    let initialStatus = wpData.status || "New";
-    const firstStatusChange = chronologicalActivities.find((activity) => {
-      if (activity.details && Array.isArray(activity.details)) {
-        return activity.details.some(
-          (d) => (d.property === "status" || d.property === "Status") && d.new_value
-        );
-      }
-      return false;
-    });
-    if (firstStatusChange) {
-      const firstChange = firstStatusChange.details.find(
-        (d) => d.property === "status" || d.property === "Status"
-      );
-      if (firstChange == null ? void 0 : firstChange.old_value) {
-        initialStatus = firstChange.old_value;
-      }
+    const currentStatus2 = wpData.status || "New";
+    const author = wpData.author_name || "System";
+    const timeline = buildStatusTimeline(
+      chronologicalActivities,
+      createdAt,
+      currentStatus2,
+      author,
+      true
+      // Use current time for ongoing status
+    );
+    return timeline.map((span, index) => ({
+      activityId: span.activityId || -1,
+      status: span.status,
+      enteredAt: span.startTs,
+      user: span.byUser,
+      previousStatus: index > 0 ? timeline[index - 1].status : null,
+      transitionDurationMs: index > 0 ? timeline[index - 1].durationMs : void 0,
+      transitionDurationText: index > 0 ? formatDurationText(timeline[index - 1].durationMs) : void 0,
+      timeInStatusMs: span.durationMs,
+      timeInStatusText: formatDurationText(span.durationMs, {
+        suffix: span.isCurrent ? "(จนถึงปัจจุบัน)" : ""
+      }),
+      isCurrent: span.isCurrent
+    }));
+  }, [chronologicalActivities, wpDetail]);
+  const activitiesWithDurations = React.useMemo(() => {
+    if (!wpDetail) {
+      return chronologicalActivities;
     }
-    if (createdAt) {
-      entries2.push({
-        status: initialStatus,
-        enteredAt: createdAt,
-        actor: wpData.author_name || "System",
-        activityId: -1
-      });
-    }
-    chronologicalActivities.forEach((activity) => {
-      if (!(activity == null ? void 0 : activity.details) || !Array.isArray(activity.details)) {
-        return;
-      }
-      const statusDetail = activity.details.find(
-        (d) => d.property === "status" || d.property === "Status"
-      );
-      if (!statusDetail || !statusDetail.new_value) {
-        return;
-      }
-      const enteredAt = activity.created_at ? new Date(activity.created_at) : /* @__PURE__ */ new Date();
-      entries2.push({
-        status: statusDetail.new_value,
-        enteredAt,
-        actor: activity.user_name || "ไม่ระบุ",
-        activityId: activity.id
-      });
-    });
-    if (entries2.length === 0 && createdAt) {
-      entries2.push({
-        status: wpData.status || "ไม่ระบุ",
-        enteredAt: createdAt,
-        actor: wpData.author_name || "System",
-        activityId: -1
-      });
-    }
-    const sorted = entries2.sort((a, b) => a.enteredAt.getTime() - b.enteredAt.getTime());
-    const formatted = sorted.map((entry, index) => {
-      const previous = sorted[index - 1];
-      const next = sorted[index + 1];
-      let transitionDurationMs;
-      let transitionDurationText;
-      let previousStatus;
-      if (previous) {
-        const diffPrev = entry.enteredAt.getTime() - previous.enteredAt.getTime();
-        if (diffPrev >= 0) {
-          transitionDurationMs = diffPrev;
-          transitionDurationText = formatDurationText(diffPrev);
-          previousStatus = previous.status;
-        }
-      }
-      const referenceEnd = next ? next.enteredAt : /* @__PURE__ */ new Date();
-      const timeInStatusDiff = referenceEnd.getTime() - entry.enteredAt.getTime();
-      const timeInStatusMs = timeInStatusDiff >= 0 ? timeInStatusDiff : void 0;
-      const timeInStatusText = timeInStatusMs !== void 0 ? formatDurationText(timeInStatusMs, { suffix: next ? "" : "(จนถึงปัจจุบัน)" }) : void 0;
-      return {
-        activityId: entry.activityId,
-        status: entry.status,
-        enteredAt: entry.enteredAt,
-        user: entry.actor,
-        previousStatus,
-        fromStatusLabel: previousStatus || "สร้างงาน",
-        transitionDurationMs,
-        transitionDurationText,
-        timeInStatusMs,
-        timeInStatusText,
-        isCurrent: !next
-      };
-    });
-    return formatted;
+    const wpData = wpDetail;
+    const createdAt = wpData.created_at ? new Date(wpData.created_at) : null;
+    const currentStatus2 = wpData.status || "New";
+    const author = wpData.author_name || "System";
+    const timeline = buildStatusTimeline(
+      chronologicalActivities,
+      createdAt,
+      currentStatus2,
+      author,
+      true
+    );
+    return attachDurationsToActivities(chronologicalActivities, timeline);
   }, [chronologicalActivities, wpDetail]);
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -26679,13 +26735,40 @@ const WorkPackageDetailPro = () => {
                       {
                         sx: {
                           bgcolor: "#f59e0b",
-                          width: 48,
-                          height: 48
+                          width: 52,
+                          height: 52,
+                          boxShadow: "0 8px 24px rgba(245, 158, 11, 0.3)"
                         },
-                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(HistoryToggleOff, {})
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(HistoryToggleOff, { sx: { fontSize: 28 } })
                       }
                     ),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h5", fontWeight: 800, color: "#92400e", children: "⏱️ ระยะเวลาในแต่ละสถานะ" })
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h4", fontWeight: 900, sx: {
+                        background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                        backgroundClip: "text",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent"
+                      }, children: "⏱️ เวลาในแต่ละสถานะ" }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body2", color: "text.secondary", fontWeight: 600, children: "คำนวณจากลำดับกิจกรรมจริง โดยใช้ timestamp ของแต่ละ status change" })
+                    ] })
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { sx: { mb: 4, p: 3, bgcolor: alpha("#f59e0b", 0.1), borderRadius: 3, border: `1px solid ${alpha("#f59e0b", 0.2)}` }, children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 2, mb: 2, children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { color: "#f59e0b" } }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h6", fontWeight: 700, color: "#92400e", children: "สรุปไทม์ไลน์ทั้งหมด" })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Grid, { container: true, spacing: 2, children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "body2", color: "text.secondary", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "รวมเวลาทั้งหมด:" }),
+                        " ",
+                        formatDurationText(statusTimeline.reduce((sum, item) => sum + (item.timeInStatusMs || 0), 0))
+                      ] }) }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: 6, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "body2", color: "text.secondary", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "สถานะปัจจุบัน:" }),
+                        " ",
+                        ((_a2 = statusTimeline.find((item) => item.isCurrent)) == null ? void 0 : _a2.status) || "ไม่ระบุ"
+                      ] }) })
+                    ] })
                   ] }),
                   /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { container: true, spacing: 3, children: statusTimeline.map((item, index) => {
                     const toStatus = item.status || "ไม่ระบุ";
@@ -26722,7 +26805,7 @@ const WorkPackageDetailPro = () => {
                       {
                         elevation: 0,
                         sx: {
-                          p: 3.5,
+                          p: 4,
                           borderRadius: 4,
                           background: gradient,
                           border: `2px solid ${alpha(bgColor, 0.3)}`,
@@ -26738,13 +26821,27 @@ const WorkPackageDetailPro = () => {
                             height: "4px",
                             background: `linear-gradient(90deg, ${bgColor} 0%, ${alpha(bgColor, 0.5)} 100%)`
                           },
+                          "&::after": item.isCurrent ? {
+                            content: '"LIVE"',
+                            position: "absolute",
+                            top: 12,
+                            right: 12,
+                            fontSize: "0.7rem",
+                            fontWeight: 900,
+                            color: "white",
+                            bgcolor: "#ef4444",
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: 1,
+                            animation: "pulse 2s infinite"
+                          } : {},
                           "&:hover": {
                             borderColor: bgColor,
                             boxShadow: `0 20px 40px ${alpha(bgColor, 0.25)}, inset 0 0 0 1px ${alpha(bgColor, 0.1)}`,
                             transform: "translateY(-6px) scale(1.02)"
                           }
                         },
-                        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 2.5, children: [
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 3, children: [
                           /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1.5, flexWrap: "wrap", children: [
                             item.previousStatus ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
                               /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -26753,7 +26850,7 @@ const WorkPackageDetailPro = () => {
                                   label: fromStatus,
                                   size: "small",
                                   sx: {
-                                    bgcolor: "rgba(255, 255, 255, 0.8)",
+                                    bgcolor: "rgba(255, 255, 255, 0.9)",
                                     color: textColor,
                                     fontWeight: 700,
                                     border: `1px solid ${alpha(bgColor, 0.2)}`,
@@ -26767,8 +26864,9 @@ const WorkPackageDetailPro = () => {
                               {
                                 label: "เริ่มต้น",
                                 size: "small",
+                                icon: /* @__PURE__ */ jsxRuntimeExports.jsx(PlayArrow, { sx: { fontSize: 16 } }),
                                 sx: {
-                                  bgcolor: "rgba(255, 255, 255, 0.8)",
+                                  bgcolor: "rgba(255, 255, 255, 0.9)",
                                   color: textColor,
                                   fontWeight: 700,
                                   border: `1px solid ${alpha(bgColor, 0.2)}`,
@@ -26776,7 +26874,6 @@ const WorkPackageDetailPro = () => {
                                 }
                               }
                             ),
-                            !item.previousStatus && /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { sx: { color: bgColor, display: "flex", alignItems: "center" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(PlayArrow, { sx: { fontSize: 20 } }) }),
                             /* @__PURE__ */ jsxRuntimeExports.jsx(
                               Chip,
                               {
@@ -26785,8 +26882,8 @@ const WorkPackageDetailPro = () => {
                                   bgcolor: bgColor,
                                   color: "white",
                                   fontWeight: 800,
-                                  fontSize: "0.85rem",
-                                  height: 32,
+                                  fontSize: "0.9rem",
+                                  height: 36,
                                   border: `2px solid ${alpha(bgColor, 0.3)}`,
                                   boxShadow: `0 4px 12px ${alpha(bgColor, 0.3)}`
                                 }
@@ -26795,13 +26892,13 @@ const WorkPackageDetailPro = () => {
                             item.isCurrent && /* @__PURE__ */ jsxRuntimeExports.jsx(
                               Chip,
                               {
-                                label: "สถานะปัจจุบัน",
+                                label: "ปัจจุบัน",
                                 size: "small",
                                 sx: {
-                                  bgcolor: alpha(bgColor, 0.2),
-                                  color: textColor,
+                                  bgcolor: "#ef4444",
+                                  color: "white",
                                   fontWeight: 700,
-                                  border: `1px solid ${alpha(bgColor, 0.2)}`
+                                  animation: "pulse 2s infinite"
                                 }
                               }
                             )
@@ -26812,32 +26909,38 @@ const WorkPackageDetailPro = () => {
                             {
                               sx: {
                                 textAlign: "center",
-                                py: 2,
+                                py: 3,
                                 px: 2,
-                                bgcolor: "rgba(255, 255, 255, 0.5)",
-                                borderRadius: 2,
-                                border: `1px solid ${alpha(bgColor, 0.1)}`
+                                bgcolor: "rgba(255, 255, 255, 0.6)",
+                                borderRadius: 3,
+                                border: `1px solid ${alpha(bgColor, 0.1)}`,
+                                position: "relative"
                               },
-                              children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 0.75, alignItems: "center", children: [
+                              children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 1, alignItems: "center", children: [
                                 /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1, children: [
-                                  /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { color: bgColor, fontSize: 22 } }),
+                                  /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { color: bgColor, fontSize: 24 } }),
                                   /* @__PURE__ */ jsxRuntimeExports.jsx(
                                     Typography,
                                     {
                                       variant: "body2",
                                       fontWeight: 700,
-                                      sx: { color: textColor, textTransform: "uppercase", letterSpacing: 0.5, fontSize: "0.75rem" },
+                                      sx: {
+                                        color: textColor,
+                                        textTransform: "uppercase",
+                                        letterSpacing: 0.5,
+                                        fontSize: "0.75rem"
+                                      },
                                       children: "เวลาที่อยู่ในสถานะนี้"
                                     }
                                   )
                                 ] }),
-                                /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h5", fontWeight: 900, sx: { color: textColor }, children: timeInStatusText || "กำลังคำนวณ..." }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "h4", fontWeight: 900, sx: { color: textColor }, children: timeInStatusText || "กำลังคำนวณ..." }),
                                 transitionText ? /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "caption", sx: { color: textColor, opacity: 0.85 }, children: [
-                                  "จากสถานะ ",
+                                  'จากสถานะ "',
                                   fromStatus,
-                                  " หลัง ",
+                                  '" หลัง ',
                                   transitionText
-                                ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", sx: { color: textColor, opacity: 0.85 }, children: isInitialEntry ? "จุดเริ่มต้นของงาน" : "ไม่มีข้อมูลเวลาเดิม" })
+                                ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", sx: { color: textColor, opacity: 0.85 }, children: isInitialEntry ? "🚀 จุดเริ่มต้นของงาน" : "ไม่มีข้อมูลเวลาเดิม" })
                               ] })
                             }
                           ),
@@ -26849,9 +26952,9 @@ const WorkPackageDetailPro = () => {
                                 sx: {
                                   bgcolor: alpha(bgColor, 0.15),
                                   color: bgColor,
-                                  width: 32,
-                                  height: 32,
-                                  fontSize: "0.9rem",
+                                  width: 36,
+                                  height: 36,
+                                  fontSize: "1rem",
                                   fontWeight: 800
                                 },
                                 children: userInitial || "?"
@@ -26859,7 +26962,10 @@ const WorkPackageDetailPro = () => {
                             ),
                             /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { children: [
                               /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body2", fontWeight: 700, sx: { color: textColor }, children: displayUser }),
-                              enteredAt && /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "caption", sx: { color: "text.secondary", fontSize: "0.7rem" }, children: format(enteredAt, "dd/MM/yyyy HH:mm", { locale: th }) })
+                              enteredAt && /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "caption", sx: { color: "text.secondary", fontSize: "0.7rem" }, children: [
+                                "📅 ",
+                                format(enteredAt, "dd/MM/yyyy HH:mm น.", { locale: th })
+                              ] })
                             ] })
                           ] }) })
                         ] })
@@ -27033,7 +27139,7 @@ const WorkPackageDetailPro = () => {
                               icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Bolt, {}),
                               label: wp.customField9,
                               sx: {
-                                bgcolor: ((_a2 = wp.customField9) == null ? void 0 : _a2.toLowerCase().includes("ด่วน")) ? "#ef4444" : "#f59e0b",
+                                bgcolor: ((_b2 = wp.customField9) == null ? void 0 : _b2.toLowerCase().includes("ด่วน")) ? "#ef4444" : "#f59e0b",
                                 color: "white",
                                 fontWeight: 800
                               }
@@ -27076,7 +27182,7 @@ const WorkPackageDetailPro = () => {
                                   fontSize: "1.2rem",
                                   fontWeight: 900
                                 },
-                                children: ((_b2 = wp.assignee_name) == null ? void 0 : _b2.charAt(0)) || "?"
+                                children: ((_c2 = wp.assignee_name) == null ? void 0 : _c2.charAt(0)) || "?"
                               }
                             ),
                             /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body1", fontWeight: 700, color: "#075985", children: wp.assignee_name || "ยังไม่ได้มอบหมาย" })
@@ -27110,10 +27216,14 @@ const WorkPackageDetailPro = () => {
                   )
                 ] }) })
               ] }) }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(TabPanel, { value: tabValue, index: 1, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { sx: { px: 4 }, children: chronologicalActivities.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(List, { sx: { width: "100%" }, children: chronologicalActivities.map((activity, index) => {
+              /* @__PURE__ */ jsxRuntimeExports.jsx(TabPanel, { value: tabValue, index: 1, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { sx: { px: 4 }, children: activitiesWithDurations.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(List, { sx: { width: "100%" }, children: activitiesWithDurations.map((activity, index) => {
+                var _a3, _b3, _c3;
                 const activityDate = activity.created_at ? new Date(activity.created_at) : null;
                 const hasComment = activity.notes && activity.notes.trim().length > 0;
                 const hasChanges = activity.details && activity.details.length > 0;
+                const isStatusChange = (_a3 = activity.details) == null ? void 0 : _a3.some(
+                  (d) => d.property === "status" || d.property === "Status"
+                );
                 return /* @__PURE__ */ jsxRuntimeExports.jsx(Zoom, { in: true, timeout: 300 + index * 50, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
                   ListItem,
                   {
@@ -27131,15 +27241,15 @@ const WorkPackageDetailPro = () => {
                           width: "100%",
                           p: 4,
                           borderRadius: 4,
-                          border: `3px solid ${hasComment ? alpha(theme.palette.warning.main, 0.3) : alpha(theme.palette.primary.main, 0.3)}`,
-                          background: hasComment ? "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)" : "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
+                          border: `3px solid ${hasComment ? alpha(theme.palette.warning.main, 0.3) : isStatusChange ? alpha("#6366f1", 0.4) : alpha(theme.palette.primary.main, 0.3)}`,
+                          background: hasComment ? "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)" : isStatusChange ? "linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)" : "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
                           position: "relative",
                           overflow: "hidden",
                           transition: "all 0.3s ease",
                           "&:hover": {
                             transform: "translateX(10px)",
                             boxShadow: `0 12px 30px ${alpha(
-                              hasComment ? theme.palette.warning.main : theme.palette.primary.main,
+                              hasComment ? theme.palette.warning.main : isStatusChange ? "#6366f1" : theme.palette.primary.main,
                               0.3
                             )}`
                           },
@@ -27150,7 +27260,7 @@ const WorkPackageDetailPro = () => {
                             left: 0,
                             width: 6,
                             height: "100%",
-                            bgcolor: hasComment ? "warning.main" : "primary.main"
+                            bgcolor: hasComment ? "warning.main" : isStatusChange ? "#6366f1" : "primary.main"
                           }
                         },
                         children: [
@@ -27159,15 +27269,15 @@ const WorkPackageDetailPro = () => {
                               Avatar,
                               {
                                 sx: {
-                                  bgcolor: hasComment ? "#f59e0b" : "#3b82f6",
+                                  bgcolor: hasComment ? "#f59e0b" : isStatusChange ? "#6366f1" : "#3b82f6",
                                   width: 56,
                                   height: 56,
                                   boxShadow: `0 4px 12px ${alpha(
-                                    hasComment ? "#f59e0b" : "#3b82f6",
+                                    hasComment ? "#f59e0b" : isStatusChange ? "#6366f1" : "#3b82f6",
                                     0.4
                                   )}`
                                 },
-                                children: hasComment ? /* @__PURE__ */ jsxRuntimeExports.jsx(Comment, {}) : /* @__PURE__ */ jsxRuntimeExports.jsx(Update, {})
+                                children: hasComment ? /* @__PURE__ */ jsxRuntimeExports.jsx(Comment, {}) : isStatusChange ? /* @__PURE__ */ jsxRuntimeExports.jsx(HistoryToggleOff, {}) : /* @__PURE__ */ jsxRuntimeExports.jsx(Update, {})
                               }
                             ),
                             /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { flex: 1, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -27187,7 +27297,7 @@ const WorkPackageDetailPro = () => {
                                       sx: {
                                         height: 28,
                                         fontWeight: 800,
-                                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                        background: isStatusChange ? "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                                         color: "white"
                                       }
                                     }
@@ -27200,6 +27310,46 @@ const WorkPackageDetailPro = () => {
                               }
                             ) })
                           ] }),
+                          isStatusChange && activity.timeInPrevStatusText && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                            Box,
+                            {
+                              sx: {
+                                p: 3,
+                                mb: 3,
+                                bgcolor: "rgba(99, 102, 241, 0.1)",
+                                borderLeft: "4px solid #6366f1",
+                                borderRadius: 2
+                              },
+                              children: [
+                                /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", spacing: 1, mb: 2, children: [
+                                  /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { fontSize: "small", sx: { color: "#6366f1" } }),
+                                  /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "subtitle2", fontWeight: 800, color: "#4f46e5", children: "⏱️ ระยะเวลาในสถานะ" })
+                                ] }),
+                                /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                                  Typography,
+                                  {
+                                    variant: "body1",
+                                    sx: {
+                                      lineHeight: 1.7,
+                                      color: "#4338ca",
+                                      fontWeight: 600
+                                    },
+                                    children: [
+                                      'อยู่ในสถานะ "',
+                                      activity.prevStatus,
+                                      '" นาน',
+                                      " ",
+                                      /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { style: { color: "#3730a3" }, children: activity.timeInPrevStatusText }),
+                                      " ",
+                                      'ก่อนเปลี่ยนเป็น "',
+                                      (_c3 = (_b3 = activity.details) == null ? void 0 : _b3.find((d) => d.property === "status")) == null ? void 0 : _c3.new_value,
+                                      '"'
+                                    ]
+                                  }
+                                )
+                              ]
+                            }
+                          ),
                           hasComment && /* @__PURE__ */ jsxRuntimeExports.jsxs(
                             Box,
                             {
@@ -27241,38 +27391,35 @@ const WorkPackageDetailPro = () => {
                               ] })
                             ] }),
                             /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { container: true, spacing: 2, children: activity.details.map((detail, i) => {
-                              const isStatusChange = detail.property === "status" || detail.property === "Status";
-                              const matchingTimeline = isStatusChange ? statusTimeline.find((t) => t.activityId === activity.id) : null;
-                              const timelinePreviousStatus = (matchingTimeline == null ? void 0 : matchingTimeline.previousStatus) || "เริ่มต้น";
-                              const timelineTransitionText = (matchingTimeline == null ? void 0 : matchingTimeline.transitionDurationText) || "ไม่พบข้อมูลเวลาเดิม";
-                              const timelineTimeInStatusText = matchingTimeline == null ? void 0 : matchingTimeline.timeInStatusText;
-                              return /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: isStatusChange ? 12 : 6, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              const isDetailStatusChange = detail.property === "status" || detail.property === "Status";
+                              const matchingTimeline = isDetailStatusChange ? statusTimeline.find((t) => t.activityId === activity.id) : null;
+                              return /* @__PURE__ */ jsxRuntimeExports.jsx(Grid, { item: true, xs: 12, sm: isDetailStatusChange ? 12 : 6, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
                                 Paper,
                                 {
                                   elevation: 0,
                                   sx: {
                                     p: 2.5,
-                                    bgcolor: isStatusChange ? "linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)" : "rgba(255,255,255,0.7)",
-                                    border: `2px solid ${isStatusChange ? alpha("#6366f1", 0.3) : alpha(theme.palette.primary.main, 0.2)}`,
+                                    bgcolor: isDetailStatusChange ? "linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)" : "rgba(255,255,255,0.7)",
+                                    border: `2px solid ${isDetailStatusChange ? alpha("#6366f1", 0.3) : alpha(theme.palette.primary.main, 0.2)}`,
                                     borderRadius: 2,
                                     transition: "all 0.3s ease",
                                     "&:hover": {
                                       transform: "scale(1.02)",
-                                      borderColor: isStatusChange ? "#6366f1" : theme.palette.primary.main,
-                                      boxShadow: isStatusChange ? "0 8px 24px rgba(99, 102, 241, 0.2)" : "0 4px 12px rgba(0, 0, 0, 0.1)"
+                                      borderColor: isDetailStatusChange ? "#6366f1" : theme.palette.primary.main,
+                                      boxShadow: isDetailStatusChange ? "0 8px 24px rgba(99, 102, 241, 0.2)" : "0 4px 12px rgba(0, 0, 0, 0.1)"
                                     }
                                   },
                                   children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 1.5, children: [
                                     /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { direction: "row", alignItems: "center", justifyContent: "space-between", children: [
-                                      /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "subtitle2", fontWeight: 900, sx: { color: isStatusChange ? "#6366f1" : "text.primary" }, children: [
+                                      /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "subtitle2", fontWeight: 900, sx: { color: isDetailStatusChange ? "#6366f1" : "text.primary" }, children: [
                                         detail.property,
-                                        isStatusChange && " 🎯"
+                                        isDetailStatusChange && " 🎯"
                                       ] }),
-                                      isStatusChange && matchingTimeline && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                      isDetailStatusChange && (matchingTimeline == null ? void 0 : matchingTimeline.timeInStatusText) && /* @__PURE__ */ jsxRuntimeExports.jsx(
                                         Chip,
                                         {
                                           icon: /* @__PURE__ */ jsxRuntimeExports.jsx(AccessTime, { sx: { fontSize: 16 } }),
-                                          label: timelineTransitionText,
+                                          label: matchingTimeline.timeInStatusText,
                                           size: "small",
                                           sx: {
                                             bgcolor: alpha("#6366f1", 0.15),
@@ -27309,7 +27456,7 @@ const WorkPackageDetailPro = () => {
                                                 }
                                               }
                                             ),
-                                            /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body2", fontWeight: 900, sx: { color: isStatusChange ? "#6366f1" : "text.primary" }, children: "→" })
+                                            /* @__PURE__ */ jsxRuntimeExports.jsx(Typography, { variant: "body2", fontWeight: 900, sx: { color: isDetailStatusChange ? "#6366f1" : "text.primary" }, children: "→" })
                                           ] }),
                                           /* @__PURE__ */ jsxRuntimeExports.jsx(
                                             Chip,
@@ -27326,35 +27473,6 @@ const WorkPackageDetailPro = () => {
                                             }
                                           )
                                         ]
-                                      }
-                                    ),
-                                    isStatusChange && matchingTimeline && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                                      Box,
-                                      {
-                                        sx: {
-                                          mt: 1,
-                                          pt: 1.5,
-                                          borderTop: `1px solid ${alpha("#6366f1", 0.2)}`
-                                        },
-                                        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, { spacing: 0.5, children: [
-                                          /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                                            Typography,
-                                            {
-                                              variant: "caption",
-                                              sx: { color: "#6366f1", fontWeight: 700, display: "flex", alignItems: "center", gap: 0.5 },
-                                              children: [
-                                                "⏱️ สถานะ ",
-                                                timelinePreviousStatus,
-                                                " ใช้เวลา: ",
-                                                timelineTransitionText
-                                              ]
-                                            }
-                                          ),
-                                          timelineTimeInStatusText && /* @__PURE__ */ jsxRuntimeExports.jsxs(Typography, { variant: "caption", sx: { color: "#6366f1", fontWeight: 600, opacity: 0.85 }, children: [
-                                            "อยู่ในสถานะใหม่ ",
-                                            timelineTimeInStatusText
-                                          ] })
-                                        ] })
                                       }
                                     )
                                   ] })
@@ -27422,4 +27540,4 @@ client.createRoot(document.getElementById("root")).render(
     /* @__PURE__ */ jsxRuntimeExports.jsx(App, {})
   ] }) })
 );
-//# sourceMappingURL=index-XW64jpMW.js.map
+//# sourceMappingURL=index-BX1LUNUV.js.map
