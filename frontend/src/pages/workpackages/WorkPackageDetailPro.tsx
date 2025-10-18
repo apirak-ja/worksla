@@ -575,7 +575,6 @@ const WorkPackageDetailPro: React.FC = () => {
       string,
       {
         color: string;
-        icon: React.ReactElement;
         label: string;
         bgColor: string;
         gradient: string;
@@ -585,35 +584,30 @@ const WorkPackageDetailPro: React.FC = () => {
     () => ({
       New: {
         color: '#3b82f6',
-        icon: <FiberManualRecord />,
         label: 'งานใหม่',
         bgColor: '#eff6ff',
         gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       },
       รับเรื่อง: {
         color: '#06b6d4',
-        icon: <CheckCircleRounded />,
         label: 'รับเรื่องแล้ว',
         bgColor: '#ecfeff',
         gradient: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
       },
       'กำลังดำเนินการ': {
         color: '#f59e0b',
-        icon: <HourglassTop />,
         label: 'กำลังดำเนินการ',
         bgColor: '#fef3c7',
         gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
       },
       'ดำเนินการเสร็จ': {
         color: '#10b981',
-        icon: <TaskAlt />,
         label: 'เสร็จสิ้น',
         bgColor: '#d1fae5',
         gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
       },
       'ปิดงาน': {
         color: '#6b7280',
-        icon: <CheckCircle />,
         label: 'ปิดงาน',
         bgColor: '#f3f4f6',
         gradient: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
@@ -622,7 +616,27 @@ const WorkPackageDetailPro: React.FC = () => {
     []
   );
 
-  const currentStatus = statusConfig[wp.status] || statusConfig['New'];
+  const getStatusIcon = React.useCallback((statusName: string) => {
+    switch (statusName) {
+      case 'New':
+        return <FiberManualRecord />;
+      case 'รับเรื่อง':
+        return <CheckCircleRounded />;
+      case 'กำลังดำเนินการ':
+        return <HourglassTop />;
+      case 'ดำเนินการเสร็จ':
+        return <TaskAlt />;
+      case 'ปิดงาน':
+        return <CheckCircle />;
+      default:
+        return <HistoryToggleOff />;
+    }
+  }, []);
+
+  const currentStatus = React.useMemo(() => {
+    const config = statusConfig[wp.status] || statusConfig['New'];
+    return { ...config, icon: getStatusIcon(wp.status || 'New') };
+  }, [wp.status, statusConfig, getStatusIcon]);
 
   const getPriorityConfig = (
     priority: string
@@ -657,14 +671,16 @@ const WorkPackageDetailPro: React.FC = () => {
 
     const cards: TimelineCard[] = [];
 
-    const lookupStatus = (name: string) =>
-      statusConfig[name] || {
+    const lookupStatus = (name: string) => {
+      const config = statusConfig[name];
+      return config ? { ...config, icon: getStatusIcon(name) } : {
         color: '#475569',
-        icon: <HistoryToggleOff />,
+        icon: getStatusIcon('default'),
         label: name || 'ไม่ระบุ',
         bgColor: '#e2e8f0',
         gradient: '',
       };
+    };
 
     const spansDescending = [...statusSpans].reverse();
     const latestSpan = spansDescending[0];
